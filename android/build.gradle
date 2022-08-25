@@ -1,0 +1,46 @@
+group 'com.ss.bytertc.engine.flutter.volc_engine_rtc'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.2.2'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        maven {
+            url 'https://artifact.bytedance.com/repository/Volcengine/'
+        }
+
+        maven { // VolcEngineRTC depends on com.huawei.multimedia:audiokit:1.0.3
+            url 'https://developer.huawei.com/repo/'
+        }
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 31
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 18
+    }
+}
+
+dependencies {
+    implementation 'com.volcengine:VolcEngineRTC:3.44.+'
+}
