@@ -21,7 +21,7 @@ Open the `Info.plist` and add:
 
 Your application can still run the voice call when it is switched to the background if the background mode is enabled. Select the app target in Xcode, click the **Capabilities** tab, enable **Background Modes**, and check **Audio, AirPlay, and Picture in Picture**.
 
-* modify `Podfile` to set VolcEngineRTC source
+Modify `Podfile` to set VolcEngineRTC source
 
 ```xml
 source 'https://github.com/volcengine/volcengine-specs.git'
@@ -30,6 +30,10 @@ source 'https://github.com/volcengine/volcengine-specs.git'
 #### Android
 
 VolcEngineRTC has declared the necessary permissions, which will be merged into the `AndroidManifest.xml`.
+
+## Related resources
+
+- Dive into [veRTC SDK Samples](https://github.com/volcengine/VolcEngineRTC) to see more tutorials.
 
 ## License
 
