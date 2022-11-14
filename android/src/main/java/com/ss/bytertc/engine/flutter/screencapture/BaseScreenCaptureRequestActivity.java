@@ -70,7 +70,7 @@ public abstract class BaseScreenCaptureRequestActivity extends Activity {
     }
 
     /**
-     * Android 10 及以录屏通知使用
+     * Android 10 及以上录屏通知使用
      *
      * @return
      * @see RXScreenCaptureService#KEY_LARGE_ICON
@@ -78,7 +78,7 @@ public abstract class BaseScreenCaptureRequestActivity extends Activity {
     public abstract int getLargeIcon();
 
     /**
-     * Android 10 及以录屏通知使用
+     * Android 10 及以上录屏通知使用
      *
      * @return
      * @see RXScreenCaptureService#KEY_LARGE_ICON
@@ -86,7 +86,7 @@ public abstract class BaseScreenCaptureRequestActivity extends Activity {
     public abstract int getSmallIcon();
 
     /**
-     * Android 10 及以录屏通知使用
+     * Android 10 及以上录屏通知使用
      *
      * @return
      * @see RXScreenCaptureService#KEY_LARGE_ICON
@@ -94,7 +94,7 @@ public abstract class BaseScreenCaptureRequestActivity extends Activity {
     public abstract Class<? extends Activity> getLaunchActivity();
 
     /**
-     * Android 10 及以录屏通知使用
+     * Android 10 及以上录屏通知使用
      *
      * @return
      * @see RXScreenCaptureService#KEY_LARGE_ICON

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import 'package:flutter/material.dart';
-import 'package:quickstart/user_live_view.dart';
+import 'package:volc_engine_rtc_example/user_live_view.dart';
 import 'package:volc_engine_rtc/volc_engine_rtc.dart';
 
 import 'constants.dart';
@@ -252,26 +252,28 @@ class _RoomPageState extends State<RoomPage> {
     _videoHandler.onFirstRemoteVideoFrameDecoded =
         (RemoteStreamKey streamKey, VideoFrameInfo videoFrameInfo) {
       debugPrint('onFirstRemoteVideoFrameDecoded: ${streamKey.uid}');
-      if (_firstRemoteRenderContext?.uid == streamKey.uid ||
-          _secondRemoteRenderContext?.uid == streamKey.uid ||
-          _thirdRemoteRenderContext?.uid == streamKey.uid) {
+      String? uid = streamKey.uid;
+      if (uid == null ||
+          _firstRemoteRenderContext?.uid == uid ||
+          _secondRemoteRenderContext?.uid == uid ||
+          _thirdRemoteRenderContext?.uid == uid) {
         return;
       }
 
       if (_firstRemoteRenderContext == null) {
         setState(() {
-          _firstRemoteRenderContext = RTCViewContext.remoteContext(
-              roomId: widget.roomId, uid: streamKey.uid);
+          _firstRemoteRenderContext =
+              RTCViewContext.remoteContext(roomId: widget.roomId, uid: uid);
         });
       } else if (_secondRemoteRenderContext == null) {
         setState(() {
-          _secondRemoteRenderContext = RTCViewContext.remoteContext(
-              roomId: widget.roomId, uid: streamKey.uid);
+          _secondRemoteRenderContext =
+              RTCViewContext.remoteContext(roomId: widget.roomId, uid: uid);
         });
       } else if (_thirdRemoteRenderContext == null) {
         setState(() {
-          _thirdRemoteRenderContext = RTCViewContext.remoteContext(
-              roomId: widget.roomId, uid: streamKey.uid);
+          _thirdRemoteRenderContext =
+              RTCViewContext.remoteContext(roomId: widget.roomId, uid: uid);
         });
       } else {}
     };

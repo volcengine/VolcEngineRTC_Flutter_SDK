@@ -530,7 +530,7 @@ onRecordingProgressUpdate:(ByteRTCStreamIndex)type
 - (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine
 onPushPublicStreamResult:(NSString *_Nonnull)roomId
   publiscStreamId:(NSString *_Nonnull)publicStreamId
-        errorCode:(ByteRTCTranscodingError)errorCode {
+        errorCode:(ByteRTCPublicStreamErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"publicStreamId"] = publicStreamId;
@@ -540,7 +540,7 @@ onPushPublicStreamResult:(NSString *_Nonnull)roomId
 
 - (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine
 onPlayPublicStreamResult:(NSString *_Nonnull)publicStreamId
-        errorCode:(ByteRTCTranscodingError)errorCode {
+        errorCode:(ByteRTCPublicStreamErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"publicStreamId"] = publicStreamId;
     dict[@"errorCode"] = @(errorCode);

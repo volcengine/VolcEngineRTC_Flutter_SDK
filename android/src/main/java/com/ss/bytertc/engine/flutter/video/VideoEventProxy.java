@@ -37,6 +37,7 @@ import com.ss.bytertc.engine.type.NetworkDetectionLinkType;
 import com.ss.bytertc.engine.type.NetworkDetectionStopReason;
 import com.ss.bytertc.engine.type.PerformanceAlarmMode;
 import com.ss.bytertc.engine.type.PerformanceAlarmReason;
+import com.ss.bytertc.engine.type.PublicStreamErrorCode;
 import com.ss.bytertc.engine.type.RecordingErrorCode;
 import com.ss.bytertc.engine.type.RecordingState;
 import com.ss.bytertc.engine.type.RemoteStreamSwitch;
@@ -509,18 +510,18 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onStreamSyncInfoReceived", map);
     }
 
-    public void onPushPublicStreamResult(String roomId, String publicStreamId, int errorCode) {
+    public void onPushPublicStreamResult(String roomId, String publicStreamId, PublicStreamErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode);
+        map.put("errorCode", errorCode.value());
         emitter.emit("onPushPublicStreamResult", map);
     }
 
-    public void onPlayPublicStreamResult(String publicStreamId, int errorCode) {
+    public void onPlayPublicStreamResult(String publicStreamId, PublicStreamErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode);
+        map.put("errorCode", errorCode.value());
         emitter.emit("onPlayPublicStreamResult", map);
     }
 

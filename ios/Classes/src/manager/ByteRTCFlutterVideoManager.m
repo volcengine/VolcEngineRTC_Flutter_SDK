@@ -36,7 +36,12 @@
 
 - (void)createRTCVideo:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *appId = arguments[@"appId"];
-    NSDictionary *parameters = arguments[@"parameters"];
+    NSDictionary *origParameters = arguments[@"parameters"];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (origParameters.count != 0) {
+        [parameters addEntriesFromDictionary:origParameters];
+    }
+    parameters[@"rtc.platform"] = @6;
     self.rtcVideo = [ByteRTCVideo createRTCVideo:appId
                                         delegate:self.delegate
                                       parameters:parameters];
@@ -286,25 +291,6 @@
 - (void)setVideoEffectColorFilterIntensity:(NSDictionary *)arguments result:(FlutterResult)result {
     float intensity = [arguments[@"intensity"] floatValue];
     int res = [self.rtcVideo setVideoEffectColorFilterIntensity:intensity];
-    result(@(res));
-}
-
-- (void)initVirtualBackground:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *licensePath = arguments[@"licenseFile"];
-    NSString *modelPath = arguments[@"modelFile"];
-    int res = [self.rtcVideo initVirtualBackground:licensePath
-                                         withModel:modelPath];
-    result(@(res));
-}
-
-- (void)enableVirtualBackground:(NSDictionary *)arguments result:(FlutterResult)result {
-    ByteRTCVirtualBackgroundSource *source = [ByteRTCVirtualBackgroundSource bf_fromMap:arguments[@"source"]];
-    int res = [self.rtcVideo enableVirtualBackground:source];
-    result(@(res));
-}
-
-- (void)disableVirtualBackground:(NSDictionary *)arguments result:(FlutterResult)result {
-    int res = [self.rtcVideo disableVirtualBackground];
     result(@(res));
 }
 
@@ -778,6 +764,12 @@
 
 - (void)stopEchoTest:(NSDictionary *)arguments result:(FlutterResult)result {
     int res = [self.rtcVideo stopEchoTest];
+    result(@(res));
+}
+
+- (void)setDummyCaptureImagePath:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *filePath = arguments[@"filePath"];
+    int res = [self.rtcVideo setDummyCaptureImagePath:filePath];
     result(@(res));
 }
 

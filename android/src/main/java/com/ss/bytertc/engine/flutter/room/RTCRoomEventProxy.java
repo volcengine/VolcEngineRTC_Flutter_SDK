@@ -320,8 +320,8 @@ public class RTCRoomEventProxy extends IRTCRoomEventHandler {
     }
 
     void setSwitch(RTCTypeBox box) {
-        enableNetworkQualityStats = box.optBoolean("enableSysStats", enableNetworkQualityStats);
-        enableLocalStreamStats = box.optBoolean("enableSysStats", enableLocalStreamStats);
+        enableNetworkQualityStats = box.optBoolean("enableNetworkQualityStats", enableNetworkQualityStats);
+        enableLocalStreamStats = box.optBoolean("enableLocalStreamStats", enableLocalStreamStats);
         enableRemoteStreamStats = box.optBoolean("enableRemoteStreamStats", enableRemoteStreamStats);
         enableRoomStats = box.optBoolean("enableRoomStats", enableRoomStats);
     }

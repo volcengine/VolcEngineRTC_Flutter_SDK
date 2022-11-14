@@ -18,7 +18,10 @@ class _UserLiveViewState extends State<UserLiveView> {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       /// 根据 [RTCViewContext] 创建视频渲染视图 [RTCSurfaceView]
-      Expanded(child: RTCSurfaceView(context: widget.viewContext)),
+      Expanded(
+          child: RTCSurfaceView(
+              key: ValueKey(widget.viewContext.uid),
+              context: widget.viewContext)),
       SizedBox(
           height: 30,
           child: Center(

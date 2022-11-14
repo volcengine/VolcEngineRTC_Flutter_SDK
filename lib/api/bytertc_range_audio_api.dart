@@ -59,6 +59,8 @@ abstract class RTCRangeAudio {
   /// + `-1`：失败，原因是在调用 [RTCRangeAudio.enableRangeAudio] 开启范围语音前或进房前调用了本接口。
   ///
   /// 注意：音量衰减范围通过 [RTCRangeAudio.updateReceiveRange] 进行设置。
-  Future<int?> setAttenuationModel(
-      {required AttenuationType type, required double coefficient});
+  Future<int?> setAttenuationModel({
+    required AttenuationType type,
+    required double coefficient,
+  });
 }

@@ -40,6 +40,7 @@ import com.ss.bytertc.engine.live.LiveTranscoding;
 import com.ss.bytertc.engine.live.PushSingleStreamParam;
 import com.ss.bytertc.engine.mediaio.RTCEncodedVideoFrame;
 import com.ss.bytertc.engine.publicstream.PublicStreaming;
+import com.ss.bytertc.engine.type.AttenuationType;
 import com.ss.bytertc.engine.type.BackgroundMode;
 import com.ss.bytertc.engine.type.ChannelProfile;
 import com.ss.bytertc.engine.type.DivideModel;
@@ -118,8 +119,6 @@ public class RTCType {
         streaming.setVideo(toStreamingVideoConfig(value.optBox("video")));
         streaming.setAudio(toStreamingAudioConfig(value.optBox("audio")));
         streaming.setLayout(toLayout(value.optBox("layout")));
-
-        streaming.setAction(value.optString("action"));
         return streaming;
     }
 
@@ -611,6 +610,16 @@ public class RTCType {
                 range.optInt("min"),
                 range.optInt("max")
         );
+    }
+
+    public static AttenuationType toAttenuationType(int value) {
+        for (AttenuationType type : AttenuationType.values()) {
+            if (value == type.value()) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown AttenuationType value: " + value);
     }
 
     public static EchoTestConfig toEchoTestConfig(RTCTypeBox config) {

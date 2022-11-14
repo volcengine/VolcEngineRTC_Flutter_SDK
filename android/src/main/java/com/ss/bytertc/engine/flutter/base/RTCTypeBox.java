@@ -7,7 +7,7 @@ package com.ss.bytertc.engine.flutter.base;
 
 import androidx.annotation.RestrictTo;
 
-import com.ss.bytertc.engine.flutter.volc_engine_rtc.BuildConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 
 import org.json.JSONObject;
 

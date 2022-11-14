@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.flutter.base.Logger;
-import com.ss.bytertc.engine.flutter.volc_engine_rtc.BuildConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 
 import java.util.HashMap;
 

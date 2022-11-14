@@ -11,10 +11,10 @@ import 'bytertc_video_defines.dart';
 
 /// 房间接口
 abstract class RTCRoom {
-  /// 获取房间 ID，暂不可用
+  /// 获取房间 ID
   String get roomId;
 
-  /// 退出并销毁调用 [RTCVideo.createRTCRoom] 所创建的房间
+  /// 退出并销毁调用 [RTCVideo.createRTCRoom] 所创建的房间实例。
   Future<void> destroy();
 
   /// 设置事件句柄
@@ -36,7 +36,7 @@ abstract class RTCRoom {
   ///
   /// 返回值：方法调用结果
   /// + 0：成功。
-  /// + -1：失败，userInfo.uid 包含了无效的参数。
+  /// + -1：失败，userInfo 包含了无效的参数。
   /// + -2：失败，已经在房间内。接口调用成功后，只要收到返回值为 0，且未调用 [RTCRoom.leaveRoom] 成功，则再次调用进房接口时，无论填写的房间 ID 和用户 ID 是否重复，均触发此返回值。
   /// + -3：失败，room 为空。
   ///
@@ -44,11 +44,12 @@ abstract class RTCRoom {
   /// + 同一个 App ID 的同一个房间内，每个用户的用户 ID 必须唯一。如果两个用户的用户 ID 相同，则后进房的用户会将先进房的用户踢出房间，并且先进房的用户会收到 [RTCVideoEventHandler.onError] 回调通知，错误类型详见 [ErrorCode] 中的 duplicateLogin。
   /// + 本地用户调用此方法加入房间成功后，会收到 [RTCRoomEventHandler.onRoomStateChanged] 回调通知。
   /// + 本地用户调用 [RTCRoom.setUserVisibility] 将自身设为可见后加入房间，远端用户会收到 [RTCRoomEventHandler.onUserJoined] 回调通知。
-  /// + 用户加入房间成功后，在本地网络状况不佳的情况下，SDK 可能会与服务器失去连接，此时 SDK 将会自动重连。重连成功后，本地会收到 [RTCRoomEventHandler.onRoomStateChanged] 回调通知；如果加入房间的用户是主播角色，远端用户会收到 [RTCRoomEventHandler.onUserJoined] 回调通知。
-  Future<int?> joinRoom(
-      {required String token,
-      required UserInfo userInfo,
-      required RoomConfig roomConfig});
+  /// + 用户加入房间成功后，在本地网络状况不佳的情况下，SDK 可能会与服务器失去连接，此时 SDK 将会自动重连。重连成功后，本地会收到 [RTCRoomEventHandler.onRoomStateChanged] 回调通知；若加入房间的是可见用户，则远端用户会收到 [RTCRoomEventHandler.onUserJoined] 回调通知。
+  Future<int?> joinRoom({
+    required String token,
+    required UserInfo userInfo,
+    required RoomConfig roomConfig,
+  });
 
   /// 设置用户可见性，默认为可见
   ///
@@ -81,7 +82,6 @@ abstract class RTCRoom {
   /// 离开房间
   ///
   /// 用户调用此方法离开房间，结束通话过程，释放所有通话相关的资源。<br>
-  /// 调用 [RTCRoom.joinRoom] 加入房间后，必须调用此方法结束通话，否则无法开始下一次通话。<br>
   /// 无论当前是否在房间内，都可以调用此方法。重复调用此方法没有负面影响。<br>
   /// 此方法是异步操作，调用返回时并没有真正退出房间。真正退出房间后，本地会收到 [RTCRoomEventHandler.onLeaveRoom] 回调通知。
   ///
@@ -109,8 +109,10 @@ abstract class RTCRoom {
   /// + 若发布端开启了推送多路流功能，但订阅端不对流参数进行设置，则默认接受发送端设置的分辨率最大的一路视频流。
   /// + 该方法需在进房后调用，若想进房前设置，你需调用 [RTCRoom.joinRoom]，并对 `roomConfig` 中的 `remoteVideoConfig` 进行设置。
   /// + SDK 会根据发布端和所有订阅端的设置灵活调整视频流的参数，具体调整策略详见[推送多路流](https://www.volcengine.com/docs/6348/70139)文档。
-  Future<void> setRemoteVideoConfig(
-      {required String uid, required RemoteVideoConfig videoConfig});
+  Future<void> setRemoteVideoConfig({
+    required String uid,
+    required RemoteVideoConfig videoConfig,
+  });
 
   /// 在当前所在房间内发布本地通过摄像头/麦克风采集的媒体流
   ///
@@ -164,11 +166,12 @@ abstract class RTCRoom {
   /// 注意：
   /// + 该方法可以用于首次订阅某远端用户，也可用于更新已订阅远端用户的媒体流类型。
   /// + 你必须先通过 [RTCRoomEventHandler.onUserPublishStream] 回调获取当前房间里的远端摄像头音视频流信息，然后调用本方法按需订阅。
-  /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知方法调用结果。
   /// + 成功订阅远端用户的媒体流后，订阅关系将持续到调用 [RTCRoom.unsubscribeStream] 取消订阅或本端用户退房。
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体异常原因参看 [ErrorCode]。
-  Future<void> subscribeStream(
-      {required String uid, required MediaStreamType type});
+  Future<void> subscribeStream({
+    required String uid,
+    required MediaStreamType type,
+  });
 
   /// 取消订阅房间内指定的通过摄像头/麦克风采集的媒体流
   ///
@@ -178,10 +181,11 @@ abstract class RTCRoom {
   ///
   /// [type] 传入媒体流类型，用于指定取消订阅音频/视频。
   ///
-  /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知流的退订结果。  <br>
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体失败原因参看 [ErrorCode]。
-  Future<void> unsubscribeStream(
-      {required String uid, required MediaStreamType type});
+  Future<void> unsubscribeStream({
+    required String uid,
+    required MediaStreamType type,
+  });
 
   /// 订阅房间内指定的远端屏幕共享音视频流，或更新对指定远端用户的订阅选项
   ///
@@ -192,11 +196,12 @@ abstract class RTCRoom {
   /// 注意：
   /// + 该方法可以用于首次订阅某远端用户的屏幕流，也可用于更新已订阅远端用户的屏幕媒体流类型。
   /// + 你必须先通过 [RTCRoomEventHandler.onUserPublishScreen] 回调获取当前房间里的远端屏幕流信息，然后调用本方法按需订阅。
-  /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知方法调用结果。
   /// + 成功订阅远端用户的媒体流后，订阅关系将持续到调用 [RTCRoom.unsubscribeScreen] 取消订阅或本端用户退房。
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体异常原因参看 [ErrorCode]。
-  Future<void> subscribeScreen(
-      {required String uid, required MediaStreamType type});
+  Future<void> subscribeScreen({
+    required String uid,
+    required MediaStreamType type,
+  });
 
   /// 取消订阅房间内指定的远端屏幕共享音视频流
   ///
@@ -207,10 +212,11 @@ abstract class RTCRoom {
   /// [type] 传入媒体流类型，用于指定取消订阅音频/视频。
   ///
   /// 注意：
-  /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知方法调用结果。  <br>
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体失败原因参看 [ErrorCode]。
-  Future<void> unsubscribeScreen(
-      {required String uid, required MediaStreamType type});
+  Future<void> unsubscribeScreen({
+    required String uid,
+    required MediaStreamType type,
+  });
 
   /// 暂停接收所有来自远端的媒体流。
   ///
@@ -236,10 +242,11 @@ abstract class RTCRoom {
   /// + 在发送房间内文本消息前，必须先调用 [RTCRoom.joinRoom] 加入房间。
   /// + 调用本接口发送文本信息后，会收到 [RTCRoomEventHandler.onUserMessageSendResult]。
   /// + 若文本消息发送成功，则 [uid] 所指定的用户会收到 [RTCRoomEventHandler.onUserMessageReceived]。
-  Future<int?> sendUserMessage(
-      {required String uid,
-      required String message,
-      required MessageConfig config});
+  Future<int?> sendUserMessage({
+    required String uid,
+    required String message,
+    required MessageConfig config,
+  });
 
   /// 给房间内指定的用户发送二进制消息
   ///
@@ -251,10 +258,11 @@ abstract class RTCRoom {
   /// + 在发送房间内二进制消息前，必须先调用 [RTCRoom.joinRoom] 加入房间。
   /// + 调用本接口发送二进制信息后，会收到 [RTCRoomEventHandler.onUserMessageSendResult]。
   /// + 若二进制消息发送成功，则 [uid] 所指定的用户会收到 [RTCRoomEventHandler.onUserBinaryMessageReceived]。
-  Future<int?> sendUserBinaryMessage(
-      {required String uid,
-      required Uint8List message,
-      required MessageConfig config});
+  Future<int?> sendUserBinaryMessage({
+    required String uid,
+    required Uint8List message,
+    required MessageConfig config,
+  });
 
   /// 给房间内所有用户发送文本消息
   ///
@@ -295,7 +303,7 @@ abstract class RTCRoom {
   /// 更新跨房间媒体流转发信息
   ///
   /// 通过 [RTCRoom.startForwardStreamToRooms] 发起媒体流转发后，可调用本方法增加或者减少目标房间，或更新房间密钥。 <br>
-  /// 调用本方法增加或删减房间后，将在本端触发 [RTCRoomEventHandler.onForwarStreamStateChanged] 回调，包含发生了变动的目标房间中媒体流转发状态。
+  /// 调用本方法增加或删减房间后，将在本端触发 [RTCRoomEventHandler.onForwardStreamStateChanged] 回调，包含发生了变动的目标房间中媒体流转发状态。
   ///
   /// [forwardStreamInfos] 跨房间媒体流转发目标房间信息。
   ///

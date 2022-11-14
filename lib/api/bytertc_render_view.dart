@@ -1,10 +1,10 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../src/bytertc_render_view_impl.dart';
 import 'bytertc_common_defines.dart';
@@ -44,26 +44,27 @@ class RTCViewContext {
   /// 应用程序通过调用此接口将画布和本地视频流绑定。<br>
   /// 在应用程序开发中，通常在初始化后调用该方法进行本地视频设置，然后再加入房间，退出房间后绑定仍然有效。<br>
   /// 调用 [RTCVideo.removeLocalVideo] 可解除绑定。
-  RTCViewContext.localContext(
-      {required this.uid, this.streamType = StreamIndex.main})
-      : canvasType = VideoCanvasType.local,
+  RTCViewContext.localContext({
+    required this.uid,
+    this.streamType = StreamIndex.main,
+  })  : canvasType = VideoCanvasType.local,
         roomId = '';
 
   /// 设置渲染远端视频的画布
   ///
   /// 应用程序通过调用此接口将画布和远端视频流绑定。退出房间后绑定仍然有效。<br>
   /// 调用 [RTCVideo.removeRemoteVideo] 解除绑定。
-  RTCViewContext.remoteContext(
-      {required this.roomId,
-      required this.uid,
-      this.streamType = StreamIndex.main})
-      : canvasType = VideoCanvasType.remote;
+  RTCViewContext.remoteContext({
+    required this.roomId,
+    required this.uid,
+    this.streamType = StreamIndex.main,
+  }) : canvasType = VideoCanvasType.remote;
 
   /// 设置渲染公共视频流的画布
   ///
   /// 应用程序通过调用此接口将画布和公共视频流绑定。退出房间后绑定仍然有效。<br>
   /// 调用 [RTCVideo.removePublicStreamVideo] 解除绑定。
-  RTCViewContext.publicStreamContext({required String publicStreamId})
+  RTCViewContext.publicStreamContext(String publicStreamId)
       : canvasType = VideoCanvasType.publicStream,
         roomId = '',
         uid = publicStreamId,
@@ -77,12 +78,13 @@ class RTCViewContext {
         streamType = StreamIndex.main;
 }
 
-/// 视频渲染设置
+/// 视频渲染设置。
+///
+/// 若使用 Flutter 3.0.0 及以上版本开发 Android 应用，建议使用 Android 6.0 及以上设备，否则会出现图层显示错误。
 ///
 /// 不同平台对应不同对象：
 /// + Android: [TextureView](https://developer.android.com/reference/android/view/TextureView).
 /// + iOS: [UIView](https://developer.apple.com/documentation/uikit/uiview).
-/// + 对其他平台不适用。
 class RTCSurfaceView extends StatefulWidget {
   /// 传入 context 用于实例初始化
   final RTCViewContext context;

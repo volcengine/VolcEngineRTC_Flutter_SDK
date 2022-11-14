@@ -1,6 +1,8 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+import 'package:flutter/foundation.dart';
+
 import '../src/bytertc_room_event_impl.dart';
 import 'bytertc_event_define.dart';
 
@@ -29,16 +31,13 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 房间内通话统计信息回调。
   ///
   /// 用户进房开始通话后，每 2s 收到一次本回调。
-  OnRoomStatsType? get onRoomStats;
-  set onRoomStats(OnRoomStatsType? onRoomStats);
+  abstract OnRoomStatsType? onRoomStats;
 
   /// 反映通话中本地设备发送音/视频流的统计信息以及网络状况的回调，每 2s 触发一次。
-  OnLocalStreamStatsType? get onLocalStreamStats;
-  set onLocalStreamStats(OnLocalStreamStatsType? onLocalStreamStats);
+  abstract OnLocalStreamStatsType? onLocalStreamStats;
 
   /// 通话中本地设备接收订阅的远端音/视频流的统计信息以及网络状况，每 2s 触发一次。
-  OnRemoteStreamStatsType? get onRemoteStreamStats;
-  set onRemoteStreamStats(OnRemoteStreamStatsType? onRemoteStreamStats);
+  abstract OnRemoteStreamStatsType? onRemoteStreamStats;
 
   /// 远端可见用户加入房间，或房内隐身用户切换为可见时，房间内的其他用户会收到此回调。
   ///
@@ -82,7 +81,8 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 收到该回调通知后，你可以自行选择是否调用 [RTCRoom.unsubscribeScreen] 取消订阅此流。
   OnUserUnpublishStreamType? onUserUnpublishScreen;
 
-  /// 关于订阅媒体流状态改变的回调。
+  /// @nodoc
+  @protected
   OnStreamSubscribedType? onStreamSubscribed;
 
   /// 收到来自房间内广播的文本消息时，收到此回调。
@@ -109,7 +109,7 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// + 若被封禁用户退房后再进房，则依然是封禁状态，且房间内所有人会再次收到该回调。
   /// + 若被封禁用户断网后重连进房，则依然是封禁状态，且只有本人会再次收到该回调。
   /// + 指定用户被封禁后，房间内其他用户退房后再进房，会再次收到该回调。
-  /// + 通话人数超过 5 人时，只有被封禁/解禁用户会收到该回调。
+  /// + 在控制台开启大会模式后，只有被封禁/解禁用户会收到该回调。
   /// + 同一房间解散后再次创建，房间内状态清空。
   OnVideoStreamBannedType? onVideoStreamBanned;
 
@@ -119,7 +119,7 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// + 若被封禁用户退房后再进房，则依然是封禁状态，且房间内所有人会再次收到该回调。
   /// + 若被封禁用户断网后重连进房，则依然是封禁状态，且只有本人会再次收到该回调。
   /// + 指定用户被封禁后，房间内其他用户退房后再进房，会再次收到该回调。
-  /// + 通话人数超过 5 人时，只有被封禁/解禁用户会收到该回调。
+  /// + 在控制台开启大会模式后，只有被封禁/解禁用户会收到该回调。
   /// + 同一房间解散后再次创建，房间内状态清空。
   OnAudioStreamBannedType? onAudioStreamBanned;
 
@@ -132,8 +132,7 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 加入房间后， 以 2 秒 1 次的频率，报告用户的网络质量信息
   ///
   /// 更多通话中的监测接口，详见[通话中质量监测](https://www.volcengine.com/docs/6348/106866)
-  OnNetworkQualityType? get onNetworkQuality;
-  set onNetworkQuality(OnNetworkQualityType? onNetworkQuality);
+  abstract OnNetworkQualityType? onNetworkQuality;
 
   RTCRoomEventHandler({
     this.onRoomStateChanged,

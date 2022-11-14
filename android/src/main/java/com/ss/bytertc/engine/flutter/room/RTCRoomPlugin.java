@@ -23,7 +23,8 @@ import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCType;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
-import com.ss.bytertc.engine.flutter.volc_engine_rtc.BuildConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
+import com.ss.bytertc.engine.type.AttenuationType;
 import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.MessageConfig;
 import com.ss.bytertc.engine.type.PauseResumeControlMediaType;
@@ -122,6 +123,14 @@ public class RTCRoomPlugin implements FlutterPlugin {
                     }
 
                     result.success(null);
+                    break;
+                }
+
+                case "setAttenuationModel": {
+                    AttenuationType type = RTCType.toAttenuationType(arguments.optInt("type"));
+                    float coefficient = arguments.optFloat("coefficient");
+                    int retValue = mRangeAudio.setAttenuationModel(type, coefficient);
+                    result.success(retValue);
                     break;
                 }
             }

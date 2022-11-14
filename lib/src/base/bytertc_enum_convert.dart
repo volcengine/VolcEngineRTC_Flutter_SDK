@@ -275,6 +275,7 @@ extension VideoOrientationValue on VideoOrientation {
 /// int to enum
 E _convertEnumValue<E>(List<E> values, int? idx, E defaultValue) {
   if (idx == null || idx >= values.length || idx < 0) {
+    print("RTC: Enum ($E) unknown value $idx");
     return defaultValue;
   }
   return values[idx];
@@ -307,6 +308,20 @@ extension RTCTypeValue on int? {
         return WarningCode.inEchoTestMode;
       case -5001:
         return WarningCode.noCameraPermission;
+      case -5002:
+        return WarningCode.noMicrophonePermission;
+      case -5003:
+        return WarningCode.audioDeviceManagerRecordingStartFail;
+      case -5004:
+        return WarningCode.audioDeviceManagerPlayoutStartFail;
+      case -5005:
+        return WarningCode.noRecordingDevice;
+      case -5006:
+        return WarningCode.noPlayoutDevice;
+      case -5007:
+        return WarningCode.recordingSilence;
+      case -5008:
+        return WarningCode.mediaDeviceOperationDenied;
       case -5009:
         return WarningCode.setScreenAudioSourceTypeFailed;
       case -5010:
@@ -318,6 +333,7 @@ extension RTCTypeValue on int? {
       case -6001:
         return WarningCode.invalidCanvasHandle;
       default:
+        print("RTC: WarningCode unknown value $this");
         return WarningCode.unknown;
     }
   }
@@ -363,6 +379,7 @@ extension RTCTypeValue on int? {
       case -1084:
         return ErrorCode.abnormalServerStatus;
       default:
+        print("RTC: ErrorCode unknown value $this");
         return ErrorCode.unknown;
     }
   }
@@ -436,6 +453,7 @@ extension RTCTypeValue on int? {
       case 270:
         return VideoRotation.rotation270;
       default:
+        print("RTC: VideoRotation unknown value $this");
         return VideoRotation.rotation0;
     }
   }
@@ -558,6 +576,7 @@ extension RTCTypeValue on int? {
       case 13:
         return MediaDeviceState.interruptionEnded;
       default:
+        print("RTC: MediaDeviceState unknown value $this");
         return MediaDeviceState.runtimeError;
     }
   }
@@ -604,6 +623,7 @@ extension RTCTypeValue on int? {
       case 24:
         return MediaDeviceWarning.setAudioRouteDeviceNotStart;
       default:
+        print("RTC: MediaDeviceWarning unknown value $this");
         return MediaDeviceWarning.operationDenied;
     }
   }
@@ -637,8 +657,8 @@ extension RTCTypeValue on int? {
     if (this == 0) {
       return TranscoderErrorCode.ok;
     }
-    return _convertEnumValue(TranscoderErrorCode.values, (this ?? 1090) - 1090,
-        TranscoderErrorCode.invalidState);
+    return _convertEnumValue(TranscoderErrorCode.values, (this ?? 1090) - 1089,
+        TranscoderErrorCode.base);
   }
 
   AVSyncState get avSyncState {
@@ -701,6 +721,7 @@ extension RTCTypeValue on int? {
       case 106:
         return UserMessageSendResult.serverParamsNotSet;
       default:
+        print("RTC: UserMessageSendResult unknown value $this");
         return UserMessageSendResult.unknown;
     }
   }
@@ -723,7 +744,29 @@ extension RTCTypeValue on int? {
       case 103:
         return RoomMessageSendResult.exceedMaxLength;
       default:
+        print("RTC: RoomMessageSendResult unknown value $this");
         return RoomMessageSendResult.unknown;
+    }
+  }
+
+  PublicStreamErrorCode get publicStreamErrorCode {
+    switch (this) {
+      case 0:
+      case 200:
+        return PublicStreamErrorCode.success;
+      case 1191:
+        return PublicStreamErrorCode.paramError;
+      case 1192:
+        return PublicStreamErrorCode.statusError;
+      case 1193:
+        return PublicStreamErrorCode.internalError;
+      case 1195:
+        return PublicStreamErrorCode.pushError;
+      case 1196:
+        return PublicStreamErrorCode.timeOut;
+      default:
+        print("RTC: PublicStreamErrorCode unknown value $this");
+        return PublicStreamErrorCode.internalError;
     }
   }
 }

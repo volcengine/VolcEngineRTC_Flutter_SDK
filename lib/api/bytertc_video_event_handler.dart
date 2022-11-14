@@ -5,7 +5,7 @@ import '../src/bytertc_video_event_impl.dart';
 import 'bytertc_event_define.dart';
 
 /// RTCVideo 事件回调接口
-class RTCVideoEventHandler with RTCVideoEventValue {
+class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 发生警告回调
   ///
   /// 该回调方法表示 SDK 运行时出现了（网络或媒体相关的）警告。通常情况下，警告信息可以忽略，SDK 会自动恢复。
@@ -40,9 +40,9 @@ class RTCVideoEventHandler with RTCVideoEventValue {
   /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，会周期性收到此回调，获取本地麦克风和屏幕采集的音量信息
   OnLocalAudioPropertiesReportType? onLocalAudioPropertiesReport;
 
-  /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，会周期性收到此回调，获取远端内部采集或自定义采集的音量信息
+  /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，会周期性收到此回调，获取远端音量信息
   ///
-  /// 远端用户的音频包括使用 RTC SDK 内部机制/自定义机制采集的麦克风音频和屏幕音频。
+  /// 远端用户的音频包括麦克风音频和屏幕音频。
   OnRemoteAudioPropertiesReportType? onRemoteAudioPropertiesReport;
 
   /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，你会周期性地收到此回调，获取房间内的最活跃用户信息
@@ -117,8 +117,7 @@ class RTCVideoEventHandler with RTCVideoEventValue {
   OnStreamSyncInfoReceivedType? onStreamSyncInfoReceived;
 
   /// 周期性（2s）收到此回调，获取当前 CPU 与内存的使用率
-  OnSysStatsType? get onSysStats;
-  set onSysStats(OnSysStatsType? onSysStats);
+  abstract OnSysStatsType? onSysStats;
 
   /// 本地音频的状态发生改变时，收到此回调。
   OnLocalAudioStateChangedType? onLocalAudioStateChanged;
@@ -150,7 +149,7 @@ class RTCVideoEventHandler with RTCVideoEventValue {
   /// 收到房间外用户调用 [RTCVideo.sendUserBinaryMessageOutsideRoom] 发来的二进制消息时，会收到此回调
   OnBinaryMessageReceivedType? onUserBinaryMessageReceivedOutsideRoom;
 
-  /// 收到房间外用户调用 [RTCVideo.sendUserMessageOutsideRoom] 发来的二进制消息时，会收到此回调
+  /// 当调用 [RTCVideo.sendUserMessageOutsideRoom] 给房间外指定用户发送消息时，会收到此回调
   OnMessageSendResultType? onUserMessageSendResultOutsideRoom;
 
   /// 当调用 [RTCVideo.sendServerMessage] 或 [RTCVideo.sendServerBinaryMessage] 发送消息后，会收到此回调。

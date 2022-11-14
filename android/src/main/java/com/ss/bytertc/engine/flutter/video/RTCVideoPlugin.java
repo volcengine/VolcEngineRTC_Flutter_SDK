@@ -42,7 +42,7 @@ import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
 import com.ss.bytertc.engine.flutter.render.EchoTestViewHolder;
 import com.ss.bytertc.engine.flutter.room.RTCRoomPlugin;
 import com.ss.bytertc.engine.flutter.screencapture.LaunchHelper;
-import com.ss.bytertc.engine.flutter.volc_engine_rtc.BuildConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.live.LiveTranscoding;
 import com.ss.bytertc.engine.live.PushSingleStreamParam;
 import com.ss.bytertc.engine.publicstream.PublicStreaming;
@@ -62,6 +62,7 @@ import com.ss.bytertc.engine.utils.AudioFrame;
 import com.ss.bytertc.engine.video.RTCWatermarkConfig;
 import com.ss.bytertc.engine.video.VideoCaptureConfig;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
@@ -352,7 +353,11 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     if (!RTCVideoManager.hasRTCVideo()) {
                         String appId = arguments.optString("appId");
                         JSONObject parameters = arguments.optJSONObject("parameters");
-
+                        try {
+                            parameters.put("rtc.platform", 6);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                         RTCVideoManager.create(appId, videoEventHandler, parameters);
                     }
                     result.success(RTCVideoManager.hasRTCVideo());
@@ -711,36 +716,6 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
-                case "initVirtualBackground": {
-                    Context context = binding.getApplicationContext();
-                    String licenseFile = arguments.optString("licenseFile");
-                    String modelFile = arguments.optString("modelFile");
-
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.initVirtualBackground(context, licenseFile, modelFile);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "enableVirtualBackground": {
-                    VirtualBackgroundSource source = RTCType.toVirtualBackgroundSource(arguments.optBox("source"));
-
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.enableVirtualBackground(source);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "disableVirtualBackground": {
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.disableVirtualBackground();
-
-                    result.success(retValue);
-                    break;
-                }
-
                 case "enableEffectBeauty": {
                     final boolean enable = arguments.optBoolean("enable");
 
@@ -958,7 +933,7 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 case "startPushPublicStream": {
                     String publicStreamId = arguments.optString("publicStreamId");
                     PublicStreaming publicStreamParam = RTCType.toPublicStreaming(arguments.optBox("publicStreamParam"));
-
+                    publicStreamParam.setAction(PublicStreaming.ACTION_START);
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.startPushPublicStream(publicStreamId, publicStreamParam);
 
@@ -979,7 +954,7 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 case "updatePublicStreamParam": {
                     String publicStreamId = arguments.optString("publicStreamId");
                     PublicStreaming publicStreamParam = RTCType.toPublicStreaming(arguments.optBox("publicStreamParam"));
-
+                    publicStreamParam.setAction(PublicStreaming.ACTION_CHANGED);
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.updatePublicStreamParam(publicStreamId, publicStreamParam);
 
@@ -1434,6 +1409,15 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     rtcVideo.stopPushStreamToCDN(taskId);
 
                     result.success(null);
+                    break;
+                }
+
+                case "setDummyCaptureImagePath": {
+                    String filePath = arguments.optString("filePath");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setDummyCaptureImagePath(filePath);
+
+                    result.success(retValue);
                     break;
                 }
 

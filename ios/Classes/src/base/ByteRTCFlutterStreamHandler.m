@@ -49,13 +49,11 @@ static NSString * const kMethodName = @"methodName";
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSLog(@"[RTCFlutter] %@ MethodCall: %@", self.class, call.method);
     SEL selector = NSSelectorFromString([call.method stringByAppendingString:@":result:"]);
     if ([self.methodTarget respondsToSelector:selector]) {
         ((void(*)(id,SEL,id,FlutterResult))objc_msgSend)(self.methodTarget,selector,call.arguments,result);
         return;
     }
-    NSLog(@"[RTCFlutter] %@ MethodNotImplemented: %@", self.class, call.method);
     result(FlutterMethodNotImplemented);
 }
 
@@ -93,9 +91,6 @@ static NSString * const kMethodName = @"methodName";
     dispatch_main_async_safe(^{
         if(self.eventSink) {
             self.eventSink(message);
-            NSLog(@"[RTCFlutter] %@ Sink methodName: %@\n", self.class, methodName);
-        } else {
-            NSLog(@"[RTCFlutter] %@ Channel not listened: %@ methodName: %@", self.class, self.eventChannelName, methodName);
         }
     });
 }

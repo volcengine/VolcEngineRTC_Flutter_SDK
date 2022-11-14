@@ -43,7 +43,7 @@ enum AudioRoute {
 /// 音频场景类型
 ///
 /// 选择音频场景后，SDK 会自动根据客户端音频采集播放设备和状态，适用通话音量/媒体音量。
-/// 如果以下音频场景类型无法满足你的业务需要，请联系技术支持同学进行定制。
+/// 如果以下音频场景类型无法满足你的业务需要，请联系技术支持人员。
 enum AudioScenario {
   /// 音乐场景(默认)
   ///
@@ -79,16 +79,16 @@ enum AudioScenario {
   /// 但是，此场景会压低使用媒体音量进行播放的其他音频的音量，且音质会变差。
   communication,
 
-  /// 纯媒体场景（一般不建议使用）
+  /// 纯媒体场景。一般不建议使用。
   ///
   /// 此场景下，无论客户端音频采集播放设备和采集播放状态，全程使用媒体音量。
-  /// 外放通话时，极易出现回声和啸叫。
+  /// 外放通话时，可能出现回声和啸叫，请联系技术支持人员。
   media,
 
-  /// 游戏媒体场景
+  /// 游戏媒体场景。
   ///
-  /// 此场景下，蓝牙耳机时使用通话音量，其它设备使用媒体音量。
-  /// 外放通话且无游戏音效消除优化时，极易出现回声和啸叫。
+  /// 此场景下，蓝牙耳机使用通话音量，其它设备使用媒体音量。
+  /// 若外放通话且无游戏音效消除优化时音质不理想，请联系技术支持人员。
   gameStreaming
 }
 
@@ -202,10 +202,10 @@ enum AudioMixingError {
 
 /// 是否开启耳返功能
 enum EarMonitorMode {
-  /// 不开启（默认）
+  /// 不开启（默认）。
   off,
 
-  /// 开启
+  /// 开启。
   on,
 }
 
@@ -242,14 +242,16 @@ class RTCASRConfig {
   /// 应用 ID
   String appId;
 
-  RTCASRConfig(
-      {required this.uid,
-      required this.accessToken,
-      this.secretKey = '',
-      this.authorizationType = ASRAuthorizationType.token,
-      required this.cluster,
-      required this.appId});
+  RTCASRConfig({
+    required this.uid,
+    required this.accessToken,
+    this.secretKey = '',
+    this.authorizationType = ASRAuthorizationType.token,
+    required this.cluster,
+    required this.appId,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
@@ -295,11 +297,14 @@ class AudioMixingConfig {
   /// + 当传入的值小于等于 0 时，不会触发进度回调。
   int callbackOnProgressInterval;
 
-  AudioMixingConfig(
-      {this.type = AudioMixingType.playout,
-      this.playCount = 0,
-      this.position = 0,
-      this.callbackOnProgressInterval = 0});
+  AudioMixingConfig({
+    this.type = AudioMixingType.playout,
+    this.playCount = 0,
+    this.position = 0,
+    this.callbackOnProgressInterval = 0,
+  });
+
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'type': type.value,
@@ -340,11 +345,13 @@ class AudioPropertiesConfig {
   /// 是否开启人声检测（VAD）
   bool enableVad;
 
-  AudioPropertiesConfig(
-      {this.interval = 100,
-      this.enableSpectrum = false,
-      this.enableVad = false});
+  AudioPropertiesConfig({
+    this.interval = 100,
+    this.enableSpectrum = false,
+    this.enableVad = false,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'interval': interval,
@@ -362,7 +369,7 @@ class AudioPropertiesInfo {
   /// - [26, 75]: 低音量
   /// - [76, 204]: 中音量
   /// - [205, 255]: 高音量
-  int linearVolume;
+  final int? linearVolume;
 
   /// 非线性音量，由原始音量的对数值转化而来，因此在中低音量时更灵敏，可以用作 Active Speaker（房间内最活跃用户）的识别。取值范围是：[-127，0]，单位：dB。
   ///
@@ -370,32 +377,26 @@ class AudioPropertiesInfo {
   /// - [-59, -40]: 低音量
   /// - [-39, -20]: 中音量
   /// - [-19, 0]: 高音量
-  int nonlinearVolume;
+  final int? nonlinearVolume;
 
   /// 人声检测（VAD）结果
   ///
   /// - 1: 检测到人声
   /// - 0: 未检测到人声
   /// - -1: 未开启 VAD
-  int vad;
+  final int? vad;
 
   /// 频谱数组
-  List<double> spectrum;
+  final List<double>? spectrum;
 
-  AudioPropertiesInfo(
-      {required this.linearVolume,
-      required this.nonlinearVolume,
-      required this.vad,
-      required this.spectrum});
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'linearVolume': linearVolume,
-      'nonlinearVolume': nonlinearVolume,
-      'vad': vad,
-      'spectrum': spectrum,
-    };
-  }
+  const AudioPropertiesInfo({
+    this.linearVolume,
+    this.nonlinearVolume,
+    this.vad,
+    this.spectrum,
+  });
 
+  /// @nodoc
   factory AudioPropertiesInfo.fromMap(Map<dynamic, dynamic> map) {
     return AudioPropertiesInfo(
       linearVolume: map['linearVolume'],
@@ -409,19 +410,17 @@ class AudioPropertiesInfo {
 /// 远端音频属性信息
 class RemoteAudioPropertiesInfo {
   /// 远端流信息
-  RemoteStreamKey streamKey;
+  final RemoteStreamKey? streamKey;
 
   /// 音频属性信息
-  AudioPropertiesInfo audioPropertiesInfo;
-  RemoteAudioPropertiesInfo(
-      {required this.streamKey, required this.audioPropertiesInfo});
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'audioPropertiesInfo': audioPropertiesInfo.toMap(),
-      'streamKey': streamKey.toMap(),
-    };
-  }
+  final AudioPropertiesInfo? audioPropertiesInfo;
 
+  const RemoteAudioPropertiesInfo({
+    this.streamKey,
+    this.audioPropertiesInfo,
+  });
+
+  /// @nodoc
   factory RemoteAudioPropertiesInfo.fromMap(Map<dynamic, dynamic> map) {
     return RemoteAudioPropertiesInfo(
       streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -434,24 +433,23 @@ class RemoteAudioPropertiesInfo {
 /// 本地音频属性信息
 class LocalAudioPropertiesInfo {
   /// 流属性，主流或屏幕共享流。
-  StreamIndex streamIndex;
+  final StreamIndex? streamIndex;
 
   /// 音频属性信息
-  AudioPropertiesInfo audioPropertiesInfo;
-  LocalAudioPropertiesInfo(
-      {required this.streamIndex, required this.audioPropertiesInfo});
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'type': streamIndex.value,
-      'audioPropertiesInfo': audioPropertiesInfo.toMap(),
-    };
-  }
+  final AudioPropertiesInfo? audioPropertiesInfo;
 
+  const LocalAudioPropertiesInfo({
+    this.streamIndex,
+    this.audioPropertiesInfo,
+  });
+
+  /// @nodoc
   factory LocalAudioPropertiesInfo.fromMap(Map<dynamic, dynamic> map) {
     return LocalAudioPropertiesInfo(
-        streamIndex: (map['type'] as int).streamIndex,
-        audioPropertiesInfo:
-            AudioPropertiesInfo.fromMap(map['audioPropertiesInfo']));
+      streamIndex: (map['type'] as int).streamIndex,
+      audioPropertiesInfo:
+          AudioPropertiesInfo.fromMap(map['audioPropertiesInfo']),
+    );
   }
 }
 
@@ -510,6 +508,8 @@ class Position {
     this.y = 0,
     this.z = 0,
   });
+
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'x': x,
@@ -536,6 +536,7 @@ class RTCOrientation {
     this.z = 0,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'x': x,
@@ -570,6 +571,7 @@ class HumanOrientation {
     required this.up,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'forward': forward.toMap(),
@@ -609,6 +611,7 @@ class ReceiveRange {
     this.max = 1,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'min': min,
@@ -620,14 +623,21 @@ class ReceiveRange {
 /// 范围语音流信息
 class RangeAudioInfo {
   /// 远端音频发布用户 ID
-  String uid;
+  final String? uid;
 
   /// 本地用户听到该远端音频发布用户的衰减系数，范围 [0,100]，数值为 0 时表示远端用户音频音量为 0
-  int factor;
+  final int? factor;
 
-  RangeAudioInfo({required this.uid, required this.factor});
+  const RangeAudioInfo({
+    this.uid,
+    this.factor,
+  });
 
+  /// @nodoc
   factory RangeAudioInfo.fromMap(Map<dynamic, dynamic> map) {
-    return RangeAudioInfo(uid: map['uid'], factor: map['factor']);
+    return RangeAudioInfo(
+      uid: map['uid'],
+      factor: map['factor'],
+    );
   }
 }

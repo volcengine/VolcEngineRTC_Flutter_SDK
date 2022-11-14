@@ -1,4 +1,4 @@
-group 'com.ss.bytertc.engine.flutter.volc_engine_rtc'
+group 'com.ss.bytertc.engine.flutter'
 version '1.0'
 
 buildscript {
@@ -42,5 +42,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.volcengine:VolcEngineRTC:3.44.+'
+    implementation 'com.volcengine:VolcEngineRTC:3.46.+'
 }

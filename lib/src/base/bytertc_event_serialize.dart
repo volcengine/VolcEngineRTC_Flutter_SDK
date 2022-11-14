@@ -68,7 +68,7 @@ class OnLeaveRoomData {
   const OnLeaveRoomData({required this.rtcRoomStats});
   factory OnLeaveRoomData.fromMap(Map<dynamic, dynamic> map) {
     if (map['stats'] == null) {
-      return OnLeaveRoomData(rtcRoomStats: RTCRoomStats.empty());
+      return OnLeaveRoomData(rtcRoomStats: RTCRoomStats());
     }
     return OnLeaveRoomData(rtcRoomStats: RTCRoomStats.fromMap(map['stats']));
   }
@@ -882,7 +882,7 @@ class OnNetworkQualityData {
 class OnPushPublicStreamResultData {
   final String roomId;
   final String publicStreamId;
-  final int errorCode;
+  final PublicStreamErrorCode errorCode;
   const OnPushPublicStreamResultData(
       {required this.roomId,
       required this.publicStreamId,
@@ -891,18 +891,19 @@ class OnPushPublicStreamResultData {
     return OnPushPublicStreamResultData(
         roomId: map['roomId'],
         publicStreamId: map['publicStreamId'],
-        errorCode: map['errorCode']);
+        errorCode: (map['errorCode'] as int).publicStreamErrorCode);
   }
 }
 
 class OnPlayPublicStreamResultData {
   final String publicStreamId;
-  final int errorCode;
+  final PublicStreamErrorCode errorCode;
   const OnPlayPublicStreamResultData(
       {required this.publicStreamId, required this.errorCode});
   factory OnPlayPublicStreamResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnPlayPublicStreamResultData(
-        publicStreamId: map['publicStreamId'], errorCode: map['errorCode']);
+        publicStreamId: map['publicStreamId'],
+        errorCode: (map['errorCode'] as int).publicStreamErrorCode);
   }
 }
 

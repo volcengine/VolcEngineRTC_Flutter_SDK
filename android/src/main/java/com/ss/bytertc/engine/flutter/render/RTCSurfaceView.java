@@ -19,7 +19,7 @@ import com.ss.bytertc.engine.VideoCanvas;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
-import com.ss.bytertc.engine.flutter.volc_engine_rtc.BuildConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;

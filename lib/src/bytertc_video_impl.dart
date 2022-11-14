@@ -922,7 +922,8 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<int?> startEchoTest(EchoTestConfig config, int delayTime) {
+  Future<int?> startEchoTest(
+      {required EchoTestConfig config, required int delayTime}) {
     return _invokeMethod<int>('startEchoTest', {
       'config': config.toMap(),
       'delayTime': delayTime,
@@ -932,5 +933,12 @@ class RTCVideoImpl implements RTCVideo {
   @override
   Future<int?> stopEchoTest() {
     return _invokeMethod<int>('stopEchoTest', null);
+  }
+
+  @override
+  Future<int?> setDummyCaptureImagePath(String filePath) {
+    return _invokeMethod<int>('setDummyCaptureImagePath', {
+      'filePath': filePath,
+    });
   }
 }

@@ -21,8 +21,13 @@ class RTCVideoContext {
   /// 保留参数
   Map<String, dynamic>? parameters;
 
-  RTCVideoContext(this.appId, {this.eventHandler, this.parameters});
+  RTCVideoContext(
+    this.appId, {
+    this.eventHandler,
+    this.parameters,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     HashMap<String, dynamic> dic = HashMap();
     dic['appId'] = appId;
@@ -157,45 +162,47 @@ enum PauseResumeControlMediaType {
 /// 本地用户订阅的远端流触发回退策略时的流切换信息。
 class RemoteStreamSwitch {
   /// 订阅的音视频流的发布者的用户 ID
-  final String uid;
+  final String? uid;
 
   /// 是否是屏幕共享流
-  final bool isScreen;
+  final bool? isScreen;
 
   /// 流切换前订阅视频流的分辨率对应的索引
-  final int beforeVideoIndex;
+  final int? beforeVideoIndex;
 
   /// 流切换后订阅视频流的分辨率对应的索引
-  final int afterVideoIndex;
+  final int? afterVideoIndex;
 
   /// 流切换前是否有视频流
-  final bool beforeEnable;
+  final bool? beforeEnable;
 
   /// 流切换后是否有视频流
-  final bool afterEnable;
+  final bool? afterEnable;
 
   /// 触发流回退的原因
-  final FallbackOrRecoverReason reason;
+  final FallbackOrRecoverReason? reason;
 
-  RemoteStreamSwitch({
-    this.uid = '',
-    this.isScreen = false,
-    this.beforeVideoIndex = 0,
-    this.afterVideoIndex = 0,
-    this.beforeEnable = false,
-    this.afterEnable = false,
-    this.reason = FallbackOrRecoverReason.unknown,
+  const RemoteStreamSwitch({
+    this.uid,
+    this.isScreen,
+    this.beforeVideoIndex,
+    this.afterVideoIndex,
+    this.beforeEnable,
+    this.afterEnable,
+    this.reason,
   });
 
+  /// @nodoc
   factory RemoteStreamSwitch.fromMap(Map<dynamic, dynamic> map) {
     return RemoteStreamSwitch(
-        uid: map['uid'],
-        isScreen: map['isScreen'],
-        beforeVideoIndex: map['beforeVideoIndex'],
-        afterVideoIndex: map['afterVideoIndex'],
-        beforeEnable: map['beforeEnable'],
-        afterEnable: map['afterEnable'],
-        reason: (map['reason'] as int).fallbackOrRecoverReason);
+      uid: map['uid'],
+      isScreen: map['isScreen'],
+      beforeVideoIndex: map['beforeVideoIndex'],
+      afterVideoIndex: map['afterVideoIndex'],
+      beforeEnable: map['beforeEnable'],
+      afterEnable: map['afterEnable'],
+      reason: (map['reason'] as int).fallbackOrRecoverReason,
+    );
   }
 }
 
@@ -267,6 +274,9 @@ enum TranscoderErrorCode {
   /// 推流成功
   ok,
 
+  /// 未定义的合流错误
+  base,
+
   /// 客户端 SDK 检测到无效推流参数
   invalidParam,
 
@@ -337,35 +347,37 @@ enum AACProfile {
 /// 转推视频配置。
 class LiveTranscodingVideoConfig {
   /// 合流转推视频编码器格式。
-  String codec = 'H264';
+  String codec;
 
   /// 合流视频帧率信息
-  int fps = 30;
+  int fps;
 
   /// 视频 I 帧间隔。
-  int gop = 60;
+  int gop;
 
   /// 是否使用低延时特性。
-  bool lowLatency = true;
+  bool lowLatency;
 
   /// 合流视频码率，单位为 kbps 。
-  int kBitrate = 500;
+  int kBitrate;
 
   /// 宽（像素）
-  int width = 360;
+  int width;
 
   /// 高（像素）
-  int height = 640;
+  int height;
 
-  LiveTranscodingVideoConfig(
-      {this.codec = 'H264',
-      this.fps = 30,
-      this.gop = 60,
-      this.lowLatency = true,
-      this.kBitrate = 500,
-      this.width = 360,
-      this.height = 640});
+  LiveTranscodingVideoConfig({
+    this.codec = 'H264',
+    this.fps = 30,
+    this.gop = 60,
+    this.lowLatency = true,
+    this.kBitrate = 500,
+    this.width = 360,
+    this.height = 640,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'codec': codec,
@@ -382,27 +394,29 @@ class LiveTranscodingVideoConfig {
 /// 转推音频配置。
 class LiveTranscodingAudioConfig {
   /// 合流转推音频编码器格式。
-  String codec = 'AAC';
+  String codec;
 
   /// 合流音频码率，单位为 kbps 。
-  int kBitrate = 64;
+  int kBitrate;
 
-  /// 音频帧采样率，单位 HZ。目前支持的采样率有：8000HZ， 16000HZ， 32000HZ， 44100HZ，48000HZ。
-  int sampleRate = 48000;
+  /// 音频采样率，单位 Hz。可取 32000Hz、44100Hz、48000Hz，默认值为 48000Hz。
+  int sampleRate;
 
   /// 声道数，可取 1 或 2。
-  int channels = 2;
+  int channels;
 
   /// AAC 编码等级。
-  AACProfile aacProfile = AACProfile.lc;
+  AACProfile aacProfile;
 
-  LiveTranscodingAudioConfig(
-      {this.channels = 2,
-      this.codec = 'AAC',
-      this.kBitrate = 64,
-      this.sampleRate = 48000,
-      this.aacProfile = AACProfile.lc});
+  LiveTranscodingAudioConfig({
+    this.channels = 2,
+    this.codec = 'AAC',
+    this.kBitrate = 64,
+    this.sampleRate = 48000,
+    this.aacProfile = AACProfile.lc,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'codec': codec,
@@ -417,14 +431,17 @@ class LiveTranscodingAudioConfig {
 /// 图片合流相关参数
 class TranscoderLayoutRegionDataParam {
   /// 原始图片的宽度，单位为 px
-  int imageWidth = 0;
+  int imageWidth;
 
   /// 原始图片的高度，单位为 px。
-  int imageHeight = 0;
+  int imageHeight;
 
-  TranscoderLayoutRegionDataParam(
-      {required this.imageWidth, required this.imageHeight});
+  TranscoderLayoutRegionDataParam({
+    required this.imageWidth,
+    required this.imageHeight,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'imageWidth': imageWidth,
@@ -438,7 +455,7 @@ class LiveTranscodingRegion {
   /// 视频流发布用户的用户 ID 。
   String uid;
 
-  /// 房间 ID 。
+  /// 房间 ID 。必填。
   String roomId;
 
   /// 用户视频布局相对画布左侧的偏移量。相对值，范围为 `[0.0, 1.0]`。
@@ -480,23 +497,25 @@ class LiveTranscodingRegion {
   /// 合流布局区域数据的对应参数
   TranscoderLayoutRegionDataParam? dataParam;
 
-  LiveTranscodingRegion(
-      {required this.uid,
-      required this.roomId,
-      required this.x,
-      required this.y,
-      required this.w,
-      required this.h,
-      this.zorder = 0,
-      this.alpha = 1.0,
-      this.contentControl = TranscoderContentControlType.hasAudioAndVideo,
-      this.renderMode = VideoRenderMode.hidden,
-      required this.localUser,
-      this.isScreen = false,
-      this.type = TranscoderLayoutRegionType.videoStream,
-      this.data,
-      this.dataParam});
+  LiveTranscodingRegion({
+    required this.uid,
+    required this.roomId,
+    required this.x,
+    required this.y,
+    required this.w,
+    required this.h,
+    this.zorder = 0,
+    this.alpha = 1.0,
+    this.contentControl = TranscoderContentControlType.hasAudioAndVideo,
+    this.renderMode = VideoRenderMode.hidden,
+    required this.localUser,
+    this.isScreen = false,
+    this.type = TranscoderLayoutRegionType.videoStream,
+    this.data,
+    this.dataParam,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     HashMap<String, dynamic> dic = HashMap.of({
       'uid': uid,
@@ -525,20 +544,22 @@ class LiveTranscodingRegion {
 
 /// 转推流布局设置。
 class LiveTranscodingLayout {
-  /// 合流转推布局信息。详见 [LiveTranscodingRegion]
+  /// 合流转推布局信息。
   List<LiveTranscodingRegion> regions;
 
-  /// SEI 信息，长度不得超 4096 bytes
-  String appData = '';
+  /// SEI 信息，长度不得超 4096 bytes。
+  String appData;
 
   /// 视频的背景颜色。格式为 RGB 定义下的 Hex 值。默认值 `#000000`。
-  String backgroundColor = '#000000';
+  String backgroundColor;
 
-  LiveTranscodingLayout(
-      {required this.regions,
-      this.appData = '',
-      this.backgroundColor = '#000000'});
+  LiveTranscodingLayout({
+    required this.regions,
+    this.appData = '',
+    this.backgroundColor = '#000000',
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'appData': appData,
@@ -574,16 +595,18 @@ class LiveTranscoding {
   /// 业务透传鉴权信息
   Map<String, dynamic>? authInfo;
 
-  LiveTranscoding(
-      {this.mixType = StreamMixingType.byServer,
-      required this.url,
-      required this.roomId,
-      required this.uid,
-      required this.video,
-      required this.layout,
-      required this.audio,
-      this.authInfo});
+  LiveTranscoding({
+    this.mixType = StreamMixingType.byServer,
+    required this.url,
+    required this.roomId,
+    required this.uid,
+    required this.video,
+    required this.layout,
+    required this.audio,
+    this.authInfo,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     HashMap<String, dynamic> dic = HashMap.of({
       'url': url,
@@ -637,14 +660,16 @@ class PushSingleStreamParam {
   String url;
 
   /// 媒体流是否为屏幕流
-  bool isScreen = false;
+  bool isScreen;
 
-  PushSingleStreamParam(
-      {required this.roomId,
-      required this.uid,
-      required this.url,
-      this.isScreen = false});
+  PushSingleStreamParam({
+    required this.roomId,
+    required this.uid,
+    required this.url,
+    this.isScreen = false,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'roomId': roomId,
@@ -658,82 +683,87 @@ class PushSingleStreamParam {
 /// 订阅配置
 class SubscribeConfig {
   /// 是否是屏幕流
-  bool isScreen;
+  final bool? isScreen;
 
   /// 是否订阅视频
-  bool subVideo;
+  final bool? subVideo;
 
   /// 是否订阅音频
-  bool subAudio;
+  final bool? subAudio;
 
   /// 订阅的视频流分辨率下标，Android 暂不可用
   ///
   /// 用户可以通过调用 [RTCVideo.setVideoEncoderConfig] 方法发布多个不同分辨率的视频。因此订阅流时，需要指定订阅的具体分辨率。此参数即用于指定需订阅的分辨率的下标，默认值为 0。
-  int videoIndex;
+  final int? videoIndex;
 
   /// 视频宽度，单位：px
-  int subWidth;
+  final int? subWidth;
 
   /// 视频高度，单位：px
-  int subHeight;
+  final int? subHeight;
 
   /// 暂不可用
-  int subVideoIndex;
+  final int? subVideoIndex;
 
   /// 订阅的视频流时域分层，默认值为 0，Android 暂不可用
-  int svcLayer;
+  final int? svcLayer;
 
   /// 期望订阅的最高帧率，单位：fps，默认值为 0，设为大于 0 的值时开始生效
   ///
   /// 当发布端帧率低于设定帧率，或订阅端开启性能回退后下行弱网，则帧率会相应下降。  <br>
   /// 仅码流支持 SVC 分级编码特性时方可生效。
-  int frameRate;
+  final int? frameRate;
 
-  SubscribeConfig(
-      {required this.isScreen,
-      required this.subVideo,
-      required this.subAudio,
-      required this.videoIndex,
-      required this.subWidth,
-      required this.subHeight,
-      required this.subVideoIndex,
-      required this.svcLayer,
-      required this.frameRate});
+  const SubscribeConfig({
+    this.isScreen,
+    this.subVideo,
+    this.subAudio,
+    this.videoIndex,
+    this.subWidth,
+    this.subHeight,
+    this.subVideoIndex,
+    this.svcLayer,
+    this.frameRate,
+  });
 
+  /// @nodoc
   factory SubscribeConfig.fromMap(Map<dynamic, dynamic> map) {
     return SubscribeConfig(
-        isScreen: map['isScreen'],
-        subVideo: map['subVideo'],
-        subAudio: map['subAudio'],
-        videoIndex: map['videoIndex'],
-        subWidth: map['subWidth'],
-        subHeight: map['subHeight'],
-        subVideoIndex: map['subVideoIndex'],
-        svcLayer: map['svcLayer'],
-        frameRate: map['frameRate']);
+      isScreen: map['isScreen'],
+      subVideo: map['subVideo'],
+      subAudio: map['subAudio'],
+      videoIndex: map['videoIndex'],
+      subWidth: map['subWidth'],
+      subHeight: map['subHeight'],
+      subVideoIndex: map['subVideoIndex'],
+      svcLayer: map['svcLayer'],
+      frameRate: map['frameRate'],
+    );
   }
 }
 
 /// 矩形区域
 class Rectangle {
   /// 矩形区域左上角的 x 坐标
-  int x;
+  final int? x;
 
   /// 矩形区域左上角的 y 坐标
-  int y;
+  final int? y;
 
   /// 矩形宽度(px)
-  int width;
+  final int? width;
 
   /// 矩形高度(px)
-  int height;
+  final int? height;
 
-  Rectangle(
-      {required this.x,
-      required this.y,
-      required this.width,
-      required this.height});
+  const Rectangle({
+    this.x,
+    this.y,
+    this.width,
+    this.height,
+  });
 
+  /// @nodoc
   factory Rectangle.fromMap(Map<dynamic, dynamic> map) {
     return Rectangle(
       x: map['x'],
@@ -749,22 +779,25 @@ class FaceDetectionResult {
   /// 人脸检测结果：
   /// + 0：检测成功；
   /// + !0：检测失败，失败原因详见[CV 错误码](https://www.volcengine.com/docs/6705/102042)。
-  int detectResult;
+  final int? detectResult;
 
-  /// 原始图片宽度(px)
-  int imageWidth;
+  /// 原始图片宽度(px)。
+  final int? imageWidth;
 
-  /// 原始图片高度(px)
-  int imageHeight;
+  /// 原始图片高度(px)。
+  final int? imageHeight;
 
-  List<Rectangle> faces;
+  /// 识别到人脸的矩形框。数组的长度和检测到的人脸数量一致。
+  final List<Rectangle>? faces;
 
-  FaceDetectionResult(
-      {required this.detectResult,
-      required this.imageWidth,
-      required this.imageHeight,
-      required this.faces});
+  const FaceDetectionResult({
+    this.detectResult,
+    this.imageWidth,
+    this.imageHeight,
+    this.faces,
+  });
 
+  /// @nodoc
   factory FaceDetectionResult.fromMap(Map<dynamic, dynamic> map) {
     return FaceDetectionResult(
       detectResult: map['detectResult'],
@@ -801,12 +834,16 @@ class VirtualBackgroundSource {
   /// + 图片分辨率超过 1080P 时，图片会被等比缩放至和视频一致。
   /// + 图片和视频宽高比一致时，图片会被直接缩放至和视频一致。
   /// + 图片和视频长宽比不一致时，为保证图片内容不变形，图片按短边缩放至与视频帧一致，使图片填满视频帧，对多出的高或宽进行剪裁。
-  /// + 自定义图片带有局部透明效果时，透明部分由纯白色代替。
+  /// + 自定义图片带有局部透明效果时，透明部分由黑色代替。
   String sourcePath;
 
-  VirtualBackgroundSource(
-      {required this.sourceType, this.sourceColor = 0, this.sourcePath = ''});
+  VirtualBackgroundSource({
+    required this.sourceType,
+    this.sourceColor = 0,
+    this.sourcePath = '',
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'sourceType': sourceType.value,
@@ -819,21 +856,27 @@ class VirtualBackgroundSource {
 /// 视频帧信息
 class VideoFrameInfo {
   /// 宽（像素）
-  int? width;
+  final int? width;
 
   /// 高（像素）
-  int? height;
+  final int? height;
 
   /// 视频帧顺时针旋转角度
-  VideoRotation? rotation;
+  final VideoRotation? rotation;
 
-  VideoFrameInfo({this.width, this.height, this.rotation});
+  const VideoFrameInfo({
+    this.width,
+    this.height,
+    this.rotation,
+  });
 
+  /// @nodoc
   factory VideoFrameInfo.fromMap(Map<dynamic, dynamic> map) {
     return VideoFrameInfo(
-        width: map['width'],
-        height: map['height'],
-        rotation: (map['rotation'] as int).videoRotation);
+      width: map['width'],
+      height: map['height'],
+      rotation: (map['rotation'] as int).videoRotation,
+    );
   }
 }
 
@@ -872,6 +915,7 @@ class VideoCaptureConfig {
     this.frameRate = 0,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'capturePreference': capturePreference.value,
@@ -959,13 +1003,15 @@ class VideoEncoderConfig {
   /// 编码策略偏好
   EncoderPreference encoderPreference;
 
-  VideoEncoderConfig(
-      {required this.width,
-      required this.height,
-      required this.frameRate,
-      this.maxBitrate = -1,
-      this.encoderPreference = EncoderPreference.maintainFrameRate});
+  VideoEncoderConfig({
+    required this.width,
+    required this.height,
+    required this.frameRate,
+    this.maxBitrate = -1,
+    this.encoderPreference = EncoderPreference.maintainFrameRate,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'width': width,
@@ -991,8 +1037,13 @@ class RemoteVideoConfig {
   /// 视频高度，单位：px
   int height;
 
-  RemoteVideoConfig({this.frameRate = 0, this.width = 0, this.height = 0});
+  RemoteVideoConfig({
+    this.frameRate = 0,
+    this.width = 0,
+    this.height = 0,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'frameRate': frameRate,
@@ -1022,13 +1073,15 @@ class RoomConfig {
   /// 远端视频流参数
   RemoteVideoConfig? remoteVideoConfig;
 
-  RoomConfig(
-      {this.profile = RoomProfile.communication,
-      this.isAutoPublish = true,
-      this.isAutoSubscribeAudio = true,
-      this.isAutoSubscribeVideo = true,
-      this.remoteVideoConfig});
+  RoomConfig({
+    this.profile = RoomProfile.communication,
+    this.isAutoPublish = true,
+    this.isAutoSubscribeAudio = true,
+    this.isAutoSubscribeVideo = true,
+    this.remoteVideoConfig,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'profile': profile.value,
@@ -1075,6 +1128,7 @@ class Watermark {
     required this.height,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'x': x,
@@ -1084,6 +1138,7 @@ class Watermark {
     };
   }
 
+  /// @nodoc
   static Map<String, dynamic> defaultMap() {
     return <String, dynamic>{
       'x': 0,
@@ -1111,6 +1166,7 @@ class WatermarkConfig {
     this.positionInPortraitMode,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'visibleInPreview': visibleInPreview,
@@ -1136,12 +1192,14 @@ class SourceCrop {
   /// 裁剪后得到的视频帧高度相对于裁剪前整体画面的归一化比例，取值范围(0.0, 1.0]
   double heightProportion;
 
-  SourceCrop(
-      {this.locationX = 0,
-      this.locationY = 0,
-      this.widthProportion = 1,
-      this.heightProportion = 1});
+  SourceCrop({
+    this.locationX = 0,
+    this.locationY = 0,
+    this.widthProportion = 1,
+    this.heightProportion = 1,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'locationX': locationX,
@@ -1154,25 +1212,25 @@ class SourceCrop {
 
 /// 合成公共流的每条流的布局信息
 class PublicStreamingRegion {
-  /// 视频流发布用户的用户 ID
+  /// 视频流发布用户的用户 ID。必填
   String uid;
 
-  /// 媒体流所在房间的房间 ID
+  /// 媒体流所在房间的房间 ID。必填
   String roomId;
 
   /// 背景图片地址，iOS 适用
   String alternateImage;
 
-  /// 视频流对应区域左上角的横坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)
+  /// 视频流对应区域左上角的横坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)。必填
   double x;
 
-  /// 视频流对应区域左上角的纵坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)
+  /// 视频流对应区域左上角的纵坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)。必填
   double y;
 
-  /// 视频流对应区域宽度相对整体画面的比例，取值的范围为 (0.0, 1.0]
+  /// 视频流对应区域宽度相对整体画面的比例，取值的范围为 (0.0, 1.0]。必填
   double w;
 
-  /// 视频流对应区域高度相对整体画面的比例，取值的范围为 (0.0, 1.0]
+  /// 视频流对应区域高度相对整体画面的比例，取值的范围为 (0.0, 1.0]。必填
   double h;
 
   /// 用户视频布局在画布中的层级，取值范围为[0, 100]
@@ -1180,16 +1238,16 @@ class PublicStreamingRegion {
   /// 0为底层，值越大越上层。
   int zorder;
 
-  /// 透明度，可选范围为 [0.0, 1.0]
+  /// 透明度，可选范围为 [0.0, 1.0]。必填
   double alpha;
 
-  /// 公共流媒体类型
+  /// 公共流媒体类型。必填
   StreamIndex streamType;
 
-  /// 公共流内容类型
+  /// 公共流内容类型。必填
   TranscoderContentControlType mediaType;
 
-  /// 视频显示模式
+  /// 视频显示模式。必填
   VideoRenderMode renderMode;
 
   /// 用户视频布局的相对位置和大小
@@ -1203,14 +1261,15 @@ class PublicStreamingRegion {
     required this.y,
     required this.w,
     required this.h,
-    required this.zorder,
-    required this.alpha,
+    this.zorder = 0,
+    this.alpha = 1.0,
     this.streamType = StreamIndex.main,
     this.mediaType = TranscoderContentControlType.hasAudioAndVideo,
     this.renderMode = VideoRenderMode.hidden,
     required this.sourceCrop,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
@@ -1236,26 +1295,28 @@ class PublicStreamingLayout {
   List<PublicStreamingRegion> regions;
 
   /// 插帧模式：
-  /// + `0`: 最好一帧
-  /// + `1`: 空白帧
+  /// + `0`: 补最后一帧<br>
+  /// + `1`: 补背景图片，如果没有设置背景图片则补黑帧
   int interpolationMode;
 
-  /// 公共流布局模式，`0`：自定义
+  /// 公共流布局模式，`2`: 自定义模式。
   int layoutMode;
 
   /// 画布的背景图片地址
   String backgroundImage;
 
-  /// 背景颜色
+  /// 背景颜色。格式为 RGB 定义下的 Hex 值，如 #FFB6C1 表示浅粉色。默认值 #000000，表示为黑色
   String backgroundColor;
 
-  PublicStreamingLayout(
-      {required this.regions,
-      this.interpolationMode = 0,
-      this.layoutMode = 2,
-      this.backgroundImage = '',
-      this.backgroundColor = '#000000'});
+  PublicStreamingLayout({
+    required this.regions,
+    this.interpolationMode = 0,
+    this.layoutMode = 2,
+    this.backgroundImage = '',
+    this.backgroundColor = '#000000',
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'regions': regions.map((e) => e.toMap()).toList(),
@@ -1267,26 +1328,28 @@ class PublicStreamingLayout {
   }
 }
 
-/// 公共流的视频参数
+/// 公共流的视频编码参数
 class PublicStreamingVideoConfig {
-  /// 视频帧率（fps）
+  /// 公共流视频帧率。必填。范围：[1, 60]
   int fps;
 
-  /// 视频码率(kbps)
+  /// 视频码率，必填。范围：[1,10000000]。单位为 bps
   int kBitrate;
 
-  /// 视频宽度（px）
+  /// 公共流视频宽度，必填。单位为 px，范围为 [16, 1920]，必须是偶数。
   int width;
 
-  /// 视频高度（px）
+  /// 公共流视频高度，必填。单位为 px，范围为 [16, 1280]，必须是偶数。
   int height;
 
-  PublicStreamingVideoConfig(
-      {this.fps = 30,
-      this.kBitrate = 500,
-      this.width = 360,
-      this.height = 640});
+  PublicStreamingVideoConfig({
+    this.fps = 30,
+    this.kBitrate = 500,
+    this.width = 360,
+    this.height = 640,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'fps': fps,
@@ -1299,18 +1362,24 @@ class PublicStreamingVideoConfig {
 
 /// 公共流的音频参数
 class PublicStreamingAudioConfig {
-  /// 码率(kbps)
+  /// 音频码率，必填。单位为 kbps。正整数，可选取值：16, 32, 64。
   int kBitrate;
 
-  /// 采样率(Hz)
+  /// 音频采样率，必填。单位为 Hz。可选取值：16000, 32000, 44100 和 48000
   int sampleRate;
 
-  /// 声道数
+  /// 音频声道数，必填。<br>
+  /// + `1`: 单声道，默认值<br>
+  /// + `2`: 双声道
   int channels;
 
-  PublicStreamingAudioConfig(
-      {this.kBitrate = 16, this.sampleRate = 44100, this.channels = 1});
+  PublicStreamingAudioConfig({
+    this.kBitrate = 16,
+    this.sampleRate = 44100,
+    this.channels = 1,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'kBitrate': kBitrate,
@@ -1325,13 +1394,13 @@ class PublicStreaming {
   /// 推公共流的房间 ID
   String roomId;
 
-  /// 视频参数
+  /// 视频编码参数，必填。
   PublicStreamingVideoConfig video;
 
-  /// 音频参数
+  /// 音频编码参数，必填。
   PublicStreamingAudioConfig audio;
 
-  /// 公共流布局
+  /// 公共流布局，必填。
   PublicStreamingLayout layout;
 
   PublicStreaming({
@@ -1341,6 +1410,7 @@ class PublicStreaming {
     required this.layout,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'roomId': roomId,

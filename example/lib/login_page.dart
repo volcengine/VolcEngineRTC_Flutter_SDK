@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:quickstart/room_page.dart';
+import 'package:volc_engine_rtc_example/room_page.dart';
 import 'package:volc_engine_rtc/volc_engine_rtc.dart';
 
 import 'constants.dart';
@@ -16,7 +16,7 @@ import 'constants.dart';
 /// - 展示当前 SDK 使用的版本号 [RTCVideo.getSdkVersion]
 ///
 /// 有以下常见的注意事项：
-/// 1.Android SDK必要的权限有：外部内存读写、摄像头权限、麦克风权限，其余完整的权限参见{@link src/main/AndroidManifest.xml}。
+/// 1.Android SDK必要的权限有：外部内存读写、摄像头权限、麦克风权限，其余完整的权限参见{@link android/app/src/main/AndroidManifest.xml}。
 /// 没有这些权限不会导致崩溃，但是会影响SDK的正常使用。
 /// 2.SDK 对房间名、用户名的限制是：非空且最大长度不超过128位的数字、大小写字母、@ . _ -
 class LoginPage extends StatefulWidget {
@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     /// 获取当前SDK的版本号
     RTCVideo.getSdkVersion().then((value) {
       setState(() {
-        _version = "VolcEngineRTC v : ${value ?? ""}";
+        _version = "VolcEngineRTC v${value ?? ""}";
       });
     });
   }

@@ -3,6 +3,8 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
+
 import 'bytertc_audio_defines.dart';
 import 'bytertc_common_defines.dart';
 import 'bytertc_video_defines.dart';
@@ -164,7 +166,7 @@ typedef OnRemoteStreamStatsType = void Function(RemoteStreamStats stats);
 typedef OnRoomStateChangedType = void Function(
     String roomId, String uid, int state, String extraInfo);
 
-/// [stats]：本次通话的统计数据
+/// [stats]：保留参数，目前为空。
 typedef OnLeaveRoomType = void Function(RTCRoomStats stats);
 
 /// [userInfo]：用户信息
@@ -386,11 +388,8 @@ typedef OnAudioRouteChangedType = void Function(AudioRoute route);
 /// [uid]：最活跃用户（ActiveSpeaker）的用户 ID
 typedef OnActiveSpeakerType = void Function(String roomId, String uid);
 
-/// [stateCode]：订阅媒体流状态
-///
-/// [uid]：流发布用户的用户 ID
-///
-/// [info]：流的属性
+/// @nodoc
+@protected
 typedef OnStreamSubscribedType = void Function(
     SubscribeState stateCode, String uid, SubscribeConfig info);
 
@@ -432,13 +431,13 @@ typedef OnNetworkQualityType = Function(NetworkQualityStats localQuality,
 ///
 /// [errorCode]：公共流发布结果，`200` 为发送成功
 typedef OnPushPublicStreamResultType = Function(
-    String roomId, String publicStreamId, int errorCode);
+    String roomId, String publicStreamId, PublicStreamErrorCode errorCode);
 
 /// [publicStreamId]：公共流 ID
 ///
 /// [errorCode]：公共流订阅结果
 typedef OnPlayPublicStreamResultType = Function(
-    String publicStreamId, int errorCode);
+    String publicStreamId, PublicStreamErrorCode errorCode);
 
 /// [publicStreamId]：公共流 ID
 ///

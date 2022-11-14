@@ -1,27 +1,25 @@
-# VolcEngineRTC SDK for Flutter
+# 火山引擎实时音视频 SDK 的 Flutter 插件包
 
-[中文](https://github.com/volcengine/VolcEngineRTC_Flutter_SDK/blob/master/README.zh_CN.md)
+> 此 Flutter 插件是对 [火山引擎实时音视频 SDK](https://www.volcengine.com/product/veRTC) 的包装。
 
-> This Flutter plugin is a wrapper for [VolcEngineRTC SDK](https://www.volcengine.com/product/veRTC).
+## 如何使用
 
-## Usage
+为了使用此插件, 请添加 `volc_engine_rtc` 到您的 `pubspec.yaml` 文件中。
 
-To use this plugin, add `volc_engine_rtc` as a dependency in your `pubspec.yaml` file.
+### 设备权限
 
-### Device Permission
-
-VolcEngineRTC SDK requires `camera` and `microphone` permission to start video call.
+火山引擎实时音视频 SDK 需要获取 `相机` 和 `麦克风` 权限来开始视频通话。
 
 #### iOS
 
-Open the `Info.plist` and add:
+打开 `Info.plist` 文件并且添加：
 
-- `Privacy - Microphone Usage Description`, and add some description into the `Value` column.
-- `Privacy - Camera Usage Description`, and add some description into the `Value` column.
+- `Privacy - Microphone Usage Description`，并且在 `Value` 列中添加描述。
+- `Privacy - Camera Usage Description`，并且在 `Value` 列中添加描述。
 
-Your application can still run the voice call when it is switched to the background if the background mode is enabled. Select the app target in Xcode, click the **Capabilities** tab, enable **Background Modes**, and check **Audio, AirPlay, and Picture in Picture**.
+如果启用了后台模式，则应用程序在切换到后台时仍可以运行语音呼叫。在 Xcode 中选择应用目标，单击 **Capabilities** 选项卡，启用 **Background Modes**，然后选中 **Audio, AirPlay, and Picture in Picture**。
 
-Modify `Podfile` to set VolcEngineRTC source
+更改 `Podfile` 来设置 火山引擎实时音视频 SDK 的仓库源
 
 ```xml
 source 'https://github.com/volcengine/volcengine-specs.git'
@@ -29,12 +27,12 @@ source 'https://github.com/volcengine/volcengine-specs.git'
 
 #### Android
 
-VolcEngineRTC has declared the necessary permissions, which will be merged into the `AndroidManifest.xml`.
+VolcEngineRTC 已经声明了必要的权限，会合并到 `AndroidManifest.xml` 中。
 
-## Related resources
+## 相关资源
 
-- Dive into [veRTC SDK Samples](https://github.com/volcengine/VolcEngineRTC) to see more tutorials.
+- 如果你想了解更多官方示例，可以参考 [官方 SDK 示例](https://github.com/volcengine/VolcEngineRTC)
 
-## License
+## 代码许可
 
-This project is licensed under the [MIT license](https://github.com/volcengine/VolcEngineRTC_Flutter_SDK/blob/master/LICENSE).
+本项目遵守 [MIT license](https://github.com/volcengine/VolcEngineRTC_Flutter_SDK/blob/master/LICENSE) 。

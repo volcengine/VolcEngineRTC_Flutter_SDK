@@ -57,6 +57,51 @@ enum WarningCode {
   /// 摄像头权限异常，当前应用没有获取摄像头权限
   noCameraPermission,
 
+  /// @nodoc
+  /// 麦克风权限异常，当前应用没有获取麦克风权限
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  noMicrophonePermission,
+
+  /// @nodoc
+  /// 音频采集设备启动失败。
+  ///
+  /// 启动音频采集设备失败，当前设备可能被其他应用占用。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  audioDeviceManagerRecordingStartFail,
+
+  /// @nodoc
+  /// 音频播放设备启动失败警告。
+  ///
+  /// 可能由于系统资源不足，或参数错误。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  audioDeviceManagerPlayoutStartFail,
+
+  /// @nodoc
+  /// 无可用音频采集设备。
+  ///
+  /// 启动音频采集设备失败，请插入可用的音频采集设备。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  noRecordingDevice,
+
+  /// @nodoc
+  /// 无可用音频播放设备。
+  ///
+  /// 启动音频播放设备失败，请插入可用的音频播放设备。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  noPlayoutDevice,
+
+  /// @nodoc
+  /// 当前音频设备没有采集到有效的声音数据，请检查更换音频采集设备。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  recordingSilence,
+
+  /// @nodoc
+  /// 媒体设备误操作警告。
+  ///
+  /// 使用自定义采集时，不可调用内部采集开关，调用时触发此警告。
+  @Deprecated('since 333.1, use MediaDeviceWarning instead')
+  mediaDeviceOperationDenied,
+
   /// 不支持在 [RTCRoom.publishScreen] 之后，切换屏幕音频采集源
   setScreenAudioSourceTypeFailed,
 
@@ -444,43 +489,46 @@ enum NetworkQuality {
 /// 上行/下行网络质量相关数据
 class NetworkQualityStats {
   /// 用户 ID
-  String uid;
+  final String? uid;
 
   /// 丢包率，范围 [0.0,1.0]
   /// + 当 `uid` 为本地用户时，该值代表本地发布流的上行丢包率；
   /// + 当 `uid` 为远端用户时，该值代表本地接收所有订阅的远端流的下行丢包率。
-  double fractionLost;
+  final double? fractionLost;
 
   /// 当 `uid` 为本地用户时有效，客户端到服务端的往返延时，单位：ms
-  int rtt;
+  final int? rtt;
 
   /// 本端的音视频 RTP 包 2 秒内的平均传输速率，单位：bps
   /// + 当 `uid` 为本地用户时，代表发送速率；
   /// + 当 `uid` 为远端用户时，代表所有订阅流的接收速率。
-  int totalBandwidth;
+  final int? totalBandwidth;
 
   /// 上行网络质量分，范围 [0,5]，分数越高网络质量越差
-  NetworkQuality txQuality;
+  final NetworkQuality? txQuality;
 
   /// 下行网络质量分，范围 [0,5]，分数越高网络质量越差
-  NetworkQuality rxQuality;
+  final NetworkQuality? rxQuality;
 
-  NetworkQualityStats(
-      {required this.uid,
-      required this.fractionLost,
-      required this.rtt,
-      required this.totalBandwidth,
-      required this.txQuality,
-      required this.rxQuality});
+  const NetworkQualityStats({
+    this.uid,
+    this.fractionLost,
+    this.rtt,
+    this.totalBandwidth,
+    this.txQuality,
+    this.rxQuality,
+  });
 
+  /// @nodoc
   factory NetworkQualityStats.fromMap(Map<dynamic, dynamic> map) {
     return NetworkQualityStats(
-        uid: map['uid'],
-        fractionLost: map['fractionLost'],
-        rtt: map['rtt'],
-        totalBandwidth: map['totalBandwidth'],
-        txQuality: (map['txQuality'] as int).networkQuality,
-        rxQuality: (map['rxQuality'] as int).networkQuality);
+      uid: map['uid'],
+      fractionLost: map['fractionLost'],
+      rtt: map['rtt'],
+      totalBandwidth: map['totalBandwidth'],
+      txQuality: (map['txQuality'] as int).networkQuality,
+      rxQuality: (map['rxQuality'] as int).networkQuality,
+    );
   }
 }
 
@@ -515,7 +563,7 @@ enum RoomProfile {
 
   /// 适用于 3 人及以上纯语音通话
   ///
-  /// 音视频通话为媒体模式，上麦时切换为通话模式
+  /// 通话中，闭麦时为是媒体模式，上麦后切换为通话模式。
   chatRoom,
 
   /// 实现多端同步播放音视频，适用于 “一起看” 或 “一起听” 场景
@@ -769,7 +817,7 @@ enum LocalVideoStreamError {
   /// 没有权限启动本地视频采集设备
   deviceNoPermission,
 
-  /// 本地视频采集设备被占用
+  /// 本地视频采集设备已被占用
   deviceBusy,
 
   /// 本地视频采集设备不存在或已移除
@@ -781,7 +829,7 @@ enum LocalVideoStreamError {
   /// 本地视频编码失败
   encodeFailure,
 
-  /// 本地视频采集设备被移除
+  /// 通话过程中本地视频采集设备被其他程序抢占，导致设备连接中断
   deviceDisconnected,
 }
 
@@ -925,25 +973,21 @@ enum SEIStreamUpdateEvent {
 /// 性能回退相关数据
 class SourceWantedData {
   /// 未开启发布回退时，此值表示推荐的视频输入宽度；当回退模式为大小流模式时，表示当前推流的最大宽度
-  int width;
+  final int? width;
 
   /// 如果未开启发送性能回退，此值表示推荐的视频输入高度；如果开启了发送性能回退，此值表示当前推流的最大高度。
-  int height;
+  final int? height;
 
   /// 如果未开启发送性能回退，此值表示推荐的视频输入帧率，单位 fps；如果开启了发送性能回退，此值表示当前推流的最大帧率，单位 fps。
-  int frameRate;
+  final int? frameRate;
 
-  SourceWantedData(
-      {required this.width, required this.height, required this.frameRate});
+  const SourceWantedData({
+    this.width,
+    this.height,
+    this.frameRate,
+  });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'width': width,
-      'height': height,
-      'frameRate': frameRate,
-    };
-  }
-
+  /// @nodoc
   factory SourceWantedData.fromMap(Map<dynamic, dynamic> map) {
     return SourceWantedData(
       width: map['width'],
@@ -965,12 +1009,20 @@ class UserInfo {
   /// 最大长度为 200 字节，会在 [RTCRoomEventHandler.onUserJoined] 中回调给远端用户。
   final String metaData;
 
-  const UserInfo({required this.uid, this.metaData = ''});
+  const UserInfo({
+    required this.uid,
+    this.metaData = '',
+  });
 
+  /// @nodoc
   factory UserInfo.fromMap(Map<dynamic, dynamic> map) {
-    return UserInfo(uid: map['uid'], metaData: map['metaData']);
+    return UserInfo(
+      uid: map['uid'],
+      metaData: map['metaData'],
+    );
   }
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
@@ -982,104 +1034,107 @@ class UserInfo {
 /// 通话相关的统计信息
 class RTCRoomStats {
   /// 进房到退房之间累计时长，单位为 s
-  int duration = 0;
+  final int? duration;
 
   /// 本地用户的总发送字节数 (bytes)，累计值
-  int txBytes = 0;
+  final int? txBytes;
 
   /// 本地用户的总接收字节数 (bytes)，累计值
-  int rxBytes = 0;
+  final int? rxBytes;
 
   /// 发送码率（kbps），获取该数据时的瞬时值
-  int txKBitrate = 0;
+  final int? txKBitrate;
 
   /// 接收码率（kbps），获取该数据时的瞬时值
-  int rxKBitrate = 0;
+  final int? rxKBitrate;
 
   /// 音频包的发送码率（kbps），获取该数据时的瞬时值
-  int txAudioKBitrate = 0;
+  final int? txAudioKBitrate;
 
   /// 音频接收码率（kbps），获取该数据时的瞬时值
-  int rxAudioKBitrate = 0;
+  final int? rxAudioKBitrate;
 
   /// 视频发送码率（kbps），获取该数据时的瞬时值
-  int txVideoKBitrate = 0;
+  final int? txVideoKBitrate;
 
   /// 音频接收码率（kbps），获取该数据时的瞬时值
-  int rxVideoKBitrate = 0;
+  final int? rxVideoKBitrate;
 
   /// 屏幕发送码率（kbps），获取该数据时的瞬时值
-  int txScreenKBitrate = 0;
+  final int? txScreenKBitrate;
 
   /// 屏幕接收码率（kbps），获取该数据时的瞬时值
-  int rxScreenKBitrate = 0;
+  final int? rxScreenKBitrate;
 
   /// 当前房间内的可见用户数
-  int userCount = 0;
+  final int? userCount;
 
   /// 当前应用的上行丢包率，取值范围为 `[0, 1]`。
-  double txLostrate = 0;
+  final double? txLostrate;
 
   /// 当前应用的下行丢包率，取值范围为 `[0, 1]`。
-  double rxLostrate = 0;
+  final double? rxLostrate;
 
   /// 客户端到服务端数据传输的往返时延（单位 ms）
-  int rtt = 0;
+  final int? rtt;
 
   /// 系统上行网络抖动（ms）
-  int txJitter = 0;
+  final int? txJitter;
 
   /// 系统下行网络抖动（ms）
-  int rxJitter = 0;
+  final int? rxJitter;
 
-  ///
-  int txCellularKBitrate = 0;
-  int rxCellularKBitrate = 0;
+  /// 蜂窝路径发送的码率 (kbps)，为获取该数据时的瞬时值
+  final int? txCellularKBitrate;
 
-  RTCRoomStats.empty();
+  /// 蜂窝路径接收码率 (kbps)，为获取该数据时的瞬时值
+  final int? rxCellularKBitrate;
 
-  RTCRoomStats(
-      {required this.duration,
-      required this.txBytes,
-      required this.rxBytes,
-      required this.txKBitrate,
-      required this.rxKBitrate,
-      required this.txAudioKBitrate,
-      required this.rxAudioKBitrate,
-      required this.txVideoKBitrate,
-      required this.rxVideoKBitrate,
-      required this.txScreenKBitrate,
-      required this.rxScreenKBitrate,
-      required this.userCount,
-      required this.txLostrate,
-      required this.rxLostrate,
-      required this.rtt,
-      required this.txJitter,
-      required this.rxJitter,
-      required this.txCellularKBitrate,
-      required this.rxCellularKBitrate});
+  const RTCRoomStats({
+    this.duration,
+    this.txBytes,
+    this.rxBytes,
+    this.txKBitrate,
+    this.rxKBitrate,
+    this.txAudioKBitrate,
+    this.rxAudioKBitrate,
+    this.txVideoKBitrate,
+    this.rxVideoKBitrate,
+    this.txScreenKBitrate,
+    this.rxScreenKBitrate,
+    this.userCount,
+    this.txLostrate,
+    this.rxLostrate,
+    this.rtt,
+    this.txJitter,
+    this.rxJitter,
+    this.txCellularKBitrate,
+    this.rxCellularKBitrate,
+  });
 
+  /// @nodoc
   factory RTCRoomStats.fromMap(Map<dynamic, dynamic> map) {
     return RTCRoomStats(
-        duration: map['duration'],
-        txBytes: map['txBytes'],
-        rxBytes: map['rxBytes'],
-        txKBitrate: map['txKBitrate'],
-        rxKBitrate: map['rxKBitrate'],
-        txAudioKBitrate: map['txAudioKBitrate'],
-        rxAudioKBitrate: map['rxAudioKBitrate'],
-        txVideoKBitrate: map['txVideoKBitrate'],
-        rxVideoKBitrate: map['rxVideoKBitrate'],
-        txScreenKBitrate: map['txScreenKBitrate'],
-        rxScreenKBitrate: map['rxScreenKBitrate'],
-        userCount: map['userCount'],
-        txLostrate: map['txLostrate'],
-        rxLostrate: map['rxLostrate'],
-        rtt: map['rtt'],
-        txJitter: map['txJitter'],
-        rxJitter: map['rxJitter'],
-        txCellularKBitrate: map['txCellularKBitrate'],
-        rxCellularKBitrate: map['rxCellularKBitrate']);
+      duration: map['duration'],
+      txBytes: map['txBytes'],
+      rxBytes: map['rxBytes'],
+      txKBitrate: map['txKBitrate'],
+      rxKBitrate: map['rxKBitrate'],
+      txAudioKBitrate: map['txAudioKBitrate'],
+      rxAudioKBitrate: map['rxAudioKBitrate'],
+      txVideoKBitrate: map['txVideoKBitrate'],
+      rxVideoKBitrate: map['rxVideoKBitrate'],
+      txScreenKBitrate: map['txScreenKBitrate'],
+      rxScreenKBitrate: map['rxScreenKBitrate'],
+      userCount: map['userCount'],
+      txLostrate: map['txLostrate'],
+      rxLostrate: map['rxLostrate'],
+      rtt: map['rtt'],
+      txJitter: map['txJitter'],
+      rxJitter: map['rxJitter'],
+      txCellularKBitrate: map['txCellularKBitrate'],
+      rxCellularKBitrate: map['rxCellularKBitrate'],
+    );
   }
 }
 
@@ -1102,53 +1157,56 @@ class LocalAudioStats {
   /// 音频丢包率
   ///
   /// 此次统计周期内的音频上行丢包率，单位为 % ，取值范围为 `[0, 1]`。
-  double? audioLossRate;
+  final double? audioLossRate;
 
   /// 发送码率
   ///
   /// 此次统计周期内的音频发送码率，单位为 kbps。
-  double? sentKBitrate;
+  final double? sentKBitrate;
 
   /// 采集采样率
   ///
   /// 此次统计周期内的音频采集采样率信息，单位为 Hz。
-  int? recordSampleRate;
+  final int? recordSampleRate;
 
   /// 统计间隔
   ///
   /// 此次统计周期的间隔，单位为 ms。
   /// 此字段用于设置回调的统计周期，默认设置为 2000ms。
-  int? statsInterval;
+  final int? statsInterval;
 
   /// 往返时延，单位为 ms
-  int? rtt;
+  final int? rtt;
 
   /// 音频声道数
-  int? numChannels;
+  final int? numChannels;
 
   /// 音频发送采样率
   ///
   /// 此次统计周期内的音频发送采样率信息，单位为 Hz。
-  int? sentSampleRate;
+  final int? sentSampleRate;
 
-  LocalAudioStats(
-      {this.audioLossRate,
-      this.sentKBitrate,
-      this.recordSampleRate,
-      this.statsInterval,
-      this.rtt,
-      this.numChannels,
-      this.sentSampleRate});
+  const LocalAudioStats({
+    this.audioLossRate,
+    this.sentKBitrate,
+    this.recordSampleRate,
+    this.statsInterval,
+    this.rtt,
+    this.numChannels,
+    this.sentSampleRate,
+  });
 
+  /// @nodoc
   factory LocalAudioStats.fromMap(Map<dynamic, dynamic> map) {
     return LocalAudioStats(
-        audioLossRate: map['audioLossRate'],
-        sentKBitrate: map['sentKBitrate'],
-        recordSampleRate: map['recordSampleRate'],
-        statsInterval: map['statsInterval'],
-        rtt: map['rtt'],
-        numChannels: map['numChannels'],
-        sentSampleRate: map['sentSampleRate']);
+      audioLossRate: map['audioLossRate'],
+      sentKBitrate: map['sentKBitrate'],
+      recordSampleRate: map['recordSampleRate'],
+      statsInterval: map['statsInterval'],
+      rtt: map['rtt'],
+      numChannels: map['numChannels'],
+      sentSampleRate: map['sentSampleRate'],
+    );
   }
 }
 
@@ -1159,101 +1217,101 @@ class RemoteAudioStats {
   /// 音频丢包率
   ///
   /// 此次统计周期内的音频下行丢包率，取值范围为 `[0, 1]`。
-  double? audioLossRate;
+  final double? audioLossRate;
 
   /// 接收码率
   ///
   /// 此次统计周期内的音频接收码率，单位为 kbps。
-  double? receivedKBitrate;
+  final double? receivedKBitrate;
 
   /// 音频卡顿次数
   ///
   /// 此次统计周期内的卡顿次数。
-  int? stallCount;
+  final int? stallCount;
 
   /// 音频卡顿时长
   ///
   /// 此次统计周期内的卡顿时长，单位为 ms。
-  int? stallDuration;
+  final int? stallDuration;
 
   /// 用户体验级别的端到端延时
   ///
   /// 从发送端采集完成编码开始到接收端解码完成渲染开始的延时，单位为 ms。
-  int? e2eDelay;
+  final int? e2eDelay;
 
   /// 播放采样率
   ///
   /// 统计周期内的音频播放采样率信息，单位为 Hz。
-  int? playoutSampleRate;
+  final int? playoutSampleRate;
 
   /// 统计间隔
   ///
   /// 此次统计周期的间隔，单位为 ms。
-  int? statsInterval;
+  final int? statsInterval;
 
   /// 客户端到服务端数据传输的往返时延，单位为 ms。
-  int? rtt;
+  final int? rtt;
 
   /// 发送端——服务端——接收端全链路数据传输往返时延，单位为 ms。
-  int? totalRtt;
+  final int? totalRtt;
 
   /// 远端用户发送的音频流质量
   ///
   /// 值含义参考 [NetworkQuality]
-  int? quality;
+  final int? quality;
 
   /// 因引入 jitter buffer 机制导致的延时，单位为 ms 。
-  int? jitterBufferDelay;
+  final int? jitterBufferDelay;
 
   /// 音频声道数。
-  int? numChannels;
+  final int? numChannels;
 
   /// 音频接收采样率
   ///
   /// 此次统计周期内接收到的远端音频采样率信息，单位为 Hz。
-  int? receivedSampleRate;
+  final int? receivedSampleRate;
 
   /// 远端用户在加入房间后发生音频卡顿的累计时长占音频总有效时长的百分比
   ///
   /// 音频有效时长是指远端用户进房发布音频流后，除停止发送音频流和禁用音频模块之外的音频时长。
-  int? frozenRate;
+  final int? frozenRate;
 
   /// 音频丢包补偿（PLC）样点总个数
-  int? concealedSamples;
+  final int? concealedSamples;
 
   /// PLC 累计次数
-  int? concealmentEvent;
+  final int? concealmentEvent;
 
   /// 音频解码采样率
   ///
   /// 此次统计周期内的音频解码采样率信息，单位为 Hz。
-  int? decSampleRate;
+  final int? decSampleRate;
 
-  /// 解码时长
-  ///
-  /// 对此次统计周期内接收的远端音频流进行解码的总耗时，单位为 s。
-  int? decDuration;
+  /// 此次订阅中，对远端音频流进行解码的累计耗时。单位为 s。
+  final int? decDuration;
 
-  RemoteAudioStats(
-      {this.audioLossRate,
-      this.receivedKBitrate,
-      this.stallCount,
-      this.stallDuration,
-      this.e2eDelay,
-      this.playoutSampleRate,
-      this.statsInterval,
-      this.rtt,
-      this.totalRtt,
-      this.quality,
-      this.jitterBufferDelay,
-      this.numChannels,
-      this.receivedSampleRate,
-      this.frozenRate,
-      this.concealedSamples,
-      this.concealmentEvent,
-      this.decSampleRate,
-      this.decDuration});
+  const RemoteAudioStats({
+    this.audioLossRate,
+    this.receivedKBitrate,
+    this.stallCount,
+    this.stallDuration,
+    this.e2eDelay,
+    this.playoutSampleRate,
+    this.statsInterval,
+    this.rtt,
+    this.totalRtt,
+    this.quality,
+    this.jitterBufferDelay,
+    this.numChannels,
+    this.receivedSampleRate,
+    this.frozenRate,
+    this.concealedSamples,
+    this.concealmentEvent,
+    this.decSampleRate,
+    this.decDuration,
+  });
 
+  /// @nodoc
   factory RemoteAudioStats.fromMap(Map<dynamic, dynamic> map) {
     return RemoteAudioStats(
       audioLossRate: map['audioLossRate'],
@@ -1285,201 +1343,207 @@ class LocalVideoStats {
   /// 发送码率
   ///
   /// 此次统计周期内实际发送的分辨率最大的视频流的发送码率，单位为 Kbps
-  double? sentKBitrate;
+  final double? sentKBitrate;
 
   /// 采集帧率
   ///
   /// 此次统计周期内的视频采集帧率，单位为 fps。
-  int? inputFrameRate;
+  final int? inputFrameRate;
 
   /// 发送帧率
   ///
   /// 此次统计周期内的视频发送帧率，单位为 fps。
-  int? sentFrameRate;
+  final int? sentFrameRate;
 
   /// 编码器输出帧率
   ///
   /// 当前编码器在此次统计周期内的输出帧率，单位为 fps。
-  int? encoderOutputFrameRate;
+  final int? encoderOutputFrameRate;
 
   /// 本地渲染帧率
   ///
   /// 此次统计周期内的本地视频渲染帧率，单位为 fps。
-  int? renderOutputFrameRate;
+  final int? renderOutputFrameRate;
 
   /// 统计间隔，默认为 2000ms。
   ///
   /// 此字段用于设置回调的统计周期，单位为 ms。
-  int? statsInterval;
+  final int? statsInterval;
 
   /// 视频丢包率
   ///
   /// 此次统计周期内的视频上行丢包率，取值范围：`[0, 1]`。
-  double? videoLossRate;
+  final double? videoLossRate;
 
   /// 往返时延，单位为 ms
-  int? rtt;
+  final int? rtt;
 
   /// 视频编码码率
   ///
   /// 此次统计周期内的实际发送的分辨率最大的视频流视频编码码率，单位为 kbps。
-  int? encodedBitrate;
+  final int? encodedBitrate;
 
   /// 实际发送的分辨率最大的视频流的视频编码宽度，单位为 px
-  int? encodedFrameWidth;
+  final int? encodedFrameWidth;
 
   /// 实际发送的分辨率最大的视频流的视频编码高度，单位为 px
-  int? encodedFrameHeight;
+  final int? encodedFrameHeight;
 
   /// 此次统计周期内实际发送的分辨率最大的视频流的发送的视频帧总数
-  int? encodedFrameCount;
+  final int? encodedFrameCount;
 
   /// 视频的编码类型
-  int? codecType;
+  final int? codecType;
 
   /// 所属用户的媒体流是否为屏幕流
   ///
   /// 你可以知道当前统计数据来自主流还是屏幕流。
-  bool? isScreen;
+  final bool? isScreen;
 
-  LocalVideoStats(
-      {this.sentKBitrate,
-      this.inputFrameRate,
-      this.sentFrameRate,
-      this.encoderOutputFrameRate,
-      this.renderOutputFrameRate,
-      this.statsInterval,
-      this.videoLossRate,
-      this.rtt,
-      this.encodedBitrate,
-      this.encodedFrameWidth,
-      this.encodedFrameHeight,
-      this.encodedFrameCount,
-      this.codecType,
-      this.isScreen});
+  const LocalVideoStats({
+    this.sentKBitrate,
+    this.inputFrameRate,
+    this.sentFrameRate,
+    this.encoderOutputFrameRate,
+    this.renderOutputFrameRate,
+    this.statsInterval,
+    this.videoLossRate,
+    this.rtt,
+    this.encodedBitrate,
+    this.encodedFrameWidth,
+    this.encodedFrameHeight,
+    this.encodedFrameCount,
+    this.codecType,
+    this.isScreen,
+  });
 
+  /// @nodoc
   factory LocalVideoStats.fromMap(Map<dynamic, dynamic> map) {
     return LocalVideoStats(
-        sentKBitrate: map['sentKBitrate'],
-        inputFrameRate: map['inputFrameRate'],
-        sentFrameRate: map['sentFrameRate'],
-        encoderOutputFrameRate: map['encoderOutputFrameRate'],
-        renderOutputFrameRate: map['renderOutputFrameRate'],
-        statsInterval: map['statsInterval'],
-        videoLossRate: map['videoLossRate'],
-        rtt: map['rtt'],
-        encodedBitrate: map['encodedBitrate'],
-        encodedFrameWidth: map['encodedFrameWidth'],
-        encodedFrameHeight: map['encodedFrameHeight'],
-        encodedFrameCount: map['encodedFrameCount'],
-        codecType: map['codecType'],
-        isScreen: map['isScreen']);
+      sentKBitrate: map['sentKBitrate'],
+      inputFrameRate: map['inputFrameRate'],
+      sentFrameRate: map['sentFrameRate'],
+      encoderOutputFrameRate: map['encoderOutputFrameRate'],
+      renderOutputFrameRate: map['renderOutputFrameRate'],
+      statsInterval: map['statsInterval'],
+      videoLossRate: map['videoLossRate'],
+      rtt: map['rtt'],
+      encodedBitrate: map['encodedBitrate'],
+      encodedFrameWidth: map['encodedFrameWidth'],
+      encodedFrameHeight: map['encodedFrameHeight'],
+      encodedFrameCount: map['encodedFrameCount'],
+      codecType: map['codecType'],
+      isScreen: map['isScreen'],
+    );
   }
 }
 
-/// 远端音频流统计信息，统计周期为 2s
+/// 远端视频流统计信息，统计周期为 2s
 ///
 /// 本地用户订阅远端音频流成功后，SDK 会周期性地通过 [RTCRoomEventHandler.onRemoteStreamStats] 通知本地用户订阅的远端视频流在此次统计周期内的接收状况，此数据结构即为回调给本地用户的参数类型。
 class RemoteVideoStats {
   /// 远端视频流宽度
-  int? width;
+  final int? width;
 
   /// 远端视频流高度
-  int? height;
+  final int? height;
 
   /// 视频丢包率
   ///
   /// 此次统计周期内的视频下行丢包率，单位为 % ，取值范围为 `[0, 1]`。
-  double? videoLossRate;
+  final double? videoLossRate;
 
   /// 接收码率
   ///
   /// 此次统计周期内的视频接收码率，单位为 kbps。
-  double? receivedKBitrate;
+  final double? receivedKBitrate;
 
   /// 解码器输出帧率
   ///
   /// 此次统计周期内的视频解码器输出帧率，单位 fps。
-  int? decoderOutputFrameRate;
+  final int? decoderOutputFrameRate;
 
   /// 渲染帧率
   ///
   /// 统计周期内的视频渲染帧率，单位 fps。
-  int? renderOutputFrameRate;
+  final int? renderOutputFrameRate;
 
   /// 卡顿次数
   ///
   /// 统计周期内的卡顿次数。
-  int? stallCount;
+  final int? stallCount;
 
   /// 卡顿时长
   ///
   /// 统计周期内的视频卡顿总时长。单位 ms。
-  int? stallDuration;
+  final int? stallDuration;
 
   /// 用户体验级别的端到端延时
   ///
   /// 从发送端采集完成编码开始到接收端解码完成渲染开始的延时，单位为 ms
-  int? e2eDelay;
+  final int? e2eDelay;
 
   /// 所属用户的媒体流是否为屏幕流
   ///
   /// 你可以知道当前统计数据来自主流还是屏幕流。
-  bool? isScreen;
+  final bool? isScreen;
 
   /// 统计间隔，默认为 2000ms
   ///
   /// 此字段用于设置回调的统计周期，单位为 ms。
-  int? statsInterval;
+  final int? statsInterval;
 
   /// 往返时延，单位为 ms 。
-  int? rtt;
+  final int? rtt;
 
   /// 远端用户在进房后发生视频卡顿的累计时长占视频总有效时长的百分比（%）
   ///
   /// 视频有效时长是指远端用户进房发布视频流后，除停止发送视频流和禁用视频模块之外的视频时长。
-  int? frozenRate;
+  final int? frozenRate;
 
   /// 视频的编码类型
-  VideoCodecType? codecType;
+  final VideoCodecType? codecType;
 
   /// 对应多种分辨率的流的下标
-  int? videoIndex;
+  final int? videoIndex;
 
-  RemoteVideoStats(
-      {this.width,
-      this.height,
-      this.videoLossRate,
-      this.receivedKBitrate,
-      this.decoderOutputFrameRate,
-      this.renderOutputFrameRate,
-      this.stallCount,
-      this.stallDuration,
-      this.e2eDelay,
-      this.isScreen,
-      this.statsInterval,
-      this.rtt,
-      this.frozenRate,
-      this.codecType,
-      this.videoIndex});
+  const RemoteVideoStats({
+    this.width,
+    this.height,
+    this.videoLossRate,
+    this.receivedKBitrate,
+    this.decoderOutputFrameRate,
+    this.renderOutputFrameRate,
+    this.stallCount,
+    this.stallDuration,
+    this.e2eDelay,
+    this.isScreen,
+    this.statsInterval,
+    this.rtt,
+    this.frozenRate,
+    this.codecType,
+    this.videoIndex,
+  });
 
+  /// @nodoc
   factory RemoteVideoStats.fromMap(Map<dynamic, dynamic> map) {
     return RemoteVideoStats(
-        width: map['width'],
-        height: map['height'],
-        videoLossRate: map['videoLossRate'],
-        receivedKBitrate: map['receivedKBitrate'],
-        decoderOutputFrameRate: map['decoderOutputFrameRate'],
-        renderOutputFrameRate: map['renderOutputFrameRate'],
-        stallCount: map['stallCount'],
-        stallDuration: map['stallDuration'],
-        e2eDelay: map['e2eDelay'],
-        isScreen: map['isScreen'],
-        statsInterval: map['statsInterval'],
-        rtt: map['rtt'],
-        frozenRate: map['frozenRate'],
-        codecType: (map['codecType'] as int).videoCodecType,
-        videoIndex: map['videoIndex']);
+      width: map['width'],
+      height: map['height'],
+      videoLossRate: map['videoLossRate'],
+      receivedKBitrate: map['receivedKBitrate'],
+      decoderOutputFrameRate: map['decoderOutputFrameRate'],
+      renderOutputFrameRate: map['renderOutputFrameRate'],
+      stallCount: map['stallCount'],
+      stallDuration: map['stallDuration'],
+      e2eDelay: map['e2eDelay'],
+      isScreen: map['isScreen'],
+      statsInterval: map['statsInterval'],
+      rtt: map['rtt'],
+      frozenRate: map['frozenRate'],
+      codecType: (map['codecType'] as int).videoCodecType,
+      videoIndex: map['videoIndex'],
+    );
   }
 }
 
@@ -1488,18 +1552,23 @@ class RemoteVideoStats {
 /// 本地用户发布音/视频流成功后，SDK 会周期性地通过 [RTCRoomEventHandler.onLocalStreamStats] 通知本地用户发布的音/视频流在此次统计周期内的发送状况，此数据结构即为回调给用户的参数类型。
 class LocalStreamStats {
   /// 本地设备发送音频流的统计信息
-  LocalAudioStats? audioStats;
+  final LocalAudioStats? audioStats;
 
   /// 本地设备发送视频流的统计信息
-  LocalVideoStats? videoStats;
+  final LocalVideoStats? videoStats;
 
   /// 所属用户的媒体流是否为屏幕流
   ///
   /// 你可以知道当前统计数据来自主流还是屏幕流。
-  bool? isScreen;
+  final bool? isScreen;
 
-  LocalStreamStats({this.audioStats, this.videoStats, this.isScreen});
+  const LocalStreamStats({
+    this.audioStats,
+    this.videoStats,
+    this.isScreen,
+  });
 
+  /// @nodoc
   factory LocalStreamStats.fromMap(Map<dynamic, dynamic> map) {
     return LocalStreamStats(
       audioStats: LocalAudioStats.fromMap(map['audioStats']),
@@ -1516,22 +1585,27 @@ class RemoteStreamStats {
   /// 用户 ID
   ///
   /// 音频来源的远端用户 ID。
-  String? uid;
+  final String? uid;
 
   /// 远端音频流的统计信息
-  RemoteAudioStats? audioStats;
+  final RemoteAudioStats? audioStats;
 
   /// 远端视频流的统计信息
-  RemoteVideoStats? videoStats;
+  final RemoteVideoStats? videoStats;
 
   /// 所属用户的媒体流是否为屏幕流
   ///
   /// 你可以知道当前统计数据来自主流还是屏幕流。
-  bool? isScreen;
+  final bool? isScreen;
 
-  RemoteStreamStats(
-      {this.uid, this.audioStats, this.videoStats, this.isScreen});
+  const RemoteStreamStats({
+    this.uid,
+    this.audioStats,
+    this.videoStats,
+    this.isScreen,
+  });
 
+  /// @nodoc
   factory RemoteStreamStats.fromMap(Map<dynamic, dynamic> map) {
     return RemoteStreamStats(
       audioStats: RemoteAudioStats.fromMap(map['audioStats']),
@@ -1719,57 +1793,45 @@ enum ProblemFeedback {
 /// CPU 和内存统计信息
 class SysStats {
   /// 当前系统 CPU 核数
-  int cpuCores;
+  final int? cpuCores;
 
   /// 当前应用的 CPU 使用率，取值范围为 `[0, 1]`
-  double cpuAppUsage;
+  final double? cpuAppUsage;
 
   /// 当前系统的 CPU 使用率，取值范围为 `[0, 1]`
-  double cpuTotalUsage;
+  final double? cpuTotalUsage;
 
   /// 当前应用的内存使用量（MB）
-  double memoryUsage;
+  final double? memoryUsage;
 
   /// 设备的内存大小（MB）
-  int fullMemory;
+  final int? fullMemory;
 
   /// 系统已使用内存（MB）
-  int totalMemoryUsage;
+  final int? totalMemoryUsage;
 
   /// 系统当前空闲可分配内存 (MB)
-  int freeMemory;
+  final int? freeMemory;
 
   /// 当前应用的内存使用率 (%)
-  double memoryRatio;
+  final double? memoryRatio;
 
   /// 系统内存使用率 (%)
-  double totalMemoryRatio;
+  final double? totalMemoryRatio;
 
-  SysStats(
-      {required this.cpuCores,
-      required this.cpuAppUsage,
-      required this.cpuTotalUsage,
-      required this.memoryUsage,
-      required this.fullMemory,
-      required this.totalMemoryUsage,
-      required this.freeMemory,
-      required this.memoryRatio,
-      required this.totalMemoryRatio});
+  const SysStats({
+    this.cpuCores,
+    this.cpuAppUsage,
+    this.cpuTotalUsage,
+    this.memoryUsage,
+    this.fullMemory,
+    this.totalMemoryUsage,
+    this.freeMemory,
+    this.memoryRatio,
+    this.totalMemoryRatio,
+  });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'cpuCores': cpuCores,
-      'cpuAppUsage': cpuAppUsage,
-      'cpuTotalUsage': cpuTotalUsage,
-      'memoryUsage': memoryUsage,
-      'fullMemory': fullMemory,
-      'totalMemoryUsage': totalMemoryUsage,
-      'freeMemory': freeMemory,
-      'memoryRatio': memoryRatio,
-      'totalMemoryRatio': totalMemoryRatio,
-    };
-  }
-
+  /// @nodoc
   factory SysStats.fromMap(Map<dynamic, dynamic> map) {
     return SysStats(
       cpuCores: map['cpuCores'],
@@ -1843,30 +1905,27 @@ enum StreamIndex {
 /// 远端流信息
 class RemoteStreamKey {
   /// 房间 ID
-  final String roomId;
+  final String? roomId;
 
   /// 用户 ID
-  final String uid;
+  final String? uid;
 
   /// 流属性，包括主流、屏幕流。
-  final StreamIndex streamIndex;
+  final StreamIndex? streamIndex;
 
-  const RemoteStreamKey(
-      {required this.roomId, required this.uid, required this.streamIndex});
+  const RemoteStreamKey({
+    this.roomId,
+    this.uid,
+    this.streamIndex,
+  });
 
+  /// @nodoc
   factory RemoteStreamKey.fromMap(Map<dynamic, dynamic> map) {
     return RemoteStreamKey(
-        roomId: map['roomId'],
-        uid: map['uid'],
-        streamIndex: (map['streamIndex'] as int).streamIndex);
-  }
-
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'roomId': roomId,
-      'uid': uid,
-      'streamIndex': streamIndex.value
-    };
+      roomId: map['roomId'],
+      uid: map['uid'],
+      streamIndex: (map['streamIndex'] as int).streamIndex,
+    );
   }
 }
 
@@ -1911,23 +1970,17 @@ enum RecordingErrorCode {
 /// 本地录制进度
 class RecordingProgress {
   /// 当前文件的累计录制时长 (ms)
-  int duration;
+  final int? duration;
 
   /// 当前录制文件的大小 (byte)
-  int fileSize;
+  final int? fileSize;
 
-  RecordingProgress({
-    required this.duration,
-    required this.fileSize,
+  const RecordingProgress({
+    this.duration,
+    this.fileSize,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'fileSize': fileSize,
-      'duration': duration,
-    };
-  }
-
+  /// @nodoc
   factory RecordingProgress.fromMap(Map<dynamic, dynamic> map) {
     return RecordingProgress(
       duration: map['duration'],
@@ -1939,36 +1992,29 @@ class RecordingProgress {
 /// 本地录制的详细信息
 class RecordingInfo {
   /// 录制文件的绝对路径，包含文件名和文件后缀
-  String filePath;
+  final String? filePath;
 
   /// 录制文件的视频编码类型
-  VideoCodecType videoCodecType;
+  final VideoCodecType? videoCodecType;
 
   /// 录制视频的宽 (px)
   ///
   /// 纯音频录制请忽略该字段。
-  int width;
+  final int? width;
 
   /// 录制视频的高 (px)
   ///
   /// 纯音频录制请忽略该字段。
-  int height;
+  final int? height;
 
-  RecordingInfo(
-      {required this.filePath,
-      required this.videoCodecType,
-      required this.width,
-      required this.height});
+  const RecordingInfo({
+    this.filePath,
+    this.videoCodecType,
+    this.width,
+    this.height,
+  });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'width': width,
-      'height': height,
-      'filePath': filePath,
-      'videoCodecType': videoCodecType.value,
-    };
-  }
-
+  /// @nodoc
   factory RecordingInfo.fromMap(Map<dynamic, dynamic> map) {
     return RecordingInfo(
       filePath: map['filePath'],
@@ -2006,6 +2052,7 @@ class RecordingConfig {
     this.recordingFileType = RecordingFileType.mp4,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'dirPath': dirPath,
@@ -2052,6 +2099,7 @@ class StreamSyncInfoConfig {
     this.streamType = SyncInfoStreamType.audio,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'streamIndex': streamIndex.value,
@@ -2076,6 +2124,7 @@ class ForwardStreamInfo {
     required this.token,
   });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'roomId': roomId,
@@ -2152,20 +2201,21 @@ class ForwardStreamStateInfo {
   /// 跨房间转发媒体流过程中目标房间 ID
   ///
   /// 空字符串代表所有目标房间。
-  String roomId;
+  final String? roomId;
 
   /// 跨房间转发媒体流过程中该目标房间的状态
-  ForwardStreamState state;
+  final ForwardStreamState? state;
 
   /// 媒体流跨房间转发过程中的错误码
-  ForwardStreamError error;
+  final ForwardStreamError? error;
 
-  ForwardStreamStateInfo({
-    required this.roomId,
-    required this.state,
-    required this.error,
+  const ForwardStreamStateInfo({
+    this.roomId,
+    this.state,
+    this.error,
   });
 
+  /// @nodoc
   factory ForwardStreamStateInfo.fromMap(Map<dynamic, dynamic> map) {
     return ForwardStreamStateInfo(
       roomId: map['roomId'],
@@ -2180,16 +2230,17 @@ class ForwardStreamEventInfo {
   /// 跨房间转发媒体流过程中的发生该事件的目标房间 ID
   ///
   /// 空字符串代表所有目标房间
-  String roomId;
+  final String? roomId;
 
   /// 跨房间转发媒体流过程中该目标房间发生的事件
-  ForwardStreamEvent event;
+  final ForwardStreamEvent? event;
 
-  ForwardStreamEventInfo({
-    required this.roomId,
-    required this.event,
+  const ForwardStreamEventInfo({
+    this.roomId,
+    this.event,
   });
 
+  /// @nodoc
   factory ForwardStreamEventInfo.fromMap(Map<dynamic, dynamic> map) {
     return ForwardStreamEventInfo(
       roomId: map['roomId'],
@@ -2206,8 +2257,12 @@ class CloudProxyInfo {
   /// 云代理服务器端口
   int cloudProxyPort;
 
-  CloudProxyInfo({required this.cloudProxyIp, required this.cloudProxyPort});
+  CloudProxyInfo({
+    required this.cloudProxyIp,
+    required this.cloudProxyPort,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'cloudProxyIp': cloudProxyIp,
@@ -2275,14 +2330,16 @@ class EchoTestConfig {
   /// + `> 100`: 开启信息提示，并将信息提示间隔设置为此值。
   int audioReportInterval;
 
-  EchoTestConfig(
-      {required this.uid,
-      required this.roomId,
-      required this.token,
-      required this.enableAudio,
-      required this.enableVideo,
-      required this.audioReportInterval});
+  EchoTestConfig({
+    required this.uid,
+    required this.roomId,
+    required this.token,
+    required this.enableAudio,
+    required this.enableVideo,
+    required this.audioReportInterval,
+  });
 
+  /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
@@ -2293,4 +2350,25 @@ class EchoTestConfig {
       'audioReportInterval': audioReportInterval,
     };
   }
+}
+
+/// 公共流状态码
+enum PublicStreamErrorCode {
+  /// 发布或订阅成功
+  success,
+
+  /// 公共流的参数异常，请修改参数后重试
+  paramError,
+
+  /// 服务端状态异常，将自动重试
+  statusError,
+
+  /// 内部错误，不可恢复，请重试。
+  internalError,
+
+  /// 推流失败，将自动重试，用户不需要处理
+  pushError,
+
+  /// 推流失败，10 s 后会重试，重试 3 次后停止重试
+  timeOut,
 }
