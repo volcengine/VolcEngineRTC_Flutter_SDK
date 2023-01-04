@@ -661,7 +661,7 @@ public class RTCType {
 
     public static PushSingleStreamParam toPushSingleStreamParam(RTCTypeBox values) {
         return new PushSingleStreamParam(
-                values.optString("rid"),
+                values.optString("roomId"),
                 values.optString("uid"),
                 values.optString("url"),
                 values.optBoolean("isScreen")

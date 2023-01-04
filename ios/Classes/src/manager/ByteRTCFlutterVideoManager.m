@@ -767,10 +767,10 @@
     result(@(res));
 }
 
-- (void)setDummyCaptureImagePath:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *filePath = arguments[@"filePath"];
-    int res = [self.rtcVideo setDummyCaptureImagePath:filePath];
-    result(@(res));
-}
+//- (void)setDummyCaptureImagePath:(NSDictionary *)arguments result:(FlutterResult)result {
+//    NSString *filePath = arguments[@"filePath"];
+//    int res = [self.rtcVideo setDummyCaptureImagePath:filePath];
+//    result(@(res));
+//}
 
 @end

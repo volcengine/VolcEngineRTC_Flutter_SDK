@@ -935,7 +935,7 @@ class RTCVideoImpl implements RTCVideo {
     return _invokeMethod<int>('stopEchoTest', null);
   }
 
-  @override
+  //@override
   Future<int?> setDummyCaptureImagePath(String filePath) {
     return _invokeMethod<int>('setDummyCaptureImagePath', {
       'filePath': filePath,

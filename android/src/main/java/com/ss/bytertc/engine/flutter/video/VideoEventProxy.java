@@ -37,7 +37,6 @@ import com.ss.bytertc.engine.type.NetworkDetectionLinkType;
 import com.ss.bytertc.engine.type.NetworkDetectionStopReason;
 import com.ss.bytertc.engine.type.PerformanceAlarmMode;
 import com.ss.bytertc.engine.type.PerformanceAlarmReason;
-import com.ss.bytertc.engine.type.PublicStreamErrorCode;
 import com.ss.bytertc.engine.type.RecordingErrorCode;
 import com.ss.bytertc.engine.type.RecordingState;
 import com.ss.bytertc.engine.type.RemoteStreamSwitch;
@@ -58,7 +57,7 @@ import java.util.HashMap;
 import io.flutter.plugin.common.BinaryMessenger;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class VideoEventProxy extends IRTCVideoEventHandler {
+public final class VideoEventProxy extends IRTCVideoEventHandler {
     private final EventEmitter emitter = new EventEmitter();
 
     /**
@@ -66,7 +65,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
      * For performance reason
      *
      * @see #onSysStats(SysStats)
-     * @see #setSwitches(String, boolean)
+     * @see #setSwitches(RTCTypeBox)
      */
     private boolean enableSysStats = false;
 
@@ -74,22 +73,26 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_video_event");
     }
 
+    @Override
     public void onLoggerMessage(LogUtil.LogLevel level, String msg, Throwable throwable) {
         // Ignored
     }
 
+    @Override
     public void onWarning(int warn) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("code", warn);
         emitter.emit("onWarning", map);
     }
 
+    @Override
     public void onError(int err) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("code", err);
         emitter.emit("onError", map);
     }
 
+    @Override
     public void onSysStats(SysStats stats) {
         if (!enableSysStats) {
             return;
@@ -99,13 +102,14 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onSysStats", map);
     }
 
+    @Override
     public void onNetworkTypeChanged(int type) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("type", type);
         emitter.emit("onNetworkTypeChanged", map);
     }
 
-
+    @Override
     public void onUserStartVideoCapture(String roomId, String uid) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -113,6 +117,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserStartVideoCapture", map);
     }
 
+    @Override
     public void onUserStopVideoCapture(String roomId, String uid) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -120,6 +125,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserStopVideoCapture", map);
     }
 
+    @Override
     public void onCreateRoomStateChanged(String roomId, int errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -127,6 +133,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onCreateRoomStateChanged", map);
     }
 
+    @Override
     public void onUserStartAudioCapture(String roomId, String uid) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -134,6 +141,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserStartAudioCapture", map);
     }
 
+    @Override
     public void onUserStopAudioCapture(String roomId, String uid) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -141,6 +149,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserStopAudioCapture", map);
     }
 
+    @Override
     public void onLocalAudioStateChanged(LocalAudioStreamState state, LocalAudioStreamError error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("state", state.value());
@@ -148,6 +157,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onLocalAudioStateChanged", map);
     }
 
+    @Override
     public void onRemoteAudioStateChanged(RemoteStreamKey key, RemoteAudioState state, RemoteAudioStateChangeReason reason) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(key));
@@ -156,6 +166,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRemoteAudioStateChanged", map);
     }
 
+    @Override
     public void onLocalVideoStateChanged(StreamIndex streamIndex, LocalVideoStreamState state, LocalVideoStreamError error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("index", streamIndex.value());
@@ -164,6 +175,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onLocalVideoStateChanged", map);
     }
 
+    @Override
     public void onRemoteVideoStateChanged(RemoteStreamKey streamKey, RemoteVideoState videoState, RemoteVideoStateChangeReason videoStateReason) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(streamKey));
@@ -172,6 +184,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRemoteVideoStateChanged", map);
     }
 
+    @Override
     public void onFirstRemoteVideoFrameRendered(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -179,6 +192,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onFirstRemoteVideoFrameRendered", map);
     }
 
+    @Override
     public void onFirstRemoteVideoFrameDecoded(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -186,6 +200,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onFirstRemoteVideoFrameDecoded", map);
     }
 
+    @Override
     public void onFirstLocalVideoFrameCaptured(StreamIndex streamIndex, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("index", streamIndex.value());
@@ -193,6 +208,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onFirstLocalVideoFrameCaptured", map);
     }
 
+    @Override
     public void onLocalVideoSizeChanged(StreamIndex streamIndex, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("index", streamIndex.value());
@@ -200,6 +216,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onLocalVideoSizeChanged", map);
     }
 
+    @Override
     public void onRemoteVideoSizeChanged(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -207,6 +224,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRemoteVideoSizeChanged", map);
     }
 
+    @Override
     public void onConnectionStateChanged(int state, int reason) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("state", state);
@@ -214,28 +232,33 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onConnectionStateChanged", map);
     }
 
+    @Override
     public void onAudioRouteChanged(AudioRoute route) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("route", route.value());
         emitter.emit("onAudioRouteChanged", map);
     }
 
+    @Override
     public void onFirstLocalAudioFrame(StreamIndex streamIndex) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("index", streamIndex.value());
         emitter.emit("onFirstLocalAudioFrame", map);
     }
 
+    @Override
     public void onFirstRemoteAudioFrame(RemoteStreamKey remoteStreamKey) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
         emitter.emit("onFirstRemoteAudioFrame", map);
     }
 
+    @Override
     public void onLogReport(String logType, JSONObject logContent) {
         // Ignored
     }
 
+    @Override
     public void onSEIMessageReceived(RemoteStreamKey remoteStreamKey, ByteBuffer message) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -243,6 +266,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onSEIMessageReceived", map);
     }
 
+    @Override
     public void onSEIStreamUpdate(RemoteStreamKey remoteStreamKey, SEIStreamUpdateEvent event) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -250,6 +274,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onSEIStreamUpdate", map);
     }
 
+    @Override
     public void onLoginResult(String uid, int error_code, int elapsed) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", uid);
@@ -258,17 +283,20 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onLoginResult", map);
     }
 
+    @Override
     public void onLogout() {
         final HashMap<String, Object> map = new HashMap<>();
         emitter.emit("onLogout", map);
     }
 
+    @Override
     public void onServerParamsSetResult(int error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("error", error);
         emitter.emit("onServerParamsSetResult", map);
     }
 
+    @Override
     public void onGetPeerOnlineStatus(String peerUserId, int status) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", peerUserId);
@@ -276,6 +304,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onGetPeerOnlineStatus", map);
     }
 
+    @Override
     public void onUserMessageReceivedOutsideRoom(String uid, String message) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", uid);
@@ -283,6 +312,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserMessageReceivedOutsideRoom", map);
     }
 
+    @Override
     public void onUserBinaryMessageReceivedOutsideRoom(String uid, ByteBuffer message) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", uid);
@@ -290,6 +320,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserBinaryMessageReceivedOutsideRoom", map);
     }
 
+    @Override
     public void onUserMessageSendResultOutsideRoom(long msgid, int error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("msgid", msgid);
@@ -297,6 +328,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onUserMessageSendResultOutsideRoom", map);
     }
 
+    @Override
     public void onServerMessageSendResult(long msgid, int error, ByteBuffer message) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("msgid", msgid);
@@ -305,6 +337,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onServerMessageSendResult", map);
     }
 
+    @Override
     public void onNetworkDetectionResult(NetworkDetectionLinkType type, int quality, int rtt, double lost_rate, int bitrate, int jitter) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("type", type.value());
@@ -316,18 +349,21 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onNetworkDetectionResult", map);
     }
 
+    @Override
     public void onNetworkDetectionStopped(NetworkDetectionStopReason reason) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("reason", reason.value());
         emitter.emit("onNetworkDetectionStopped", map);
     }
 
+    @Override
     public void onSimulcastSubscribeFallback(RemoteStreamSwitch event) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("event", RTCMap.from(event));
         emitter.emit("onSimulcastSubscribeFallback", map);
     }
 
+    @Override
     public void onPerformanceAlarms(PerformanceAlarmMode mode, String roomId, PerformanceAlarmReason reason, SourceWantedData data) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("mode", mode.ordinal());
@@ -337,6 +373,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onPerformanceAlarms", map);
     }
 
+    @Override
     public void onAudioFrameSendStateChanged(String roomId, RtcUser user, FirstFrameSendState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -345,6 +382,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioFrameSendStateChanged", map);
     }
 
+    @Override
     public void onVideoFrameSendStateChanged(String roomId, RtcUser user, FirstFrameSendState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -353,6 +391,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onVideoFrameSendStateChanged", map);
     }
 
+    @Override
     public void onScreenVideoFrameSendStateChanged(String roomId, RtcUser user, FirstFrameSendState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -361,6 +400,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onScreenVideoFrameSendStateChanged", map);
     }
 
+    @Override
     public void onAudioFramePlayStateChanged(String roomId, RtcUser user, FirstFramePlayState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -369,6 +409,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioFramePlayStateChanged", map);
     }
 
+    @Override
     public void onVideoFramePlayStateChanged(String roomId, RtcUser user, FirstFramePlayState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -377,6 +418,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onVideoFramePlayStateChanged", map);
     }
 
+    @Override
     public void onScreenVideoFramePlayStateChanged(String roomId, RtcUser user, FirstFramePlayState state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -385,7 +427,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onScreenVideoFramePlayStateChanged", map);
     }
 
-
+    @Override
     public void onAudioDeviceStateChanged(String device_id, AudioDeviceType device_type, int device_state, int device_error) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("deviceId", device_id);
@@ -395,6 +437,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioDeviceStateChanged", map);
     }
 
+    @Override
     public void onVideoDeviceStateChanged(String device_id, VideoDeviceType device_type, int device_state, int device_error) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("deviceId", device_id);
@@ -404,6 +447,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onVideoDeviceStateChanged", map);
     }
 
+    @Override
     public void onAudioDeviceWarning(String device_id, AudioDeviceType device_type, int device_warning) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("deviceId", device_id);
@@ -412,6 +456,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioDeviceWarning", map);
     }
 
+    @Override
     public void onVideoDeviceWarning(String device_id, VideoDeviceType device_type, int device_warning) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("deviceId", device_id);
@@ -420,18 +465,21 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onVideoDeviceWarning", map);
     }
 
+    @Override
     public void onHttpProxyState(int state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("state", state);
         emitter.emit("onHttpProxyState", map);
     }
 
+    @Override
     public void onHttpsProxyState(int state) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("state", state);
         emitter.emit("onHttpsProxyState", map);
     }
 
+    @Override
     public void onSocks5ProxyState(int state, String cmd, String proxy_address, String local_address, String remote_address) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("state", state);
@@ -442,6 +490,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onSocks5ProxyState", map);
     }
 
+    @Override
     public void onRecordingStateUpdate(StreamIndex type, RecordingState state, RecordingErrorCode errorCode, RecordingInfo info) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("type", type.value());
@@ -451,6 +500,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRecordingStateUpdate", map);
     }
 
+    @Override
     public void onRecordingProgressUpdate(StreamIndex type, RecordingProgress progress, RecordingInfo info) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("type", type.value());
@@ -459,6 +509,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRecordingProgressUpdate", map);
     }
 
+    @Override
     public void onAudioMixingStateChanged(int mixId, AudioMixingState state, AudioMixingError error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("mixId", mixId);
@@ -467,6 +518,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioMixingStateChanged", map);
     }
 
+    @Override
     public void onAudioMixingPlayingProgress(int mixId, long progress) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("mixId", mixId);
@@ -474,6 +526,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onAudioMixingPlayingProgress", map);
     }
 
+    @Override
     public void onLocalAudioPropertiesReport(LocalAudioPropertiesInfo[] audioPropertiesInfos) {
         ArrayList<HashMap<String, Object>> list = new ArrayList<>();
         for (LocalAudioPropertiesInfo info : audioPropertiesInfos) {
@@ -488,6 +541,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onLocalAudioPropertiesReport", map);
     }
 
+    @Override
     public void onRemoteAudioPropertiesReport(RemoteAudioPropertiesInfo[] audioPropertiesInfos, int totalRemoteVolume) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("infos", RTCMap.from(audioPropertiesInfos));
@@ -495,6 +549,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onRemoteAudioPropertiesReport", map);
     }
 
+    @Override
     public void onActiveSpeaker(String roomId, String uid) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
@@ -502,6 +557,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onActiveSpeaker", map);
     }
 
+    @Override
     public void onStreamSyncInfoReceived(RemoteStreamKey streamKey, StreamSycnInfoConfig.SyncInfoStreamType streamType, ByteBuffer data) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(streamKey));
@@ -510,21 +566,24 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onStreamSyncInfoReceived", map);
     }
 
-    public void onPushPublicStreamResult(String roomId, String publicStreamId, PublicStreamErrorCode errorCode) {
+    @Override
+    public void onPushPublicStreamResult(String roomId, String publicStreamId, int errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode.value());
+        map.put("errorCode", errorCode);
         emitter.emit("onPushPublicStreamResult", map);
     }
 
-    public void onPlayPublicStreamResult(String publicStreamId, PublicStreamErrorCode errorCode) {
+    @Override
+    public void onPlayPublicStreamResult(String publicStreamId, int errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode.value());
+        map.put("errorCode", errorCode);
         emitter.emit("onPlayPublicStreamResult", map);
     }
 
+    @Override
     public void onPublicStreamSEIMessageReceived(String publicStreamId, ByteBuffer message) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
@@ -532,6 +591,7 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onPublicStreamSEIMessageReceived", map);
     }
 
+    @Override
     public void onFirstPublicStreamVideoFrameDecoded(String publicStreamId, VideoFrameInfo videoFrameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
@@ -539,24 +599,26 @@ public class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onFirstPublicStreamVideoFrameDecoded", map);
     }
 
+    @Override
     public void onFirstPublicStreamAudioFrame(String publicStreamId) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
         emitter.emit("onFirstPublicStreamAudioFrame", map);
     }
 
+    @Override
     public void onEchoTestResult(EchoTestResult result) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("result", result.value());
         emitter.emit("onEchoTestResult", map);
     }
 
+    @Override
     public void onCloudProxyConnected(int interval) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("interval", interval);
         emitter.emit("onCloudProxyConnected", map);
     }
-
 
     void setSwitches(RTCTypeBox box) {
         enableSysStats = box.optBoolean("enableSysStats", enableSysStats);

@@ -14,13 +14,7 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
-        maven {
-            url 'https://artifact.bytedance.com/repository/Volcengine/'
-        }
-
-        maven { // VolcEngineRTC depends on com.huawei.multimedia:audiokit:1.0.3
-            url 'https://developer.huawei.com/repo/'
-        }
+        maven { url 'https://artifact.bytedance.com/repository/Volcengine/' }
         google()
         mavenCentral()
     }
@@ -42,5 +36,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.volcengine:VolcEngineRTC:3.46.+'
+    implementation 'com.volcengine:VolcEngineRTC:3.45.201'
 }

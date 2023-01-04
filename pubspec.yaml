@@ -2,7 +2,7 @@ name: volc_engine_rtc
 description: >-
   This Flutter plugin provides rtc sdk native APIs for you to implement
   real-time audio & video communication functions in your application.
-version: 3.46.1
+version: 3.45.1
 homepage: https://www.volcengine.com/product/veRTC
 repository: https://github.com/volcengine/VolcEngineRTC_Flutter_SDK
 

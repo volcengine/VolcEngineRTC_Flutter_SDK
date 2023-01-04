@@ -1413,11 +1413,12 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 }
 
                 case "setDummyCaptureImagePath": {
-                    String filePath = arguments.optString("filePath");
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setDummyCaptureImagePath(filePath);
-
-                    result.success(retValue);
+//                    String filePath = arguments.optString("filePath");
+//                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+//                    int retValue = rtcVideo.setDummyCaptureImagePath(filePath);
+//
+//                    result.success(retValue);
+                    result.notImplemented();
                     break;
                 }
 

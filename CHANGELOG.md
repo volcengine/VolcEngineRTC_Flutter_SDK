@@ -1,9 +1,6 @@
-## 3.46.1
+## 3.45.1
 
-### Features
-
-* 新增 setDummyCaptureImagePath 在关闭摄像头后调用可上传静态图片填充本地推送的视频流。
-* 新增 PublicStreamErrorCode 枚举类
+* 修复了一些 bug。
 
 ## 3.44.1
 
