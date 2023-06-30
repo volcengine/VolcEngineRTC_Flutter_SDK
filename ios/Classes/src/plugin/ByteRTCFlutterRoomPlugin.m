@@ -3,21 +3,18 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import <Flutter/FlutterPlugin.h>
+#import <VolcEngineRTC/objc/ByteRTCRoom.h>
 #import "ByteRTCFlutterRoomPlugin.h"
-#import "ByteRTCFlutterRoomManager.h"
+#import "ByteRTCFlutterMapCategory.h"
 #import "ByteRTCFlutterRoomEventHandler.h"
 #import "ByteRTCFlutterRangeAudioPlugin.h"
 #import "ByteRTCFlutterSpatialAudioPlugin.h"
 
 @interface ByteRTCFlutterRoomPlugin ()
 
-@property (nonatomic, weak) NSObject<FlutterPluginRegistrar> *registrar;
-
-@property (nonatomic, strong) ByteRTCFlutterRangeAudioPlugin *rangeAudioPlugin;
-@property (nonatomic, strong) ByteRTCFlutterSpatialAudioPlugin *spatialAudioPlugin;
-@property (nonatomic, strong) ByteRTCFlutterRoomManager *roomManager;
 @property (nonatomic, assign) NSInteger insId;
+@property (nonatomic, strong) ByteRTCRoom *room;
+@property (nonatomic, strong) NSMutableArray<ByteRTCFlutterPlugin *> *flutterPlugins;
 @property (nonatomic, strong) ByteRTCFlutterRoomEventHandler *eventHandler;
 
 @end
@@ -32,47 +29,247 @@
     self = [super init];
     if (self) {
         self.insId = roomInsId;
+        self.room = rtcRoom;
+        self.flutterPlugins = [NSMutableArray array];
         self.eventHandler = [[ByteRTCFlutterRoomEventHandler alloc] init];
-        self.roomManager = [ByteRTCFlutterRoomManager createWithRTCRoom:rtcRoom
-                                                           roomDelegate:self.eventHandler];
-        self.rangeAudioPlugin = [[ByteRTCFlutterRangeAudioPlugin alloc] initWithRoomManager:self.roomManager
-                                                                                      insId:roomInsId];
-        self.spatialAudioPlugin = [[ByteRTCFlutterSpatialAudioPlugin alloc] initWithRoomManager:self.roomManager
-                                                                                          insId:roomInsId];
+        [rtcRoom setRTCRoomDelegate:self.eventHandler];
+        [self.flutterPlugins addObject:[[ByteRTCFlutterRangeAudioPlugin alloc] initWithRTCRoom:rtcRoom
+                                                                                         insId:roomInsId]];
+        [self.flutterPlugins addObject:[[ByteRTCFlutterSpatialAudioPlugin alloc] initWithRTCRoom:rtcRoom
+                                                                                           insId:roomInsId]];
     }
     return self;
 }
 
 - (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
-    self.registrar = registrar;
+    [super registerWithRegistrar:registrar];
+    
+    [self.flutterPlugins enumerateObjectsUsingBlock:^(ByteRTCFlutterPlugin *obj, NSUInteger idx, BOOL *stop) {
+        [obj registerWithRegistrar:registrar];
+    }];
+    
     NSString *methodChannelName = [NSString stringWithFormat:@"com.bytedance.ve_rtc_room%ld",
                                    (long)self.insId];
-    [self registerMethodChannelWithName:methodChannelName
-                           methodTarget:self.roomManager
-                        binaryMessenger:[registrar messenger]];
-    [self.rangeAudioPlugin registerWithRegistrar:registrar];
-    [self.spatialAudioPlugin registerWithRegistrar:registrar];
-    
+    [self.methodHandler registerMethodChannelWithName:methodChannelName
+                                         methodTarget:self
+                                      binaryMessenger:[registrar messenger]];
     NSString *eventChannelName = [NSString stringWithFormat:@"com.bytedance.ve_rtc_room_event%ld",
                                   (long)self.insId];
     [self.eventHandler registerEventChannelWithName:eventChannelName
                                     binaryMessenger:[registrar messenger]];
 }
 
-- (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
-    if ([call.method isEqualToString:@"eventHandlerSwitches"]) {
-        [self.eventHandler handleSwitches:call.arguments result:result];
-        return;
-    }
-    [super handleMethodCall:call result:result];
-}
-
 - (void)destroy {
     [super destroy];
-    [self.roomManager destroyEngine];
+    [self.flutterPlugins enumerateObjectsUsingBlock:^(ByteRTCFlutterPlugin *obj, NSUInteger idx, BOOL *stop) {
+        [obj destroy];
+    }];
+    [self.room destroy];
     [self.eventHandler destroy];
-    [self.rangeAudioPlugin destroy];
-    [self.spatialAudioPlugin destroy];
+}
+
+#pragma mark - method
+- (void)eventHandlerSwitches:(NSDictionary *)arguments result:(FlutterResult)result {
+    [self.eventHandler handleSwitches:arguments result:result];
+}
+
+- (void)joinRoom:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *token = arguments[@"token"];
+    NSDictionary *userInfoDic = arguments[@"userInfo"];
+    NSDictionary *roomDic = arguments[@"roomConfig"];
+    ByteRTCUserInfo *user = [[ByteRTCUserInfo alloc]init];
+    user.userId = userInfoDic[@"uid"];
+    user.extraInfo = userInfoDic[@"metaData"];
+    ByteRTCRoomConfig *roomConfig = [[ByteRTCRoomConfig alloc] init];
+    roomConfig.profile = [roomDic[@"profile"] integerValue];
+    roomConfig.isAutoPublish = [roomDic[@"isAutoPublish"] boolValue];
+    roomConfig.isAutoSubscribeAudio = [roomDic[@"isAutoSubscribeAudio"] boolValue];
+    roomConfig.isAutoSubscribeVideo = [roomDic[@"isAutoSubscribeVideo"] boolValue];
+    roomConfig.remoteVideoConfig = [ByteRTCRemoteVideoConfig bf_fromMap:arguments[@"remoteVideoConfig"]];
+    int res = [self.room joinRoom:token userInfo:user roomConfig:roomConfig];
+    result(@(res));
+}
+
+- (void)setUserVisibility:(NSDictionary *)arguments result:(FlutterResult)result {
+    BOOL enable = [arguments[@"enable"] boolValue];
+    [self.room setUserVisibility:enable];
+    result(nil);
+}
+
+- (void)setMultiDeviceAVSync:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *audioUserId = arguments[@"audioUid"];
+    [self.room setMultiDeviceAVSync:audioUserId];
+    result(nil);
+}
+
+- (void)leaveRoom:(NSDictionary *)arguments result:(FlutterResult)result {
+    [self.room leaveRoom];
+    result(nil);
+}
+
+- (void)updateToken:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *token = arguments[@"token"];
+    int res = [self.room updateToken:token];
+    result(@(res));
+}
+
+- (void)setRemoteVideoConfig:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *userId = arguments[@"uid"];
+    ByteRTCRemoteVideoConfig *remoteVideoConfig = [ByteRTCRemoteVideoConfig bf_fromMap:arguments[@"videoConfig"]];
+    int res = [self.room setRemoteVideoConfig:userId
+                            remoteVideoConfig:remoteVideoConfig];
+    result(@(res));
+}
+
+- (void)publishStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
+    [self.room publishStream:type];
+    result(nil);
+}
+
+- (void)unpublishStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
+    [self.room unpublishStream:type];
+    result(nil);
+}
+
+- (void)publishScreen:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
+    [self.room publishScreen:type];
+    result(nil);
+}
+
+- (void)unpublishScreen:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
+    [self.room unpublishScreen:type];
+    result(nil);
+}
+
+- (void)subscribeStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *userId = arguments[@"uid"];
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room subscribeStream:userId
+                         mediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)subscribeAllStreams:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room subscribeAllStreamsWithMediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)unsubscribeStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *userId = arguments[@"uid"];
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room unsubscribeStream:userId
+                           mediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)unsubscribeAllStreams:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room unsubscribeAllStreamsWithMediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)subscribeScreen:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *userId = arguments[@"uid"];
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room subscribeScreen:userId
+                         mediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)unsubscribeScreen:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *userId = arguments[@"uid"];
+    ByteRTCMediaStreamType mediaStreamType = [arguments[@"type"] integerValue];
+    int res = [self.room unsubscribeScreen:userId
+                           mediaStreamType:mediaStreamType];
+    result(@(res));
+}
+
+- (void)pauseAllSubscribedStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCPauseResumControlMediaType mediaType = [arguments[@"mediaType"] integerValue];
+    [self.room pauseAllSubscribedStream:mediaType];
+    result(nil);
+}
+
+- (void)resumeAllSubscribedStream:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCPauseResumControlMediaType mediaType = [arguments[@"mediaType"] integerValue];
+    [self.room resumeAllSubscribedStream:mediaType];
+    result(nil);
+}
+
+- (void)sendUserMessage:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *uid = arguments[@"uid"];
+    NSString *message = arguments[@"message"];
+    ByteRTCMessageConfig config = [arguments[@"config"] integerValue];
+    NSInteger res = [self.room sendUserMessage:uid message:message config:config];
+    result(@(res));
+}
+
+- (void)sendUserBinaryMessage:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *uid = arguments[@"uid"];
+    FlutterStandardTypedData *message = arguments[@"message"];
+    ByteRTCMessageConfig config = [arguments[@"config"] integerValue];
+    NSInteger res = [self.room sendUserBinaryMessage:uid message:message.data config:config];
+    result(@(res));
+}
+
+- (void)sendRoomMessage:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *message = arguments[@"message"];
+    NSInteger res = [self.room sendRoomMessage:message];
+    result(@(res));
+}
+
+- (void)sendRoomBinaryMessage:(NSDictionary *)arguments result:(FlutterResult)result {
+    FlutterStandardTypedData *message = arguments[@"message"];
+    NSInteger res = [self.room sendRoomBinaryMessage:message.data];
+    result(@(res));
+}
+
+#pragma mark ForwardStream
+
+- (void)startForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSMutableArray<ForwardStreamConfiguration *> *configurations = [NSMutableArray new];
+    for (NSDictionary *dic in arguments[@"forwardStreamInfos"]) {
+        ForwardStreamConfiguration *config = [ForwardStreamConfiguration bf_fromMap:dic];
+        [configurations addObject:config];
+    }
+    int res = [self.room startForwardStreamToRooms:configurations];
+    result(@(res));
+}
+
+- (void)updateForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSMutableArray<ForwardStreamConfiguration *> *configurations = [NSMutableArray new];
+    for (NSDictionary *dic in arguments[@"forwardStreamInfos"]) {
+        ForwardStreamConfiguration *config = [ForwardStreamConfiguration bf_fromMap:dic];
+        [configurations addObject:config];
+    }
+    int res = [self.room updateForwardStreamToRooms:configurations];
+    result(@(res));
+}
+
+- (void)stopForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
+    [self.room stopForwardStreamToRooms];
+    result(nil);
+}
+
+- (void)pauseForwardStreamToAllRooms:(NSDictionary *)arguments result:(FlutterResult)result {
+    [self.room pauseForwardStreamToAllRooms];
+    result(nil);
+}
+
+- (void)resumeForwardStreamToAllRooms:(NSDictionary *)arguments result:(FlutterResult)result {
+    [self.room resumeForwardStreamToAllRooms];
+    result(nil);
+}
+
+- (void)setRemoteRoomAudioPlaybackVolume:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSInteger volume = [arguments[@"volume"] integerValue];
+    [self.room setRemoteRoomAudioPlaybackVolume:volume];
+    result(nil);
 }
 
 @end

@@ -10,15 +10,15 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
+import com.ss.bytertc.engine.NetworkTimeInfo;
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCVideo;
+import com.ss.bytertc.engine.ScreenVideoEncoderConfig;
 import com.ss.bytertc.engine.VideoCanvas;
 import com.ss.bytertc.engine.VideoEncoderConfig;
-import com.ss.bytertc.engine.audio.IAudioMixingManager;
-import com.ss.bytertc.engine.data.AudioMixingConfig;
-import com.ss.bytertc.engine.data.AudioMixingDualMonoMode;
-import com.ss.bytertc.engine.data.AudioMixingType;
+import com.ss.bytertc.engine.data.AudioAlignmentMode;
 import com.ss.bytertc.engine.data.AudioPropertiesConfig;
+import com.ss.bytertc.engine.data.AudioRecordingConfig;
 import com.ss.bytertc.engine.data.AudioRoute;
 import com.ss.bytertc.engine.data.CameraId;
 import com.ss.bytertc.engine.data.CloudProxyInfo;
@@ -29,23 +29,30 @@ import com.ss.bytertc.engine.data.MirrorType;
 import com.ss.bytertc.engine.data.MuteState;
 import com.ss.bytertc.engine.data.RTCASRConfig;
 import com.ss.bytertc.engine.data.RecordingConfig;
+import com.ss.bytertc.engine.data.RemoteStreamKey;
+import com.ss.bytertc.engine.data.SEICountPerFrame;
 import com.ss.bytertc.engine.data.ScreenMediaType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
 import com.ss.bytertc.engine.data.VideoOrientation;
 import com.ss.bytertc.engine.data.VideoRotationMode;
 import com.ss.bytertc.engine.data.VirtualBackgroundSource;
+import com.ss.bytertc.engine.data.ZoomConfigType;
+import com.ss.bytertc.engine.data.ZoomDirectionType;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCType;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
+import com.ss.bytertc.engine.flutter.ktv.KTVManagerPlugin;
+import com.ss.bytertc.engine.flutter.plugin.RTCFlutterPlugin;
 import com.ss.bytertc.engine.flutter.render.EchoTestViewHolder;
 import com.ss.bytertc.engine.flutter.room.RTCRoomPlugin;
 import com.ss.bytertc.engine.flutter.screencapture.LaunchHelper;
-import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.live.LiveTranscoding;
 import com.ss.bytertc.engine.live.PushSingleStreamParam;
 import com.ss.bytertc.engine.publicstream.PublicStreaming;
+import com.ss.bytertc.engine.type.AnsMode;
 import com.ss.bytertc.engine.type.AudioProfileType;
 import com.ss.bytertc.engine.type.AudioScenarioType;
 import com.ss.bytertc.engine.type.MessageConfig;
@@ -57,320 +64,89 @@ import com.ss.bytertc.engine.type.RemoteUserPriority;
 import com.ss.bytertc.engine.type.SubscribeFallbackOptions;
 import com.ss.bytertc.engine.type.TorchState;
 import com.ss.bytertc.engine.type.VoiceChangerType;
+import com.ss.bytertc.engine.type.VoiceEqualizationConfig;
+import com.ss.bytertc.engine.type.VoiceReverbConfig;
 import com.ss.bytertc.engine.type.VoiceReverbType;
-import com.ss.bytertc.engine.utils.AudioFrame;
 import com.ss.bytertc.engine.video.RTCWatermarkConfig;
 import com.ss.bytertc.engine.video.VideoCaptureConfig;
+import com.ss.bytertc.ktv.KTVManager;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class RTCVideoPlugin implements FlutterPlugin {
-    private static final String TAG = "RTCVideoPlugin";
+public class RTCVideoPlugin extends RTCFlutterPlugin {
 
-    private FlutterPlugin.FlutterPluginBinding binding;
+    private final List<RTCFlutterPlugin> flutterPlugins = new ArrayList<>();
+    private final HashMap<Integer, RTCRoomPlugin> roomPlugins = new HashMap<>();
 
-    private final VideoEventProxy videoEventHandler = new VideoEventProxy();
     private final FaceDetectionEventProxy faceDetectionHandler = new FaceDetectionEventProxy();
     private final LiveTranscodingEventProxy liveTranscodingEventProxy = new LiveTranscodingEventProxy();
     private final ASREngineEventProxy asrEventHandler = new ASREngineEventProxy();
     private final PushSingleStreamToCDNProxy pushSingleStreamToCDNProxy = new PushSingleStreamToCDNProxy();
+    private final SnapshotResultCallbackProxy snapshotResultCallbackProxy = new SnapshotResultCallbackProxy();
 
-    private final HashMap<Integer, RTCRoomPlugin> roomPlugins = new HashMap<>();
+    private KTVManagerPlugin ktvManager;
 
+    public RTCVideoPlugin() {
+        flutterPlugins.add(new AudioMixingPlugin());
+        flutterPlugins.add(new VideoEffectPlugin());
+        flutterPlugins.add(new SingScoringPlugin());
+    }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        this.binding = binding;
+        super.onAttachedToEngine(binding);
 
-        MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_video");
-        channel.setMethodCallHandler(rtcVideoHandler);
-
-        MethodChannel audioMixingManagerChannel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_audio_mixing_manager");
-        audioMixingManagerChannel.setMethodCallHandler(audioMixingHandler);
-
-        videoEventHandler.registerEvent(binding.getBinaryMessenger());
-        faceDetectionHandler.registerEvent(binding.getBinaryMessenger());
+        for (RTCFlutterPlugin plugin: flutterPlugins) {
+            plugin.onAttachedToEngine(binding);
+        }
+        channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_video");
+        channel.setMethodCallHandler(callHandler);
+        faceDetectionHandler.registerEvent(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_face_detection");
         liveTranscodingEventProxy.registerEvent(binding.getBinaryMessenger());
         asrEventHandler.registerEvent(binding.getBinaryMessenger());
         pushSingleStreamToCDNProxy.registerEvent(binding.getBinaryMessenger());
+        snapshotResultCallbackProxy.registerEvent(binding.getBinaryMessenger());
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        super.onDetachedFromEngine(binding);
+
+        for (RTCFlutterPlugin plugin: flutterPlugins) {
+            plugin.onDetachedFromEngine(binding);
+        }
         for (RTCRoomPlugin value : roomPlugins.values()) {
             value.onDetachedFromEngine(binding);
         }
-
         roomPlugins.clear();
+        faceDetectionHandler.destroy();
+        liveTranscodingEventProxy.destroy();
+        asrEventHandler.destroy();
+        pushSingleStreamToCDNProxy.destroy();
+        snapshotResultCallbackProxy.destroy();
     }
-
-    /**
-     * 响应 IAudioMixingManager 接口
-     */
-    private final MethodChannel.MethodCallHandler audioMixingHandler = (call, result) -> {
-        if (BuildConfig.DEBUG) {
-            Logger.d(TAG, "IAudioMixingManager Call: " + call.method);
-        }
-        RTCTypeBox arguments = new RTCTypeBox(call.arguments);
-        RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-        IAudioMixingManager audioMixingManager = rtcVideo.getAudioMixingManager();
-        switch (call.method) {
-            case "startAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-                String filePath = arguments.optString("filePath");
-                AudioMixingConfig config = RTCType.toAudioMixingConfig(arguments.optBox("config"));
-
-                audioMixingManager.startAudioMixing(mixId, filePath, config);
-
-                result.success(null);
-                break;
-            }
-
-            case "stopAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-
-                audioMixingManager.stopAudioMixing(mixId);
-
-                result.success(null);
-                break;
-            }
-
-            case "pauseAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-
-                audioMixingManager.pauseAudioMixing(mixId);
-
-                result.success(null);
-                break;
-            }
-
-            case "resumeAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-
-                audioMixingManager.resumeAudioMixing(mixId);
-
-                result.success(null);
-                break;
-            }
-
-            case "preloadAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-                String filePath = arguments.optString("filePath");
-
-                audioMixingManager.preloadAudioMixing(mixId, filePath);
-
-                result.success(null);
-                break;
-            }
-
-            case "unloadAudioMixing": {
-                int mixId = arguments.optInt("mixId");
-
-                audioMixingManager.unloadAudioMixing(mixId);
-
-                result.success(null);
-                break;
-            }
-
-            case "setAudioMixingVolume": {
-                int mixId = arguments.optInt("mixId");
-                int volume = arguments.optInt("volume");
-                AudioMixingType type = AudioMixingType.fromId(arguments.optInt("type"));
-
-                audioMixingManager.setAudioMixingVolume(mixId, volume, type);
-
-                result.success(null);
-                break;
-            }
-
-            case "getAudioMixingDuration": {
-                int mixId = arguments.optInt("mixId");
-
-                int retValue = audioMixingManager.getAudioMixingDuration(mixId);
-
-                result.success(retValue);
-                break;
-            }
-
-            case "getAudioMixingCurrentPosition": {
-                int mixId = arguments.optInt("mixId");
-
-                int retValue = audioMixingManager.getAudioMixingCurrentPosition(mixId);
-
-                result.success(retValue);
-                break;
-            }
-
-            case "setAudioMixingPosition": {
-                int mixId = arguments.optInt("mixId");
-                int position = arguments.optInt("position");
-
-                audioMixingManager.setAudioMixingPosition(mixId, position);
-
-                result.success(null);
-                break;
-            }
-
-            case "setAudioMixingDualMonoMode": {
-                int mixId = arguments.optInt("mixId");
-                AudioMixingDualMonoMode mode = AudioMixingDualMonoMode.fromId(arguments.optInt("mode"));
-
-                audioMixingManager.setAudioMixingDualMonoMode(mixId, mode);
-
-                result.success(null);
-                break;
-            }
-
-            case "setAudioMixingPitch": {
-                int mixId = arguments.optInt("mixId");
-                int pitch = arguments.optInt("pitch");
-
-                audioMixingManager.setAudioMixingPitch(mixId, pitch);
-
-                result.success(null);
-                break;
-            }
-
-            case "setAudioMixingPlaybackSpeed": {
-                int mixId = arguments.optInt("mixId");
-                int speed = arguments.optInt("speed");
-
-                int retValue = audioMixingManager.setAudioMixingPlaybackSpeed(mixId, speed);
-
-                result.success(retValue);
-                break;
-            }
-
-            case "setAudioMixingLoudness": {
-                int mixId = arguments.optInt("mixId");
-                float loudness = arguments.optFloat("loudness");
-
-                audioMixingManager.setAudioMixingLoudness(mixId, loudness);
-
-                result.success(null);
-                break;
-            }
-
-            case "setAudioMixingProgressInterval": {
-                int mixId = arguments.optInt("mixId");
-                long interval = arguments.optLong("interval");
-
-                audioMixingManager.setAudioMixingProgressInterval(mixId, interval);
-
-                result.success(null);
-                break;
-            }
-
-            case "getAudioTrackCount": {
-                int mixId = arguments.optInt("mixId");
-
-                int retValue = audioMixingManager.getAudioTrackCount(mixId);
-
-                result.success(retValue);
-                break;
-            }
-
-            case "selectAudioTrack": {
-                int mixId = arguments.optInt("mixId");
-                int audioTrackIndex = arguments.optInt("audioTrackIndex");
-
-                audioMixingManager.selectAudioTrack(mixId, audioTrackIndex);
-
-                result.success(null);
-                break;
-            }
-
-            case "enableAudioMixingFrame": { // Not Support by Dart
-                int mixId = arguments.optInt("mixId");
-                AudioMixingType type = AudioMixingType.fromId(arguments.optInt("type"));
-
-                audioMixingManager.enableAudioMixingFrame(mixId, type);
-
-                result.success(null);
-                break;
-            }
-
-            case "disableAudioMixingFrame": { // Not Support by Dart
-                int mixId = arguments.optInt("mixId");
-
-                audioMixingManager.disableAudioMixingFrame(mixId);
-
-                result.success(null);
-                break;
-            }
-
-            case "pushAudioMixingFrame": { // Not Support by Dart
-                int mixId = arguments.optInt("mixId");
-                AudioFrame audioFrame = RTCType.toAudioFrame(arguments.optBox("audioFrame"));
-
-                int retValue = audioMixingManager.pushAudioMixingFrame(mixId, audioFrame);
-
-                result.success(retValue);
-                break;
-            }
-
-            default:
-                result.notImplemented();
-                break;
-        }
-    };
 
     /**
      * 响应 RTCVideo 接口
      */
-    private final MethodChannel.MethodCallHandler rtcVideoHandler = new MethodChannel.MethodCallHandler() {
+    private final MethodChannel.MethodCallHandler callHandler = new MethodChannel.MethodCallHandler() {
         @Override
         public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
             if (BuildConfig.DEBUG) {
-                Logger.d(TAG, "Video Call: " + call.method);
+                Logger.d(getTAG(), "Video Call: " + call.method);
             }
             final RTCTypeBox arguments = new RTCTypeBox(call.arguments, call.method);
 
             switch (call.method) {
-// region Static Methods
-                case "getSdkVersion": {
-                    result.success(RTCVideo.getSdkVersion());
-                    break;
-                }
-
-                case "getErrorDescription": {
-                    int code = arguments.optInt("code");
-                    result.success(RTCVideo.getErrorDescription(code));
-                    break;
-                }
-
-                case "createRTCVideo": {
-                    if (!RTCVideoManager.hasRTCVideo()) {
-                        String appId = arguments.optString("appId");
-                        JSONObject parameters = arguments.optJSONObject("parameters");
-                        try {
-                            parameters.put("rtc.platform", 6);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        RTCVideoManager.create(appId, videoEventHandler, parameters);
-                    }
-                    result.success(RTCVideoManager.hasRTCVideo());
-                    break;
-                }
-
-                case "destroyRTCVideo": {
-                    RTCVideoManager.destroy();
-
-                    result.success(null);
-                    break;
-                }
-
 // endregion
 // region Object methods
                 case "startAudioCapture": {
@@ -408,13 +184,21 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
+                case "setAnsMode" : {
+                    AnsMode ansMode = AnsMode.fromId(arguments.optInt("ansMode"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.setAnsMode(ansMode);
+                    result.success(null);
+                    break;
+                }
+
                 case "setVoiceChangerType": {
                     VoiceChangerType changerType = VoiceChangerType.fromId(arguments.optInt("voiceChanger"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    rtcVideo.setVoiceChangerType(changerType);
+                    int retValue = rtcVideo.setVoiceChangerType(changerType);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
@@ -423,9 +207,33 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     VoiceReverbType reverbType = VoiceReverbType.fromId(arguments.optInt("voiceReverb"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    rtcVideo.setVoiceReverbType(reverbType);
+                    int retValue = rtcVideo.setVoiceReverbType(reverbType);
 
-                    result.success(null);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setLocalVoiceEqualization": {
+                    VoiceEqualizationConfig config = RTCType.toVoiceEqualizationConfig(arguments.optBox("config"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setLocalVoiceEqualization(config);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setLocalVoiceReverbParam": {
+                    VoiceReverbConfig config = RTCType.toVoiceReverbConfig(arguments.optBox("config"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setLocalVoiceReverbParam(config);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "enableLocalVoiceReverb": {
+                    boolean enabled = arguments.optBoolean("enable");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.enableLocalVoiceReverb(enabled);
+                    result.success(retValue);
                     break;
                 }
 
@@ -526,15 +334,14 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     boolean enable = arguments.optBoolean("enable");
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.enableSimulcastMode(enable);
+                    rtcVideo.enableSimulcastMode(enable);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
                 case "setMaxVideoEncoderConfig": { // Support Dart setMaxVideoEncoderConfig
                     VideoEncoderConfig maxSolution = RTCType.toVideoEncoderConfig(arguments.optBox("maxSolution"));
-
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.setVideoEncoderConfig(maxSolution);
 
@@ -553,7 +360,7 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 }
 
                 case "setScreenVideoEncoderConfig": {
-                    VideoEncoderConfig solution = RTCType.toVideoEncoderConfig(arguments.optBox("screenSolution"));
+                    ScreenVideoEncoderConfig solution = RTCType.toScreenVideoEncoderConfig(arguments.optBox("screenSolution"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.setScreenVideoEncoderConfig(solution);
@@ -584,16 +391,16 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 }
 
                 case "removeRemoteVideo": { // Support Dart removeRemoteVideo
-                    int idx = arguments.optInt("streamType");
+                    String roomId = arguments.optString("roomId");
                     String uid = arguments.optString("uid");
-                    StreamIndex streamIndex = StreamIndex.fromId(idx);
+                    StreamIndex streamIndex = StreamIndex.fromId(arguments.optInt("streamType"));
                     VideoCanvas canvas = new VideoCanvas(); // Use a blank Canvas as Remove
-                    canvas.uid = uid; // Note: SDK Need the canvas & canvas has uid
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setRemoteVideoCanvas(uid, streamIndex, canvas);
+                    RemoteStreamKey streamKey = new RemoteStreamKey(roomId, uid, streamIndex);
+                    rtcVideo.setRemoteVideoCanvas(streamKey, canvas);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -617,9 +424,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     MirrorType mode = MirrorType.fromId(arguments.optInt("mirrorType"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setLocalVideoMirrorType(mode);
+                    rtcVideo.setLocalVideoMirrorType(mode);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -627,9 +434,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     VideoRotationMode rotationMode = VideoRotationMode.fromId(arguments.optInt("rotationMode"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setVideoRotationMode(rotationMode);
+                    rtcVideo.setVideoRotationMode(rotationMode);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -637,9 +444,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     CameraId cameraId = CameraId.fromId(arguments.optInt("cameraId"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.switchCamera(cameraId);
+                    rtcVideo.switchCamera(cameraId);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -716,22 +523,11 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
-                case "enableEffectBeauty": {
-                    final boolean enable = arguments.optBoolean("enable");
-
+                case "setBackgroundSticker": {
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.enableEffectBeauty(enable);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "setBeautyIntensity": {
-                    EffectBeautyMode beautyMode = EffectBeautyMode.fromId(arguments.optInt("beautyMode"));
-                    float intensity = arguments.optFloat("intensity");
-
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setBeautyIntensity(beautyMode, intensity);
+                    String modelPath = arguments.optString("modelPath");
+                    VirtualBackgroundSource source = RTCType.toVirtualBackgroundSource(arguments.optBox("source"));
+                    int retValue = rtcVideo.setBackgroundSticker(modelPath, source);
 
                     result.success(retValue);
                     break;
@@ -748,6 +544,27 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     } else {
                         retValue = rtcVideo.registerFaceDetectionObserver(null, interval);
                     }
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "enableEffectBeauty": {
+                    final boolean enabled = arguments.optBoolean("enable");
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.enableEffectBeauty(enabled);
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setBeautyIntensity": {
+                    EffectBeautyMode beautyMode = EffectBeautyMode.fromId(arguments.optInt("beautyMode"));
+                    float intensity = arguments.optFloat("intensity");
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setBeautyIntensity(beautyMode, intensity);
 
                     result.success(retValue);
                     break;
@@ -849,11 +666,44 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     StreamIndex streamIndex = StreamIndex.fromId(arguments.optInt("streamIndex"));
                     byte[] msg = arguments.optBytes("message");
                     int repeatCount = arguments.optInt("repeatCount");
+                    SEICountPerFrame mode = SEICountPerFrame.fromId(arguments.optInt("mode"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.sendSEIMessage(streamIndex, msg, repeatCount);
+                    int retValue = rtcVideo.sendSEIMessage(streamIndex, msg, repeatCount, mode);
 
                     result.success(retValue);
+                    break;
+                }
+
+                case "setVideoDigitalZoomConfig": {
+                    ZoomConfigType type = ZoomConfigType.fromId(arguments.optInt("type"));
+                    float size = arguments.optFloat("size");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.setVideoDigitalZoomConfig(type, size);
+                    result.success(null);
+                    break;
+                }
+
+                case "setVideoDigitalZoomControl": {
+                    ZoomDirectionType direction = ZoomDirectionType.fromId(arguments.optInt("direction"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.setVideoDigitalZoomControl(direction);
+                    result.success(null);
+                    break;
+                }
+
+                case "startVideoDigitalZoomControl": {
+                    ZoomDirectionType direction = ZoomDirectionType.fromId(arguments.optInt("direction"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.startVideoDigitalZoomControl(direction);
+                    result.success(null);
+                    break;
+                }
+
+                case "stopVideoDigitalZoomControl": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.stopVideoDigitalZoomControl();
+                    result.success(null);
                     break;
                 }
 
@@ -861,9 +711,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     AudioRoute audioRouteDevice = AudioRoute.fromId(arguments.optInt("audioRoute"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setAudioRoute(audioRouteDevice);
+                    rtcVideo.setAudioRoute(audioRouteDevice);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -886,10 +736,10 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 }
 
                 case "enableExternalSoundCard": {
-                    final boolean enable = arguments.optBoolean("enable");
+                    final boolean enabled = arguments.optBoolean("enable");
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    rtcVideo.enableExternalSoundCard(enable);
+                    rtcVideo.enableExternalSoundCard(enabled);
 
                     result.success(null);
                     break;
@@ -898,7 +748,6 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 case "startLiveTranscoding": {
                     String taskId = arguments.optString("taskId");
                     LiveTranscoding liveTranscoding = RTCType.toLiveTranscoding(arguments.optBox("transcoding"));
-                    liveTranscoding.setAction(LiveTranscoding.ACTION_START);
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     rtcVideo.startLiveTranscoding(taskId, liveTranscoding, liveTranscodingEventProxy);
@@ -920,7 +769,6 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 case "updateLiveTranscoding": {
                     String taskId = arguments.optString("taskId");
                     LiveTranscoding liveTranscoding = RTCType.toLiveTranscoding(arguments.optBox("transcoding"));
-                    liveTranscoding.setAction(LiveTranscoding.ACTION_CHANGED);
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     rtcVideo.updateLiveTranscoding(taskId, liveTranscoding);
@@ -993,6 +841,16 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
+                case "setPublicStreamAudioPlaybackVolume": {
+                    String publicStreamId = arguments.optString("publicStreamId");
+                    int volume = arguments.optInt("volume");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setPublicStreamAudioPlaybackVolume(publicStreamId, volume);
+
+                    result.success(retValue);
+                    break;
+                }
+
                 case "setBusinessId": {
                     String businessId = arguments.optString("businessId");
 
@@ -1018,9 +876,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     PublishFallbackOption option = RTCType.toPublishFallbackOption(arguments.optInt("option"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setPublishFallbackOption(option);
+                    rtcVideo.setPublishFallbackOption(option);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -1028,9 +886,9 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     SubscribeFallbackOptions options = RTCType.toSubscribeFallbackOptions(arguments.optInt("option"));
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    int retValue = rtcVideo.setSubscribeFallbackOption(options);
+                    rtcVideo.setSubscribeFallbackOption(options);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -1163,6 +1021,20 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
+                case "startAudioRecording": {
+                    AudioRecordingConfig config = RTCType.toAudioRecordingConfig(arguments.optBox("config"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.startAudioRecording(config);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "stopAudioRecording": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.stopAudioRecording();
+                    result.success(retValue);
+                    break;
+                }
 
                 case "login": {
                     String token = arguments.optString("token");
@@ -1381,16 +1253,6 @@ public class RTCVideoPlugin implements FlutterPlugin {
                     break;
                 }
 
-                case "setBackgroundSticker": {
-                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                    String modelPath = arguments.optString("modelPath");
-                    VirtualBackgroundSource source = RTCType.toVirtualBackgroundSource(arguments.optBox("source"));
-                    int retValue = rtcVideo.setBackgroundSticker(modelPath, source);
-
-                    result.success(retValue);
-                    break;
-                }
-
                 case "startPushSingleStreamToCDN": {
                     String taskId = arguments.optString("taskId");
                     PushSingleStreamParam param = RTCType.toPushSingleStreamParam(arguments.optBox("param"));
@@ -1413,18 +1275,93 @@ public class RTCVideoPlugin implements FlutterPlugin {
                 }
 
                 case "setDummyCaptureImagePath": {
-//                    String filePath = arguments.optString("filePath");
-//                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-//                    int retValue = rtcVideo.setDummyCaptureImagePath(filePath);
-//
-//                    result.success(retValue);
-                    result.notImplemented();
+                    String filePath = arguments.optString("filePath");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setDummyCaptureImagePath(filePath);
+
+                    result.success(retValue);
                     break;
                 }
 
-                case "eventHandlerSwitches": { // for performance reason
-                    videoEventHandler.setSwitches(arguments);
+                case "takeLocalSnapshot": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    StreamIndex streamIndex = StreamIndex.fromId(arguments.optInt("streamIndex"));
+                    String filePath = arguments.optString("filePath");
+                    long taskId = rtcVideo.takeLocalSnapshot(streamIndex, snapshotResultCallbackProxy.createCallback(filePath));
+
+                    result.success(taskId);
+                    break;
+                }
+
+                case "takeRemoteSnapshot": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    RemoteStreamKey streamKey = RTCType.toRemoteStreamKey(arguments.optBox("streamKey"));
+                    String filePath = arguments.optString("filePath");
+                    long taskId = rtcVideo.takeRemoteSnapshot(streamKey, snapshotResultCallbackProxy.createCallback(filePath));
+
+                    result.success(taskId);
+                    break;
+                }
+
+                case "getNetworkTimeInfo": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    NetworkTimeInfo info = rtcVideo.getNetworkTimeInfo();
+                    if (info == null) {
+                        result.success(null);
+                        break;
+                    }
+                    final HashMap<String, Object> map = new HashMap<>();
+                    map.put("timestamp", info.timestamp);
+                    result.success(map);
+                    break;
+                }
+
+                case "setAudioAlignmentProperty": {
+                    RemoteStreamKey streamKey = RTCType.toRemoteStreamKey(arguments.optBox("streamKey"));
+                    AudioAlignmentMode mode = AudioAlignmentMode.fromId(arguments.optInt("mode"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    rtcVideo.setAudioAlignmentProperty(streamKey, mode);
                     result.success(null);
+                    break;
+                }
+
+                case "invokeExperimentalAPI": {
+                    String param = arguments.optString("param");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.invokeExperimentalAPI(param);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "getKTVManager": {
+                    if (ktvManager != null) {
+                        result.success(true);
+                        break;
+                    }
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    KTVManager manager = rtcVideo.getKTVManager();
+                    boolean res = manager != null;
+                    if (res) {
+                        ktvManager = new KTVManagerPlugin(manager);
+                        ktvManager.onAttachedToEngine(binding);
+                        flutterPlugins.add(ktvManager);
+                    }
+                    result.success(res);
+                    break;
+                }
+
+                case "startHardwareEchoDetection": {
+                    String testAudioFilePath = arguments.optString("testAudioFilePath");
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.startHardwareEchoDetection(testAudioFilePath);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "stopHardwareEchoDetection": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.stopHardwareEchoDetection();
+                    result.success(retValue);
                     break;
                 }
 // endregion

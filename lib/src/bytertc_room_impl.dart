@@ -5,10 +5,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-import '../api/bytertc_common_defines.dart';
+import '../api/bytertc_media_defines.dart';
 import '../api/bytertc_range_audio_api.dart';
 import '../api/bytertc_room_api.dart';
 import '../api/bytertc_room_event_handler.dart';
+import '../api/bytertc_rts_defines.dart';
 import '../api/bytertc_spatial_audio_api.dart';
 import '../api/bytertc_video_defines.dart';
 import 'base/bytertc_enum_convert.dart';
@@ -43,7 +44,8 @@ class RTCRoomImpl implements RTCRoom {
         });
   }
 
-  Future<T?> _invokeMethod<T>(String method, [dynamic arguments]) {
+  Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) {
     return _channel.invokeMethod(method, arguments);
   }
 
@@ -54,8 +56,9 @@ class RTCRoomImpl implements RTCRoom {
   Future<void> destroy() {
     _eventChannel.cancel();
     _eventHandler = null;
-    _rangeAudioImpl?.destroy();
-    return RTCVideoImpl.invokeMethod('destroyRTCRoom', {'insId': _insId});
+    return RTCVideoImpl.instance
+            ?.invokeMethod('destroyRTCRoom', {'insId': _insId}) ??
+        Future.value();
   }
 
   @override
@@ -63,7 +66,7 @@ class RTCRoomImpl implements RTCRoom {
     _eventHandler?.valueObserver = null;
     _eventHandler = eventHandler;
     _eventHandler?.valueObserver = (Map<String, dynamic> arguments) {
-      _invokeMethod('eventHandlerSwitches', arguments);
+      _invokeMethod<void>('eventHandlerSwitches', arguments);
     };
     _listenRtcRoomEvent();
   }
@@ -90,8 +93,8 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<int?> setMultiDeviceAVSync(String audioUid) {
-    return _invokeMethod<int>('setMultiDeviceAVSync', {
+  Future<void> setMultiDeviceAVSync(String audioUid) {
+    return _invokeMethod<void>('setMultiDeviceAVSync', {
       'insId': _insId,
       'audioUid': audioUid,
     });
@@ -103,17 +106,17 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> updateToken(String token) {
-    return _invokeMethod('updateToken', {
+  Future<int?> updateToken(String token) {
+    return _invokeMethod<int>('updateToken', {
       'insId': _insId,
       'token': token,
     });
   }
 
   @override
-  Future<void> setRemoteVideoConfig(
+  Future<int?> setRemoteVideoConfig(
       {required String uid, required RemoteVideoConfig videoConfig}) {
-    return _invokeMethod<void>('setRemoteVideoConfig',
+    return _invokeMethod<int>('setRemoteVideoConfig',
         {'insId': _insId, 'uid': uid, 'videoConfig': videoConfig.toMap()});
   }
 
@@ -146,9 +149,9 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> subscribeStream(
+  Future<int?> subscribeStream(
       {required String uid, required MediaStreamType type}) {
-    return _invokeMethod<void>('subscribeStream', {
+    return _invokeMethod<int>('subscribeStream', {
       'insId': _insId,
       'uid': uid,
       'type': type.value,
@@ -156,9 +159,34 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> unsubscribeStream(
+  Future<int?> subscribeAllStreams(MediaStreamType type) {
+    return _invokeMethod<int>('subscribeAllStreams', {
+      'insId': _insId,
+      'type': type.value,
+    });
+  }
+
+  @override
+  Future<int?> unsubscribeStream(
       {required String uid, required MediaStreamType type}) {
-    return _invokeMethod<void>('unsubscribeStream', {
+    return _invokeMethod<int>('unsubscribeStream', {
+      'insId': _insId,
+      'uid': uid,
+      'type': type.value,
+    });
+  }
+
+  Future<int?> unsubscribeAllStreams(MediaStreamType type) {
+    return _invokeMethod<int>('unsubscribeAllStreams', {
+      'insId': _insId,
+      'type': type.value,
+    });
+  }
+
+  @override
+  Future<int?> subscribeScreen(
+      {required String uid, required MediaStreamType type}) {
+    return _invokeMethod<int>('subscribeScreen', {
       'insId': _insId,
       'uid': uid,
       'type': type.value,
@@ -166,19 +194,9 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> subscribeScreen(
+  Future<int?> unsubscribeScreen(
       {required String uid, required MediaStreamType type}) {
-    return _invokeMethod<void>('subscribeScreen', {
-      'insId': _insId,
-      'uid': uid,
-      'type': type.value,
-    });
-  }
-
-  @override
-  Future<void> unsubscribeScreen(
-      {required String uid, required MediaStreamType type}) {
-    return _invokeMethod<void>('unsubscribeScreen', {
+    return _invokeMethod<int>('unsubscribeScreen', {
       'insId': _insId,
       'uid': uid,
       'type': type.value,
@@ -292,4 +310,11 @@ class RTCRoomImpl implements RTCRoom {
   RTCSpatialAudio get spatialAudio {
     return _spatialAudioImpl ??= RTCSpatialAudioImpl(_insId);
   }
+
+  @override
+  Future<void> setRemoteRoomAudioPlaybackVolume(int volume) =>
+      _invokeMethod<void>('setRemoteRoomAudioPlaybackVolume', {
+        'insId': _insId,
+        'volume': volume,
+      });
 }

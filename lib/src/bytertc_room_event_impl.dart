@@ -8,7 +8,7 @@ import 'base/bytertc_event_serialize.dart';
 class RTCRoomEventValue {
   void Function(Map<String, dynamic>)? _valueObserver;
 
-  set valueObserver(Function(Map<String, dynamic>)? valueObserver) {
+  set valueObserver(void Function(Map<String, dynamic>)? valueObserver) {
     _valueObserver = valueObserver;
     if (valueObserver == null) return;
     _valueObserver?.call({
@@ -102,6 +102,12 @@ extension RTCRoomEventProcessor on RTCRoomEventHandler {
         break;
       case 'onTokenWillExpire':
         onTokenWillExpire?.call();
+        break;
+      case 'onPublishPrivilegeTokenWillExpire':
+        onPublishPrivilegeTokenWillExpire?.call();
+        break;
+      case 'onSubscribePrivilegeTokenWillExpire':
+        onSubscribePrivilegeTokenWillExpire?.call();
         break;
       case 'onUserPublishStream':
         final data = OnUserPublishStreamData.fromMap(dic);

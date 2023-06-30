@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import "ByteRTCFlutterStreamHandler.h"
-#import "ByteRTCFlutterPluginProtocl.h"
+#import "ByteRTCFlutterPlugin.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class ByteRTCFlutterRoomManager, ByteRTCRoom;
-@interface ByteRTCFlutterRoomPlugin : ByteRTCFlutterMethodHandler <ByteRTCFlutterPlugin>
-
-@property (nonatomic, strong, readonly) ByteRTCFlutterRoomManager *roomManager;
+@class ByteRTCRoom;
+@interface ByteRTCFlutterRoomPlugin : ByteRTCFlutterPlugin
 
 + (instancetype)createWithRTCRoom:(ByteRTCRoom *)rtcRoom
                         roomInsId:(NSInteger)roomInsId;

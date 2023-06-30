@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * SPDX-License-Identifier: MIT
+ */
+
 package com.ss.bytertc.engine.flutter.video;
 
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
@@ -13,6 +18,10 @@ public class PushSingleStreamToCDNProxy implements IPushSingleStreamToCDNObserve
 
     public void registerEvent(BinaryMessenger binaryMessenger) {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_push_single_stream_to_cdn");
+    }
+
+    public void destroy() {
+        emitter.destroy();
     }
 
     @Override

@@ -5,10 +5,11 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import '../src/base/bytertc_enum_convert.dart';
-import 'bytertc_common_defines.dart';
+import 'bytertc_audio_defines.dart';
+import 'bytertc_media_defines.dart';
 import 'bytertc_video_event_handler.dart';
 
-/// 用于初始化 RTCvideo 的配置
+/// 用于初始化 RTCVideo 的配置
 class RTCVideoContext {
   /// 每个应用的唯一标识符，由 RTC 控制台随机生成的。
   ///
@@ -18,7 +19,7 @@ class RTCVideoContext {
   /// SDK 回调给应用层的 Handler
   RTCVideoEventHandler? eventHandler;
 
-  /// 保留参数
+  /// 私有参数。如需使用请联系技术支持人员。
   Map<String, dynamic>? parameters;
 
   RTCVideoContext(
@@ -46,6 +47,7 @@ enum CameraId {
   /// 后置摄像头（默认设置）
   back,
 
+  /// @nodoc('Not available')
   /// 外接摄像头
   external
 }
@@ -131,7 +133,7 @@ enum ScaleMode {
 }
 
 /// 编码策略偏好
-enum EncoderPreference {
+enum VideoEncoderPreference {
   /// 无偏好
   disable,
 
@@ -143,6 +145,15 @@ enum EncoderPreference {
 
   /// 平衡质量与帧率
   balance,
+}
+
+/// 屏幕流编码模式。默认采用清晰模式。
+enum ScreenVideoEncoderPreference {
+  /// 流畅模式，优先保障帧率。适用于共享游戏、视频等动态画面。
+  maintainFrameRate,
+
+  /// 清晰模式，优先保障分辨率。适用于共享PPT、文档、图片等静态画面。
+  maintainQuality,
 }
 
 /// 暂停/恢复接收远端的媒体流类型
@@ -217,6 +228,7 @@ enum StreamMixingType {
 
 /// 转推直播任务状态
 enum StreamMixingEvent {
+  /// @nodoc('For internal use')
   /// 未定义状态
   base,
 
@@ -332,6 +344,21 @@ enum TranscoderLayoutRegionType {
   image,
 }
 
+/// 视频编码格式。
+enum TranscodingVideoCodec {
+  /// H.264 格式，默认值。
+  h264,
+
+  /// ByteVC1 格式。
+  byteVC1,
+}
+
+/// 音频编码格式。
+enum TranscodingAudioCodec {
+  /// AAC 格式。
+  aac,
+}
+
 /// AAC 编码类型
 enum AACProfile {
   /// 编码等级 AAC-LC
@@ -346,32 +373,32 @@ enum AACProfile {
 
 /// 转推视频配置。
 class LiveTranscodingVideoConfig {
-  /// 合流转推视频编码器格式。
-  String codec;
+  /// 视频编码格式，默认值为 `h264`。本参数不支持过程中更新。
+  TranscodingVideoCodec codec;
 
-  /// 合流视频帧率信息
+  /// 合流视频帧率。单位为 FPS，取值范围为 `[1,60]`， 默认值为 15 FPS。
   int fps;
 
-  /// 视频 I 帧间隔。
+  /// 视频 I 帧时间间隔。单位为秒，取值范围为 `[1, 5]`，默认值为 2 秒。
   int gop;
 
-  /// 是否使用低延时特性。
-  bool lowLatency;
+  /// 是否使用B帧。
+  bool bFrame;
 
-  /// 合流视频码率，单位为 kbps 。
+  /// 合流视频码率。单位为 Kbps，取值范围为 `[1,10000]`，默认值为自适应模式。
   int kBitrate;
 
-  /// 宽（像素）
+  /// 合流视频宽度。单位为 px，范围为 `[2, 1920]`，必须是偶数。默认值为 640 px。设置值为非偶数时，自动向上取偶数。
   int width;
 
-  /// 高（像素）
+  /// 合流视频高度。单位为 px，范围为 `[2, 1920]`，必须是偶数。默认值为 360 px。设置值为非偶数时，自动向上取偶数。
   int height;
 
   LiveTranscodingVideoConfig({
-    this.codec = 'H264',
+    this.codec = TranscodingVideoCodec.h264,
     this.fps = 30,
-    this.gop = 60,
-    this.lowLatency = true,
+    this.gop = 2,
+    this.bFrame = false,
     this.kBitrate = 500,
     this.width = 360,
     this.height = 640,
@@ -380,10 +407,10 @@ class LiveTranscodingVideoConfig {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codec': codec,
+      'codec': codec.value,
       'fps': fps,
       'gop': gop,
-      'lowLatency': lowLatency,
+      'bFrame': bFrame,
       'kBitrate': kBitrate,
       'width': width,
       'height': height,
@@ -393,33 +420,33 @@ class LiveTranscodingVideoConfig {
 
 /// 转推音频配置。
 class LiveTranscodingAudioConfig {
-  /// 合流转推音频编码器格式。
-  String codec;
+  /// 音频编码格式，默认值为 `aac`。
+  TranscodingAudioCodec codec;
 
-  /// 合流音频码率，单位为 kbps 。
+  /// 音频码率，单位 Kbps。可取范围 `[32, 192]`，默认值为 64 Kbps。
   int kBitrate;
 
-  /// 音频采样率，单位 Hz。可取 32000Hz、44100Hz、48000Hz，默认值为 48000Hz。
+  /// 音频采样率，单位 Hz。可取 32000 Hz、44100 Hz、48000 Hz，默认值为 48000 Hz。
   int sampleRate;
 
-  /// 声道数，可取 1 或 2。
+  /// 音频声道数。可取 1（单声道）、2（双声道），默认值为 2。
   int channels;
 
-  /// AAC 编码等级。
+  /// AAC 规格，默认值为 `lc`。
   AACProfile aacProfile;
 
   LiveTranscodingAudioConfig({
-    this.channels = 2,
-    this.codec = 'AAC',
+    this.codec = TranscodingAudioCodec.aac,
     this.kBitrate = 64,
     this.sampleRate = 48000,
+    this.channels = 2,
     this.aacProfile = AACProfile.lc,
   });
 
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'codec': codec,
+      'codec': codec.value,
       'kBitrate': kBitrate,
       'sampleRate': sampleRate,
       'channels': channels,
@@ -476,6 +503,11 @@ class LiveTranscodingRegion {
   /// 透明度，范围为 `[0.0, 1.0]`。
   double alpha;
 
+  /// 圆角半径相对画布宽度的比例。默认值为 `0.0`。
+  ///
+  /// 做范围判定时，首先根据画布的宽高，将 `width`，`height`，和 `cornerRadius` 分别转换为像素值：`width_px`，`height_px`，和 `cornerRadius_px`。然后判定是否满足 `cornerRadius_px < min(width_px/2, height_px/2)`：若满足，则设置成功；若不满足，则将 `cornerRadius_px` 设定为 `min(width_px/2, height_px/2)`，然后将 `cornerRadius` 设定为 `cornerRadius_px` 相对画布宽度的比例值。
+  double cornerRadius;
+
   /// 合流转推包含内容
   TranscoderContentControlType contentControl;
 
@@ -497,6 +529,9 @@ class LiveTranscodingRegion {
   /// 合流布局区域数据的对应参数
   TranscoderLayoutRegionDataParam? dataParam;
 
+  /// 空间位置
+  Position spatialPosition;
+
   LiveTranscodingRegion({
     required this.uid,
     required this.roomId,
@@ -506,6 +541,7 @@ class LiveTranscodingRegion {
     required this.h,
     this.zorder = 0,
     this.alpha = 1.0,
+    this.cornerRadius = 0.0,
     this.contentControl = TranscoderContentControlType.hasAudioAndVideo,
     this.renderMode = VideoRenderMode.hidden,
     required this.localUser,
@@ -513,6 +549,7 @@ class LiveTranscodingRegion {
     this.type = TranscoderLayoutRegionType.videoStream,
     this.data,
     this.dataParam,
+    this.spatialPosition = const Position.zero(),
   });
 
   /// @nodoc
@@ -526,11 +563,13 @@ class LiveTranscodingRegion {
       'h': h,
       'zorder': zorder,
       'alpha': alpha,
+      'cornerRadius': cornerRadius,
       'contentControl': contentControl.value,
       'renderMode': renderMode.value,
       'localUser': localUser,
       'isScreen': isScreen,
       'type': type.value,
+      'spatialPosition': spatialPosition.toMap(),
     });
     if (this.data != null) {
       dic['data'] = data;
@@ -569,31 +608,64 @@ class LiveTranscodingLayout {
   }
 }
 
+/// 推流 CDN 的空间音频参数
+class LiveTranscodingSpatialConfig {
+  /// 听众的空间朝向
+  ///
+  /// 听众指收听来自 CDN 的音频流的用户。
+  final HumanOrientation audienceSpatialOrientation;
+
+  /// 听众的空间位置
+  ///
+  /// 听众指收听来自 CDN 的音频流的用户。
+  final Position audienceSpatialPosition;
+
+  /// 是否开启推流 CDN 时的空间音频效果。
+  ///
+  /// 当你启用此效果时，你需要设定推流中各个 [LiveTranscodingSpatialConfig] 的 `audienceSpatialPosition` 值，实现空间音频效果。
+  final bool enableSpatialRender;
+
+  const LiveTranscodingSpatialConfig({
+    this.audienceSpatialOrientation = const HumanOrientation.origin(),
+    this.audienceSpatialPosition = const Position.zero(),
+    this.enableSpatialRender = false,
+  });
+
+  const LiveTranscodingSpatialConfig.disabled() : this();
+
+  /// @nodoc
+  Map<String, dynamic> toMap() => {
+        'orientation': audienceSpatialOrientation.toMap(),
+        'position': audienceSpatialPosition.toMap(),
+        'enableSpatialRender': enableSpatialRender,
+      };
+}
+
 /// 转推直播配置参数。
 class LiveTranscoding {
-  /// 合流类型
+  /// 设置合流类型。本参数不支持过程中更新。
   StreamMixingType mixType;
 
-  /// 推流地址
+  /// 推流地址。本参数不支持过程中更新。
   String url;
 
-  /// 房间 ID
+  /// 房间 ID。本参数不支持过程中更新。
   String roomId;
 
-  /// 用户 ID
+  /// 用户 ID。本参数不支持过程中更新。
   String uid;
 
   /// 视频设置
   LiveTranscodingVideoConfig video;
 
-  /// 音频设置
+  /// 音频设置。本参数不支持过程中更新。
   LiveTranscodingAudioConfig audio;
 
   /// 布局设置
   LiveTranscodingLayout layout;
 
-  /// 业务透传鉴权信息
-  Map<String, dynamic>? authInfo;
+  /// 空间音频信息
+  LiveTranscodingSpatialConfig spatialConfig;
 
   LiveTranscoding({
     this.mixType = StreamMixingType.byServer,
@@ -603,29 +675,25 @@ class LiveTranscoding {
     required this.video,
     required this.layout,
     required this.audio,
-    this.authInfo,
+    this.spatialConfig = const LiveTranscodingSpatialConfig.disabled(),
   });
 
   /// @nodoc
-  Map<String, dynamic> toMap() {
-    HashMap<String, dynamic> dic = HashMap.of({
-      'url': url,
-      'roomId': roomId,
-      'uid': uid,
-      'mixType': mixType.value,
-      'video': video.toMap(),
-      'layout': layout.toMap(),
-      'audio': audio.toMap(),
-    });
-    if (authInfo != null) {
-      dic['authInfo'] = authInfo;
-    }
-    return dic;
-  }
+  Map<String, dynamic> toMap() => {
+        'url': url,
+        'roomId': roomId,
+        'uid': uid,
+        'mixType': mixType.value,
+        'video': video.toMap(),
+        'layout': layout.toMap(),
+        'audio': audio.toMap(),
+        'spatialConfig': spatialConfig.toMap(),
+      };
 }
 
 /// 单流转推直播状态
 enum StreamSinglePushEvent {
+  /// @nodoc('For internal use')
   /// 未定义
   base,
 
@@ -680,6 +748,33 @@ class PushSingleStreamParam {
   }
 }
 
+/// 性能回退相关数据
+class SourceWantedData {
+  /// 未开启发布回退时，此值表示推荐的视频输入宽度；当回退模式为大小流模式时，表示当前推流的最大宽度
+  final int? width;
+
+  /// 如果未开启发送性能回退，此值表示推荐的视频输入高度；如果开启了发送性能回退，此值表示当前推流的最大高度。
+  final int? height;
+
+  /// 如果未开启发送性能回退，此值表示推荐的视频输入帧率，单位 fps；如果开启了发送性能回退，此值表示当前推流的最大帧率，单位 fps。
+  final int? frameRate;
+
+  const SourceWantedData({
+    this.width,
+    this.height,
+    this.frameRate,
+  });
+
+  /// @nodoc
+  factory SourceWantedData.fromMap(Map<dynamic, dynamic> map) {
+    return SourceWantedData(
+      width: map['width'],
+      height: map['height'],
+      frameRate: map['frameRate'],
+    );
+  }
+}
+
 /// 订阅配置
 class SubscribeConfig {
   /// 是否是屏幕流
@@ -702,7 +797,7 @@ class SubscribeConfig {
   /// 视频高度，单位：px
   final int? subHeight;
 
-  /// 暂不可用
+  /// @nodoc('Not available')
   final int? subVideoIndex;
 
   /// 订阅的视频流时域分层，默认值为 0，Android 暂不可用
@@ -790,11 +885,15 @@ class FaceDetectionResult {
   /// 识别到人脸的矩形框。数组的长度和检测到的人脸数量一致。
   final List<Rectangle>? faces;
 
+  /// 进行人脸识别的视频帧的时间戳。
+  final int? frameTimestampUs;
+
   const FaceDetectionResult({
     this.detectResult,
     this.imageWidth,
     this.imageHeight,
     this.faces,
+    this.frameTimestampUs,
   });
 
   /// @nodoc
@@ -803,6 +902,7 @@ class FaceDetectionResult {
       detectResult: map['detectResult'],
       imageWidth: map['imageWidth'],
       imageHeight: map['imageHeight'],
+      frameTimestampUs: map['frameTimestampUs'],
       faces: (map['faces'] as List<dynamic>)
           .map((e) => Rectangle.fromMap(e))
           .toList(),
@@ -1000,15 +1100,26 @@ class VideoEncoderConfig {
   /// 设为 0 则不对视频流进行编码发送。
   int maxBitrate;
 
+  /// 视频最小编码码率, 单位 kbps。编码码率不会低于 `minBitrate`。<br>
+  ///
+  /// 默认值为 `0`。<br>
+  /// 范围：`[0, maxBitrate)`，当 `maxBitrate` < `minBitrate` 时，为适配码率模式。
+  ///
+  /// 注意，以下情况，设置本参数无效：
+  /// + 当 `maxBitrate` 为 `0` 时，不对视频流进行编码发送。
+  /// + 当 `maxBitrate` < `0` 时，适配码率模式。
+  int minBitrate;
+
   /// 编码策略偏好
-  EncoderPreference encoderPreference;
+  VideoEncoderPreference encoderPreference;
 
   VideoEncoderConfig({
     required this.width,
     required this.height,
     required this.frameRate,
     this.maxBitrate = -1,
-    this.encoderPreference = EncoderPreference.maintainFrameRate,
+    this.minBitrate = 0,
+    this.encoderPreference = VideoEncoderPreference.maintainFrameRate,
   });
 
   /// @nodoc
@@ -1018,6 +1129,54 @@ class VideoEncoderConfig {
       'height': height,
       'frameRate': frameRate,
       'maxBitrate': maxBitrate,
+      'minBitrate': minBitrate,
+      'encoderPreference': encoderPreference.value,
+    };
+  }
+}
+
+/// 屏幕流编码配置。参考 [设置视频发布参数](https://www.volcengine.com/docs/6348/70122)。
+class ScreenVideoEncoderConfig {
+  /// 视频宽度，单位：px
+  int width;
+
+  /// 视频高度，单位：px
+  int height;
+
+  /// 视频帧率，单位：fps
+  int frameRate;
+
+  /// 最大编码码率，使用 SDK 内部采集时可选设置，自定义采集时必须设置，单位：kbps
+  ///
+  /// 内部采集模式下默认值为 -1，即适配码率模式，系统将根据输入的分辨率和帧率自动计算适用的码率。 <br>
+  /// 设为 0 则不对视频流进行编码发送。
+  int maxBitrate;
+
+  /// 最小编码码率，使用 SDK 内部采集时可选设置，自定义采集时必须设置，单位：kbps。
+  ///
+  /// 最小编码码率必须小于或等于最大编码，否则不对视频流进行编码发送。
+  int minBitrate;
+
+  /// 屏幕流编码模式。参见 [ScreenVideoEncoderPreference].
+  ScreenVideoEncoderPreference encoderPreference;
+
+  ScreenVideoEncoderConfig({
+    required this.width,
+    required this.height,
+    required this.frameRate,
+    this.maxBitrate = -1,
+    this.minBitrate = 0,
+    this.encoderPreference = ScreenVideoEncoderPreference.maintainFrameRate,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'width': width,
+      'height': height,
+      'frameRate': frameRate,
+      'maxBitrate': maxBitrate,
+      'minBitrate': minBitrate,
       'encoderPreference': encoderPreference.value,
     };
   }
@@ -1025,7 +1184,7 @@ class VideoEncoderConfig {
 
 /// 远端视频帧信息
 class RemoteVideoConfig {
-  /// 期望订阅的最高帧率，单位：fps，默认值为 0，设为大于 0 的值时开始生效
+  /// 期望订阅的最高帧率，单位：fps，默认值为 0 即满帧订阅，设为大于 0 的值时开始生效
   ///
   /// 当发布端帧率低于设定帧率，或订阅端开启性能回退后下行弱网，则帧率会相应下降。  <br>
   /// 仅码流支持 SVC 分级编码特性时方可生效。
@@ -1061,7 +1220,7 @@ class RoomConfig {
   /// 是否自动发布音视频流，默认为自动发布
   ///
   /// 若调用 [RTCRoom.setUserVisibility] 将自身可见性设为 false，无论是默认的自动发布流还是手动设置的自动发布流都不会进行发布，你需要将自身可见性设为 true 后方可发布。<br>
-  /// 创建和加入多房间时，只能将其中一个房间设置为自动发布。
+  /// 创建和加入多房间时，只能将其中一个房间设置为自动发布。若每个房间均不做设置，则默认在第一个加入的房间内自动发布流。
   bool isAutoPublish;
 
   /// 是否自动订阅音频流，默认为自动订阅
@@ -1095,6 +1254,18 @@ class RoomConfig {
   }
 }
 
+/// 本地录制的媒体类型
+enum RecordingType {
+  /// 只录制音频
+  audioOnly,
+
+  /// 只录制视频
+  videoOnly,
+
+  /// 同时录制音频和视频
+  videoAndAudio,
+}
+
 /// 屏幕采集媒体类型
 enum ScreenMediaType {
   /// 仅采集视频
@@ -1110,23 +1281,25 @@ enum ScreenMediaType {
 /// 水印图片相对视频流的位置和大小
 class Watermark {
   /// 水印图片相对视频流左上角的横向偏移与视频流宽度的比值，取值范围为 [0,1)
-  double x;
+  final double x;
 
   /// 水印图片相对视频流左上角的纵向偏移与视频流高度的比值，取值范围为 [0,1)
-  double y;
+  final double y;
 
   /// 水印图片宽度与视频流宽度的比值，取值范围 [0,1)
-  double width;
+  final double width;
 
   /// 水印图片高度与视频流高度的比值，取值范围为 [0,1)
-  double height;
+  final double height;
 
-  Watermark({
-    required this.x,
-    required this.y,
-    required this.width,
-    required this.height,
+  const Watermark({
+    this.x = 0,
+    this.y = 0,
+    this.width = 0,
+    this.height = 0,
   });
+
+  const Watermark.none() : this();
 
   /// @nodoc
   Map<String, dynamic> toMap() {
@@ -1137,16 +1310,6 @@ class Watermark {
       'height': height,
     };
   }
-
-  /// @nodoc
-  static Map<String, dynamic> defaultMap() {
-    return <String, dynamic>{
-      'x': 0,
-      'y': 0,
-      'width': 0,
-      'height': 0,
-    };
-  }
 }
 
 /// 水印参数
@@ -1155,25 +1318,23 @@ class WatermarkConfig {
   bool visibleInPreview;
 
   /// 横屏时的水印位置和大小
-  Watermark? positionInLandscapeMode;
+  Watermark positionInLandscapeMode;
 
   /// 竖屏时的水印位置和大小
-  Watermark? positionInPortraitMode;
+  Watermark positionInPortraitMode;
 
   WatermarkConfig({
     this.visibleInPreview = true,
-    this.positionInLandscapeMode,
-    this.positionInPortraitMode,
+    this.positionInLandscapeMode = const Watermark.none(),
+    this.positionInPortraitMode = const Watermark.none(),
   });
 
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'visibleInPreview': visibleInPreview,
-      'positionInLandscapeMode':
-          positionInLandscapeMode?.toMap() ?? Watermark.defaultMap(),
-      'positionInPortraitMode':
-          positionInPortraitMode?.toMap() ?? Watermark.defaultMap(),
+      'positionInLandscapeMode': positionInLandscapeMode.toMap(),
+      'positionInPortraitMode': positionInPortraitMode.toMap(),
     };
   }
 }
@@ -1221,24 +1382,24 @@ class PublicStreamingRegion {
   /// 背景图片地址，iOS 适用
   String alternateImage;
 
-  /// 视频流对应区域左上角的横坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)。必填
+  /// 视频流对应区域左上角的横坐标相对整体画面的比例，取值的范围为 `[0.0, 1.0)`。必填
   double x;
 
-  /// 视频流对应区域左上角的纵坐标相对整体画面的比例，取值的范围为 [0.0, 1.0)。必填
+  /// 视频流对应区域左上角的纵坐标相对整体画面的比例，取值的范围为 `[0.0, 1.0)`。必填
   double y;
 
-  /// 视频流对应区域宽度相对整体画面的比例，取值的范围为 (0.0, 1.0]。必填
+  /// 视频流对应区域宽度相对整体画面的比例，取值的范围为 `(0.0, 1.0]`。必填
   double w;
 
-  /// 视频流对应区域高度相对整体画面的比例，取值的范围为 (0.0, 1.0]。必填
+  /// 视频流对应区域高度相对整体画面的比例，取值的范围为 `(0.0, 1.0]`。必填
   double h;
 
-  /// 用户视频布局在画布中的层级，取值范围为[0, 100]
+  /// 用户视频布局在画布中的层级，取值范围为 `[0, 100]`
   ///
   /// 0为底层，值越大越上层。
   int zorder;
 
-  /// 透明度，可选范围为 [0.0, 1.0]。必填
+  /// 透明度，可选范围为 `[0.0, 1.0]`。必填
   double alpha;
 
   /// 公共流媒体类型。必填
@@ -1256,7 +1417,7 @@ class PublicStreamingRegion {
   PublicStreamingRegion({
     required this.uid,
     required this.roomId,
-    this.alternateImage = "",
+    this.alternateImage = '',
     required this.x,
     required this.y,
     required this.w,
@@ -1330,16 +1491,16 @@ class PublicStreamingLayout {
 
 /// 公共流的视频编码参数
 class PublicStreamingVideoConfig {
-  /// 公共流视频帧率。必填。范围：[1, 60]
+  /// 公共流视频帧率。必填。范围：`[1, 60]`
   int fps;
 
-  /// 视频码率，必填。范围：[1,10000000]。单位为 bps
+  /// 视频码率，必填。范围：`[1,10000000]`。单位为 bps
   int kBitrate;
 
-  /// 公共流视频宽度，必填。单位为 px，范围为 [16, 1920]，必须是偶数。
+  /// 公共流视频宽度，必填。单位为 px，范围为 `[16, 1920]`，必须是偶数。
   int width;
 
-  /// 公共流视频高度，必填。单位为 px，范围为 [16, 1280]，必须是偶数。
+  /// 公共流视频高度，必填。单位为 px，范围为 `[16, 1280]`，必须是偶数。
   int height;
 
   PublicStreamingVideoConfig({
@@ -1391,13 +1552,15 @@ class PublicStreamingAudioConfig {
 
 /// 公共流参数
 class PublicStreaming {
-  /// 推公共流的房间 ID
+  /// @nodoc('Not available')
+  /// 推公共流的房间 ID。暂不可用。
   String roomId;
 
   /// 视频编码参数，必填。
   PublicStreamingVideoConfig video;
 
-  /// 音频编码参数，必填。
+  /// @nodoc('Not available')
+  /// 音频编码参数，必填。暂不可用。
   PublicStreamingAudioConfig audio;
 
   /// 公共流布局，必填。
@@ -1419,4 +1582,89 @@ class PublicStreaming {
       'layout': layout.toMap(),
     };
   }
+}
+
+/// 本地截图结果
+class LocalSnapshot {
+  /// 截图任务 ID
+  int taskId;
+
+  /// 流属性
+  final StreamIndex streamIndex;
+
+  /// 截图结果文件路径
+  final String filePath;
+
+  /// 图片宽度
+  int width;
+
+  /// 图片高度
+  int height;
+
+  LocalSnapshot({
+    this.taskId = 0,
+    required this.streamIndex,
+    required this.filePath,
+    this.width = 0,
+    this.height = 0,
+  });
+}
+
+/// 远端截图
+class RemoteSnapshot {
+  /// 截图任务 ID
+  int taskId;
+
+  /// 远端流信息
+  final RemoteStreamKey streamKey;
+
+  /// 截图结果文件路径
+  final String filePath;
+
+  /// 图片宽度
+  int width;
+
+  /// 图片高度
+  int height;
+
+  RemoteSnapshot({
+    this.taskId = 0,
+    required this.streamKey,
+    required this.filePath,
+    this.width = 0,
+    this.height = 0,
+  });
+}
+
+/// 数码变焦参数类型
+enum ZoomConfigType {
+  /// 设置缩放系数
+  focusOffset,
+
+  /// 设置移动步长
+  moveOffset,
+}
+
+/// 数字变焦操作类型
+enum ZoomDirectionType {
+  /// 相机向左移动
+  cameraMoveLeft,
+
+  /// 相机向右移动
+  cameraMoveRight,
+
+  /// 相机向上移动
+  cameraMoveUp,
+
+  /// 相机向下移动
+  cameraMoveDown,
+
+  /// 相机缩小焦距
+  cameraZoomOut,
+
+  /// 相机放大焦距
+  cameraZoomIn,
+
+  /// 恢复到原始画面
+  cameraReset,
 }

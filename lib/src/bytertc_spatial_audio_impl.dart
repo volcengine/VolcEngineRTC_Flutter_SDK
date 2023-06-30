@@ -14,7 +14,8 @@ class RTCSpatialAudioImpl implements RTCSpatialAudio {
     _methodChannel = MethodChannel('com.bytedance.ve_rtc_spatial_audio$insId');
   }
 
-  Future<T?> _invokeMethod<T>(String method, [dynamic arguments]) {
+  Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) {
     return _methodChannel.invokeMethod(method, arguments);
   }
 
@@ -36,8 +37,10 @@ class RTCSpatialAudioImpl implements RTCSpatialAudio {
 
   @override
   Future<int?> updateSelfOrientation(HumanOrientation orientation) {
-    return _invokeMethod<int>('updateSelfOrientation',
-        {'insId': _insId, 'orientation': orientation.toMap()});
+    return _invokeMethod<int>('updateSelfOrientation', {
+      'insId': _insId,
+      'orientation': orientation.toMap(),
+    });
   }
 
   @override
@@ -46,4 +49,18 @@ class RTCSpatialAudioImpl implements RTCSpatialAudio {
       'insId': _insId,
     });
   }
+
+  @override
+  Future<int?> updateListenerPosition(Position pos) =>
+      _invokeMethod<int>('updateListenerPosition', {
+        'insId': _insId,
+        'pos': pos.toMap(),
+      });
+
+  @override
+  Future<int?> updateListenerOrientation(HumanOrientation orientation) =>
+      _invokeMethod<int>('updateListenerOrientation', {
+        'insId': _insId,
+        'orientation': orientation.toMap(),
+      });
 }

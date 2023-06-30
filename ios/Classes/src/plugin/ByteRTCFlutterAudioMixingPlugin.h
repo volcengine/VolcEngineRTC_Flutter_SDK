@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import "ByteRTCFlutterStreamHandler.h"
-#import "ByteRTCFlutterPluginProtocl.h"
+#import "ByteRTCFlutterPlugin.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class ByteRTCFlutterVideoManager;
-@interface ByteRTCFlutterAudioMixingPlugin : ByteRTCFlutterMethodHandler <ByteRTCFlutterPlugin>
+@class ByteRTCVideo;
+@interface ByteRTCFlutterAudioMixingPlugin : ByteRTCFlutterPlugin
 
-- (instancetype)initWithVideoManager:(ByteRTCFlutterVideoManager *)videoManager;
+- (instancetype)initWithRTCVideo:(ByteRTCVideo *)rtcVideo;
 
 @end
 

@@ -46,6 +46,7 @@ static NSString * const kMethodName = @"methodName";
 - (void)destroy {
     [self.methodChannel setMethodCallHandler:nil];
     self.methodChannel = nil;
+    self.methodTarget = nil;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {

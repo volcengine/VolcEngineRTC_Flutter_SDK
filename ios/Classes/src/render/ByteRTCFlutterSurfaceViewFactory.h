@@ -4,15 +4,12 @@
  */
 
 #import <Flutter/FlutterPlatformViews.h>
-#import "ByteRTCFlutterStreamHandler.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class ByteRTCFlutterVideoManager;
 @interface ByteRTCFlutterSurfaceViewFactory : NSObject <FlutterPlatformViewFactory>
 
-- (instancetype)initWithMessager:(NSObject<FlutterBinaryMessenger>*)messenger
-                    videoManager:(ByteRTCFlutterVideoManager *)videoManager;
+- (instancetype)initWithMessager:(NSObject<FlutterBinaryMessenger>*)messenger;
 
 @end
 

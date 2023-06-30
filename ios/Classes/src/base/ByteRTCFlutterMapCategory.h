@@ -3,17 +3,23 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import <VolcEngineRTC/objc/rtc/ByteRTCCommonDefines.h>
 #import <VolcEngineRTC/objc/rtc/ByteRTCAudioDefines.h>
 #import <VolcEngineRTC/objc/rtc/ByteRTCVideoDefines.h>
 #import <VolcEngineRTC/objc/rtc/ByteRTCSpatialAudio.h>
 #import <VolcEngineRTC/objc/rtc/ByteRTCRangeAudio.h>
+#import <VolcEngineRTC/objc/rtc/ByteRTCKTVDefines.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ByteRTCFlutterEventfactory : NSObject
 
 + (NSDictionary *)networkQualityStatsToMap:(ByteRTCNetworkQualityStats *)stats;
+
++ (NSDictionary *)ktvMusicToMap:(ByteRTCKTVMusic *)music;
+
++ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCKTVHotMusicInfo *)hotMusicInfo;
+
++ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCKTVDownloadResult *)downloadResult;
 
 @end
 
@@ -68,6 +74,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ByteRTCRemoteStreamKey (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap;
++ (ByteRTCRemoteStreamKey *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
@@ -128,12 +135,6 @@ NS_ASSUME_NONNULL_BEGIN
 @interface HumanOrientation (ByteRTCFlutterMapCategory)
 
 + (HumanOrientation *)bf_fromMap:(NSDictionary *)dict;
-
-@end
-
-@interface ByteRTCRangeAudioInfo (ByteRTCFlutterMapCategory)
-
-- (NSDictionary *)bf_toMap;
 
 @end
 
@@ -207,6 +208,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ByteRTCVideoEncoderConfig (ByteRTCFlutterMapCategory)
 
 + (ByteRTCVideoEncoderConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCScreenVideoEncoderConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCScreenVideoEncoderConfig *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
@@ -315,6 +322,42 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ByteRTCPushSingleStreamParam (ByteRTCFlutterMapCategory)
 
 + (ByteRTCPushSingleStreamParam *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCAudioRecordingConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCAudioRecordingConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCVoiceEqualizationConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCVoiceEqualizationConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCVoiceReverbConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCVoiceReverbConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCSingScoringConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCSingScoringConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCStandardPitchInfo (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap;
+
+@end
+
+@interface ByteRTCSingScoringRealtimeInfo (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap;
 
 @end
 

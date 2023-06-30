@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
     _requestPermission();
 
     /// 获取当前SDK的版本号
-    RTCVideo.getSdkVersion().then((value) {
+    RTCVideo.getSDKVersion().then((value) {
       setState(() {
         _version = "VolcEngineRTC v${value ?? ""}";
       });

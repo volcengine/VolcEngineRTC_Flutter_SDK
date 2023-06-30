@@ -7,11 +7,9 @@ package com.ss.bytertc.engine.flutter.base;
 
 import androidx.annotation.RestrictTo;
 
-import com.ss.bytertc.engine.RTCStream;
 import com.ss.bytertc.engine.SubscribeConfig;
 import com.ss.bytertc.engine.SysStats;
 import com.ss.bytertc.engine.UserInfo;
-import com.ss.bytertc.engine.VideoStreamDescription;
 import com.ss.bytertc.engine.data.AudioPropertiesInfo;
 import com.ss.bytertc.engine.data.ForwardStreamEventInfo;
 import com.ss.bytertc.engine.data.ForwardStreamStateInfo;
@@ -19,22 +17,24 @@ import com.ss.bytertc.engine.data.RecordingInfo;
 import com.ss.bytertc.engine.data.RecordingProgress;
 import com.ss.bytertc.engine.data.RemoteAudioPropertiesInfo;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
+import com.ss.bytertc.engine.data.SingScoringRealtimeInfo;
+import com.ss.bytertc.engine.data.StandardPitchInfo;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
-import com.ss.bytertc.engine.type.AudioVolumeInfo;
 import com.ss.bytertc.engine.type.LocalAudioStats;
 import com.ss.bytertc.engine.type.LocalStreamStats;
 import com.ss.bytertc.engine.type.LocalVideoStats;
 import com.ss.bytertc.engine.type.NetworkQualityStats;
 import com.ss.bytertc.engine.type.RTCRoomStats;
-import com.ss.bytertc.engine.type.RangeAudioInfo;
 import com.ss.bytertc.engine.type.RemoteAudioStats;
 import com.ss.bytertc.engine.type.RemoteStreamStats;
 import com.ss.bytertc.engine.type.RemoteStreamSwitch;
 import com.ss.bytertc.engine.type.RemoteVideoStats;
 import com.ss.bytertc.engine.type.RtcUser;
 import com.ss.bytertc.engine.type.SourceWantedData;
-import com.ss.bytertc.engine.video.ExpressionDetectInfo;
 import com.ss.bytertc.engine.video.Rectangle;
+import com.ss.bytertc.ktv.data.DownloadResult;
+import com.ss.bytertc.ktv.data.HotMusicInfo;
+import com.ss.bytertc.ktv.data.Music;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -127,6 +127,7 @@ public class RTCMap {
         map.put("concealmentEvent", stats.concealmentEvent);
         map.put("decSampleRate", stats.decSampleRate);
         map.put("decDuration", stats.decDuration);
+        map.put("jitter", stats.jitter);
         return map;
     }
 
@@ -224,28 +225,6 @@ public class RTCMap {
         return map;
     }
 
-    public static Map<String, ?> from(RTCStream stream) {
-        final HashMap<String, Object> map = new HashMap<>();
-        map.put("uid", stream.userId);
-        map.put("isScreen", stream.isScreen);
-        map.put("hasVideo", stream.hasVideo);
-        map.put("hasAudio", stream.hasAudio);
-        List<Map<String, Object>> videoStreamDescriptions = new ArrayList<>();
-        if (stream.videoStreamDescriptions != null) {
-            for (VideoStreamDescription streamDesc : stream.videoStreamDescriptions) {
-                HashMap<String, Object> desc = new HashMap<>();
-                desc.put("width", streamDesc.videoSize.first);
-                desc.put("height", streamDesc.videoSize.second);
-                desc.put("frameRate", streamDesc.frameRate);
-                desc.put("maxKbps", streamDesc.maxKbps);
-                desc.put("encoderPreference", streamDesc.encodePreference.getValue());
-                videoStreamDescriptions.add(desc);
-            }
-        }
-        map.put("videoStreamDescriptions", videoStreamDescriptions);
-        return map;
-    }
-
     public static Map<String, ?> from(RemoteStreamSwitch event) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", event.uid);
@@ -284,22 +263,6 @@ public class RTCMap {
         result.put("subVideoIndex", info.sub_video_index);
         result.put("svcLayer", info.svcLayer.getValue());
         result.put("frameRate", info.framerate);
-        return result;
-    }
-
-    public static List<Map<?, ?>> from(AudioVolumeInfo[] speakers) {
-        final ArrayList<Map<?, ?>> result = new ArrayList<>();
-        for (AudioVolumeInfo speaker : speakers) {
-            result.add(from(speaker));
-        }
-        return result;
-    }
-
-    public static Map<?, ?> from(AudioVolumeInfo speaker) {
-        final HashMap<String, Object> result = new HashMap<>();
-        result.put("uid", speaker.uid);
-        result.put("nonlinearVolume", speaker.nonlinearVolume);
-        result.put("linearVolume", speaker.linearVolume);
         return result;
     }
 
@@ -369,22 +332,7 @@ public class RTCMap {
         return userInfoMap;
     }
 
-    public static Map<?, ?> from(RangeAudioInfo info) {
-        HashMap<String, Object> userInfoMap = new HashMap<>();
-        userInfoMap.put("uid", info.userId);
-        userInfoMap.put("factor", info.factor);
-        return userInfoMap;
-    }
-
-    public static List<Map<?, ?>> from(RangeAudioInfo[] values) {
-        ArrayList<Map<?, ?>> retValue = new ArrayList<>(values.length);
-        for (RangeAudioInfo value : values) {
-            retValue.add(from(value));
-        }
-        return retValue;
-    }
-
-    public static HashMap<?, ?> from(RemoteAudioPropertiesInfo info) {
+    public static Map<?, ?> from(RemoteAudioPropertiesInfo info) {
         HashMap<String, Object> retValue = new HashMap<>();
         retValue.put("streamKey", RTCMap.from(info.streamKey));
         retValue.put("audioPropertiesInfo", RTCMap.from(info.audioPropertiesInfo));
@@ -414,21 +362,81 @@ public class RTCMap {
         return result;
     }
 
-    public static List<Map<String, Object>> from(ExpressionDetectInfo[] detectInfo) {
-        if (detectInfo == null) return Collections.emptyList();
-        List<Map<String, Object>> result = new ArrayList<>(detectInfo.length);
-        for (ExpressionDetectInfo info : detectInfo) {
+    public static Map<String, ?> from(Music music) {
+        HashMap<String, Object> retValue = new HashMap<>();
+        retValue.put("musicId", music.musicId);
+        retValue.put("musicName", music.musicName);
+        retValue.put("singer", music.singer);
+        retValue.put("vendorId", music.vendorId);
+        retValue.put("vendorName", music.vendorName);
+        retValue.put("updateTimestamp", music.updateTimestamp);
+        retValue.put("posterUrl", music.posterUrl);
+        retValue.put("lyricStatus", music.lyricStatus.value());
+        retValue.put("duration", music.duration);
+        retValue.put("enableScore", music.enableScore);
+        retValue.put("climaxStartTime", music.climaxStartTime);
+        retValue.put("climaxEndTime", music.climaxEndTime);
+        return retValue;
+    }
+
+    public static List<Map<String, ?>> from(Music[] musics) {
+        if (musics == null) return null;
+        List<Map<String, ?>> result = new ArrayList<>(musics.length);
+        for (Music music : musics) {
+            result.add(from(music));
+        }
+        return result;
+    }
+
+    public static List<Map<String, ?>> from(HotMusicInfo[] hotMusics) {
+        if (hotMusics == null) return null;
+        List<Map<String, ?>> result = new ArrayList<>(hotMusics.length);
+        for (HotMusicInfo hotMusic : hotMusics) {
             HashMap<String, Object> map = new HashMap<>();
-            map.put("age", info.age);
-            map.put("boyProb", info.boyProb);
-            map.put("attractive", info.attractive);
-            map.put("happyScore", info.happyScore);
-            map.put("sadScore", info.sadScore);
-            map.put("surpriseScore", info.surpriseScore);
-            map.put("arousal", info.arousal);
-            map.put("valence", info.valence);
+            map.put("hotType", hotMusic.hotType.value());
+            if (hotMusic.hotName != null) {
+                map.put("hotName", hotMusic.hotName);
+            }
+            List<Map<String, ?>> musics = from(hotMusic.musics);
+            if (musics != null) {
+                map.put("musics", musics);
+            }
             result.add(map);
         }
         return result;
+    }
+
+    public static Map<String, ?> from(DownloadResult result) {
+        HashMap<String, Object> retValue = new HashMap<>();
+        retValue.put("musicId", result.musicId);
+        retValue.put("fileType", result.fileType.value());
+        if (result.filePath != null) {
+            retValue.put("filePath", result.filePath);
+        }
+        return retValue;
+    }
+
+    public static List<Map<String, Object>> from(List<StandardPitchInfo> infos) {
+        List<Map<String, Object>> retValue = new ArrayList<>(infos.size());
+        for (StandardPitchInfo info : infos) {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("startTime", info.startTime);
+            map.put("duration", info.duration);
+            map.put("pitch", info.pitch);
+            retValue.add(map);
+        }
+        return retValue;
+    }
+
+    public static Map<?, ?> from(SingScoringRealtimeInfo info) {
+        HashMap<String, Object> retValue = new HashMap<>();
+        retValue.put("currentPosition", info.currentPosition);
+        retValue.put("userPitch", info.userPitch);
+        retValue.put("standardPitch", info.standardPitch);
+        retValue.put("sentenceIndex", info.sentenceIndex);
+        retValue.put("sentenceScore", info.sentenceScore);
+        retValue.put("totalScore", info.totalScore);
+        retValue.put("averageScore", info.averageScore);
+        return retValue;
     }
 }

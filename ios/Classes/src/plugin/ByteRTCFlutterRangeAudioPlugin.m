@@ -3,51 +3,72 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import <Flutter/FlutterPlugin.h>
+#import <VolcEngineRTC/objc/ByteRTCRoom.h>
 #import "ByteRTCFlutterRangeAudioPlugin.h"
-#import "ByteRTCFlutterRangeAudioManager.h"
-#import "ByteRTCFlutterRangeAudioObserver.h"
+#import "ByteRTCFlutterMapCategory.h"
 
 @interface ByteRTCFlutterRangeAudioPlugin ()
 
-@property (nonatomic, weak) NSObject<FlutterPluginRegistrar> *registrar;
-
 @property (nonatomic, assign) NSInteger insId;
-@property (nonatomic, strong) ByteRTCFlutterRangeAudioManager *manager;
-@property (nonatomic, strong) ByteRTCFlutterRangeAudioObserver *rangeAudioObserver;
+@property (nonatomic, strong) ByteRTCRoom *room;
 
 @end
 
 @implementation ByteRTCFlutterRangeAudioPlugin
 
-- (instancetype)initWithRoomManager:(ByteRTCFlutterRoomManager *)roomManager
-                              insId:(NSInteger)insId {
+- (instancetype)initWithRTCRoom:(ByteRTCRoom *)rtcRoom insId:(NSInteger)insId {
     self = [super init];
     if (self) {
         self.insId = insId;
-        self.rangeAudioObserver = [[ByteRTCFlutterRangeAudioObserver alloc] init];
-        self.manager = [[ByteRTCFlutterRangeAudioManager alloc] initWithRoomManager:roomManager];
-        self.manager.observer = self.rangeAudioObserver;
+        self.room = rtcRoom;
     }
     return self;
 }
 
 - (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
-    self.registrar = registrar;
+    [super registerWithRegistrar:registrar];
     NSString *methodChannelName = [NSString stringWithFormat:@"com.bytedance.ve_rtc_range_audio%ld",
                                    (long)self.insId];
-    [self registerMethodChannelWithName:methodChannelName
-                           methodTarget:self.manager
-                        binaryMessenger:[registrar messenger]];
-    NSString *eventChannelName = [NSString stringWithFormat:@"com.bytedance.ve_rtc_range_audio_observer%ld",
-                                  (long)self.insId];
-    [self.rangeAudioObserver registerEventChannelWithName:eventChannelName
-                                          binaryMessenger:[self.registrar messenger]];
+    [self.methodHandler registerMethodChannelWithName:methodChannelName
+                                         methodTarget:self
+                                      binaryMessenger:[registrar messenger]];
 }
 
-- (void)destroy {
-    [super destroy];
-    [self.rangeAudioObserver destroy];
+- (nullable ByteRTCRangeAudio *)rangeAudio {
+    return self.room.getRangeAudio;
+}
+
+#pragma mark - RangeAudio
+
+- (void)enableRangeAudio:(NSDictionary *)arguments result:(FlutterResult)result {
+    BOOL enable = [arguments[@"enable"] boolValue];
+    [self.rangeAudio enableRangeAudio:enable];
+    result(nil);
+}
+
+- (void)updateReceiveRange:(NSDictionary *)arguments result:(FlutterResult)result {
+    ReceiveRange *range = [ReceiveRange bf_fromMap:arguments[@"range"]];
+    int res = [self.rangeAudio updateReceiveRange:range];
+    result(@(res));
+}
+
+- (void)updatePosition:(NSDictionary *)arguments result:(FlutterResult)result {
+    Position *pos = [Position bf_fromMap:arguments[@"pos"]];
+    int res = [self.rangeAudio updatePosition:pos];
+    result(@(res));
+}
+
+- (void)setAttenuationModel:(NSDictionary *)arguments result:(FlutterResult)result {
+    AttenuationType type = [arguments[@"type"] integerValue];
+    float coefficient = [arguments[@"coefficient"] floatValue];
+    int res = [self.rangeAudio setAttenuationModel:type coefficient:coefficient];
+    result(@(res));
+}
+
+- (void)setNoAttenuationFlags:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSArray<NSString *> *flags = arguments[@"flags"];
+    [self.rangeAudio setNoAttenuationFlags:flags];
+    result(nil);
 }
 
 @end

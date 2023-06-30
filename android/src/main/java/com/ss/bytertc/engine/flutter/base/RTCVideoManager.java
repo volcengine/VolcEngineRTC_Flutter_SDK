@@ -9,12 +9,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RestrictTo;
 import androidx.annotation.UiThread;
 
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCVideo;
-import com.ss.bytertc.engine.handler.IRTCRoomEventHandler;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 
 import org.json.JSONObject;
@@ -61,7 +59,7 @@ public final class RTCVideoManager {
             iterator.remove();
         }
 
-        RTCVideo.destroy();
+        RTCVideo.destroyRTCVideo();
         sRtcVideo = null;
     }
 
@@ -88,7 +86,7 @@ public final class RTCVideoManager {
      *
      * @param roomInsId Room 的对象 ID，缓存 KEY
      * @param roomId    Room ID
-     * @return
+     * @return RTCRoom
      * @see #getRoom(Integer)
      */
     public static RTCRoom createRoom(@NonNull Integer roomInsId, @NonNull String roomId) {

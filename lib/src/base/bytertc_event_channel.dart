@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 
 class RTCEventChannel {
   final Stream<dynamic> _stream;
-  StreamSubscription? _subscription;
+  StreamSubscription<dynamic>? _subscription;
 
-  StreamSubscription? get subscription => _subscription;
+  StreamSubscription<dynamic>? get subscription => _subscription;
 
   RTCEventChannel(String name)
       : _stream = EventChannel(name).receiveBroadcastStream();

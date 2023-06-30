@@ -6,7 +6,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 import 'bytertc_audio_defines.dart';
-import 'bytertc_common_defines.dart';
+import 'bytertc_media_defines.dart';
+import 'bytertc_rts_defines.dart';
 import 'bytertc_video_defines.dart';
 
 typedef EmptyCallbackType = void Function();
@@ -140,6 +141,12 @@ typedef OnRecordingStateUpdateType = void Function(StreamIndex type,
 typedef OnRecordingProgressUpdateType = void Function(
     StreamIndex type, RecordingProgress progress, RecordingInfo info);
 
+/// [state]: 录制状态
+///
+/// [errorCode]: 录制错误码
+typedef OnAudioRecordingStateUpdateType = void Function(
+    AudioRecordingState state, AudioRecordingErrorCode errorCode);
+
 /// [stats]：CPU，内存信息
 typedef OnSysStatsType = void Function(SysStats stats);
 
@@ -223,6 +230,7 @@ typedef OnRemoteVideoSizeChangedType = void Function(
 typedef OnLocalAudioStateChangedType = void Function(
     LocalAudioStreamState state, LocalAudioStreamError error);
 
+/// @nodoc('Not available')
 /// [streamKey]：远端流信息
 ///
 /// [state]：远端音频流状态
@@ -239,13 +247,14 @@ typedef OnRemoteAudioStateChangedType = void Function(RemoteStreamKey streamKey,
 typedef OnLocalVideoStateChangedType = void Function(StreamIndex index,
     LocalVideoStreamState state, LocalVideoStreamError error);
 
+/// @nodoc('Not available')
 /// [streamKey]：远端视频流信息
 ///
 /// [state]：远端视频流状态
 ///
 /// [reason]：远端视频流状态改变原因
 typedef OnRemoteVideoStateChangedType = void Function(RemoteStreamKey streamKey,
-    RemoteVideoState state, RemoteVideoStateChangedReason reason);
+    RemoteVideoState state, RemoteVideoStateChangeReason reason);
 
 /// [uid]：登录用户 ID
 ///
@@ -282,7 +291,7 @@ typedef OnRoomMessageSendResultType = void Function(
 ///
 /// [error]：消息发送结果
 ///
-/// [message]：应用服务器收到 HTTP 请求后，在 ACK 中返回的信息
+/// [message]：应用服务器收到 HTTP 请求后，在 ACK 中返回的信息。消息不超过 64 KB。
 typedef OnServerMessageSendResultType = void Function(
     int msgid, UserMessageSendResult error, Uint8List message);
 
@@ -368,7 +377,7 @@ typedef OnVideoDeviceStateChangedType = void Function(
 ///
 /// [deviceType]：设备类型
 ///
-/// [deviceError]：设备警告码
+/// [deviceWarning]：设备警告码
 typedef OnAudioDeviceWarningType = void Function(String deviceId,
     AudioDeviceType deviceType, MediaDeviceWarning deviceWarning);
 
@@ -376,7 +385,7 @@ typedef OnAudioDeviceWarningType = void Function(String deviceId,
 ///
 /// [deviceType]：设备类型
 ///
-/// [deviceError]：设备警告码
+/// [deviceWarning]：设备警告码
 typedef OnVideoDeviceWarningType = void Function(String deviceId,
     VideoDeviceType deviceType, MediaDeviceWarning deviceWarning);
 
@@ -388,7 +397,7 @@ typedef OnAudioRouteChangedType = void Function(AudioRoute route);
 /// [uid]：最活跃用户（ActiveSpeaker）的用户 ID
 typedef OnActiveSpeakerType = void Function(String roomId, String uid);
 
-/// @nodoc
+/// @nodoc('Useless')
 @protected
 typedef OnStreamSubscribedType = void Function(
     SubscribeState stateCode, String uid, SubscribeConfig info);
@@ -404,64 +413,69 @@ typedef OnStreamSubscribedType = void Function(
 /// [bitrate]：探测网络的带宽，单位：kbps
 ///
 /// [jitter]：探测网络的抖动,单位：ms
-typedef OnNetworkDetectionResultType = Function(NetworkDetectionLinkType type,
-    NetworkQuality quality, int rtt, double lostRate, int bitrate, int jitter);
+typedef OnNetworkDetectionResultType = void Function(
+    NetworkDetectionLinkType type,
+    NetworkQuality quality,
+    int rtt,
+    double lostRate,
+    int bitrate,
+    int jitter);
 
 /// [reason]：停止探测的原因类型
-typedef OnNetworkDetectionStoppedType = Function(
+typedef OnNetworkDetectionStoppedType = void Function(
     NetworkDetectionStopReason reason);
 
 /// [stateInfos]：跨房间媒体流转发目标房间信息数组
-typedef OnForwardStreamStateChangedType = Function(
+typedef OnForwardStreamStateChangedType = void Function(
     List<ForwardStreamStateInfo> stateInfos);
 
 /// [eventInfos]：跨房间媒体流转发目标房间事件数组
-typedef OnForwardStreamEventType = Function(
+typedef OnForwardStreamEventType = void Function(
     List<ForwardStreamEventInfo> eventInfos);
 
 /// [localQuality]：本地网络质量
 ///
 /// [remoteQualities]：已订阅用户的网络质量
-typedef OnNetworkQualityType = Function(NetworkQualityStats localQuality,
+typedef OnNetworkQualityType = void Function(NetworkQualityStats localQuality,
     List<NetworkQualityStats> remoteQualities);
 
 /// [roomId]：发布公共流的房间 ID
 ///
 /// [publicStreamId]：公共流 ID
 ///
-/// [errorCode]：公共流发布结果，`200` 为发送成功
-typedef OnPushPublicStreamResultType = Function(
+/// [errorCode]：公共流发布结果
+typedef OnPushPublicStreamResultType = void Function(
     String roomId, String publicStreamId, PublicStreamErrorCode errorCode);
 
 /// [publicStreamId]：公共流 ID
 ///
 /// [errorCode]：公共流订阅结果
-typedef OnPlayPublicStreamResultType = Function(
+typedef OnPlayPublicStreamResultType = void Function(
     String publicStreamId, PublicStreamErrorCode errorCode);
 
 /// [publicStreamId]：公共流 ID
 ///
 /// [message]：收到的 SEI 消息内容
-typedef OnPublicStreamSEIMessageReceivedType = Function(
-    String publicStreamId, Uint8List message);
+///
+/// [sourceType]：SEI 消息类型
+typedef OnPublicStreamSEIMessageReceivedType = void Function(
+    String publicStreamId, Uint8List message, SEIMessageSourceType sourceType);
 
 /// [publicStreamId]：公共流 ID
 ///
 /// [videoFrameInfo]：视频帧信息
-typedef OnFirstPublicStreamVideoFrameDecodedType = Function(
+typedef OnFirstPublicStreamVideoFrameDecodedType = void Function(
     String publicStreamId, VideoFrameInfo videoFrameInfo);
 
 /// [publicStreamId]：公共流 ID
-typedef OnFirstPublicStreamAudioFrameType = Function(String publicStreamId);
+typedef OnFirstPublicStreamAudioFrameType = void Function(
+    String publicStreamId);
 
 /// [state]：音视频同步状态
-typedef OnAVSyncStateChangeType = Function(AVSyncState state);
-
-/// [rangeAudioInfo]：包含范围语音流信息的数组
-typedef OnRangeAudioInfoType = Function(List<RangeAudioInfo> rangeAudioInfo);
+typedef OnAVSyncStateChangeType = void Function(AVSyncState state);
 
 /// [interval]：从开启云代理到连接成功经过的时间，单位为 ms
-typedef OnCloudProxyConnectedType = Function(int interval);
+typedef OnCloudProxyConnectedType = void Function(int interval);
 
 /// [result]：检测结果
 typedef OnEchoTestResultType = void Function(EchoTestResult result);
@@ -473,3 +487,17 @@ typedef OnEchoTestResultType = void Function(EchoTestResult result);
 /// [error]：错误码
 typedef OnStreamPushEventType = void Function(
     StreamSinglePushEvent eventType, String taskId, int error);
+
+/// [days]：过期时间天数
+typedef OnLicenseWillExpireType = void Function(int days);
+
+/// @nodoc('For internal use')
+/// [param]：回调内容(JSON string)
+typedef OnInvokeExperimentalAPIType = void Function(String param);
+
+/// [info]：实时评分信息。详见 [SingScoringRealtimeInfo]。
+typedef OnCurrentScoringInfoType = void Function(SingScoringRealtimeInfo? info);
+
+/// [result]: 通话前回声检测结果。详见 [HardwareEchoDetectionResult]。
+typedef OnHardwareEchoDetectionResultType = void Function(
+    HardwareEchoDetectionResult result);

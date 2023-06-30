@@ -3,6 +3,7 @@
 
 import '../src/bytertc_video_event_impl.dart';
 import 'bytertc_event_define.dart';
+import 'bytertc_video_api.dart';
 
 /// RTCVideo 事件回调接口
 class RTCVideoEventHandler extends RTCVideoEventValue {
@@ -45,7 +46,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 远端用户的音频包括麦克风音频和屏幕音频。
   OnRemoteAudioPropertiesReportType? onRemoteAudioPropertiesReport;
 
-  /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，你会周期性地收到此回调，获取房间内的最活跃用户信息
+  /// 调用 [RTCVideo.enableAudioPropertiesReport] 后，你会周期性地收到此回调，获取房间内的最活跃用户信息
   OnActiveSpeakerType? onActiveSpeaker;
 
   /// 房间内的用户调用 [RTCVideo.startVideoCapture] 开启视频采集时，房间内其他用户会收到此回调
@@ -61,6 +62,9 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   OnFirstRemoteVideoFrameRenderedType? onFirstRemoteVideoFrameRendered;
 
   /// 第一帧远端视频流成功解码后，收到此回调
+  ///
+  /// + 对于主流，进入房间后，仅在发布端第一次发布的时候，订阅端会收到该回调，此后不受重新发布的影响，只要不重新加入房间，就不会再收到该回调。
+  /// + 对于屏幕流，用户每次重新发布屏幕视频流在订阅端都会重新触发一次该回调。
   OnFirstRemoteVideoFrameRenderedType? onFirstRemoteVideoFrameDecoded;
 
   /// 远端视频大小或旋转配置发生改变时，房间内订阅此视频流的用户会收到此回调
@@ -120,15 +124,21 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   abstract OnSysStatsType? onSysStats;
 
   /// 本地音频的状态发生改变时，收到此回调。
+  @Deprecated(
+      'Deprecated since v3.50.1 and will be deleted in v3.56.1, use `RTCVideoEventHandler.onAudioDeviceStateChanged` instead.')
   OnLocalAudioStateChangedType? onLocalAudioStateChanged;
 
   /// 用户订阅来自远端的音频流状态发生改变时，收到此回调。
+  /// @nodoc('Not available')
   OnRemoteAudioStateChangedType? onRemoteAudioStateChanged;
 
   /// 本地视频流的状态发生改变时，收到此回调。
+  @Deprecated(
+      'Deprecated since v3.50.1 and will be deleted in v3.56.1, use `RTCVideoEventHandler.onVideoDeviceStateChanged` instead.')
   OnLocalVideoStateChangedType? onLocalVideoStateChanged;
 
   /// 远端视频流的状态发生改变时，房间内订阅此流的用户收到此回调。
+  /// @nodoc('Not available')
   OnRemoteVideoStateChangedType? onRemoteVideoStateChanged;
 
   /// 调用 [RTCVideo.login] 后，收到此回调。
@@ -152,7 +162,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 当调用 [RTCVideo.sendUserMessageOutsideRoom] 给房间外指定用户发送消息时，会收到此回调
   OnMessageSendResultType? onUserMessageSendResultOutsideRoom;
 
-  /// 当调用 [RTCVideo.sendServerMessage] 或 [RTCVideo.sendServerBinaryMessage] 发送消息后，会收到此回调。
+  /// 本回调为异步回调。当调用 [RTCVideo.sendServerMessage] 或 [RTCVideo.sendServerBinaryMessage] 发送消息后，会收到此回调。
   OnServerMessageSendResultType? onServerMessageSendResult;
 
   /// 通话前网络探测结果
@@ -172,11 +182,11 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 音频混音文件播放状态改变时回调
   ///
   /// 此回调会被触发的时机汇总如下：
-  /// + 调用 [RTCVideo.startAudioMixing] 成功；
-  /// + 使用相同的 ID 重复调用 [RTCVideo.startAudioMixing]；
-  /// + 调用 [RTCVideo.pauseAudioMixing] 暂停播放成功；
-  /// + 调用 [RTCVideo.resumeAudioMixing]恢复播放成功；
-  /// + 调用 [RTCVideo.stopAudioMixing] 暂停止播放成功；
+  /// + 调用 [RTCAudioMixingManager.startAudioMixing] 成功；
+  /// + 使用相同的 ID 重复调用 [RTCAudioMixingManager.startAudioMixing]；
+  /// + 调用 [RTCAudioMixingManager.pauseAudioMixing] 暂停播放成功；
+  /// + 调用 [RTCAudioMixingManager.resumeAudioMixing]恢复播放成功；
+  /// + 调用 [RTCAudioMixingManager.stopAudioMixing] 暂停止播放成功；
   /// + 播放结束。
   OnAudioMixingStateChangedType? onAudioMixingStateChanged;
 
@@ -206,6 +216,9 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
 
   /// 调用 [RTCVideo.startFileRecording] 正常进行本地录制时，会周期性（1s）收到此回调。
   OnRecordingProgressUpdateType? onRecordingProgressUpdate;
+
+  /// 调用 [RTCVideo.startAudioRecording] 或 [RTCVideo.stopAudioRecording] 改变音频文件录制状态时，收到此回调
+  OnAudioRecordingStateUpdateType? onAudioRecordingStateUpdate;
 
   /// 公共流发布结果回调
   ///
@@ -243,6 +256,24 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// + 检测成功后；
   /// + 非设备原因导致检测过程中未接收到音/视频回放，停止检测后。
   OnEchoTestResultType? onEchoTestResult;
+
+  /// 首次调用 [RTCVideo.getNetworkTimeInfo] 后，SDK 内部启动网络时间同步，同步完成时会触发此回调。
+  EmptyCallbackType? onNetworkTimeSynchronized;
+
+  /// license过期时间提醒
+  OnLicenseWillExpireType? onLicenseWillExpire;
+
+  /// @nodoc('For internal use')
+  /// 试验性接口回调
+  OnInvokeExperimentalAPIType? onInvokeExperimentalAPI;
+
+  /// 通话前回声检测结果回调
+  ///
+  /// 注意：
+  /// + 通话前调用 [RTCVideo.startHardwareEchoDetection] 后，将触发本回调返回检测结果。
+  /// + 建议在收到检测结果后，调用 [RTCVideo.stopHardwareEchoDetection] 停止检测，释放对音频设备的占用。
+  /// + 如果 SDK 在通话中检测到回声，将通过 [RTCVideoEventHandler.onAudioDeviceWarning] 回调 `detectLeakEcho`。
+  OnHardwareEchoDetectionResultType? onHardwareEchoDetectionResult;
 
   RTCVideoEventHandler({
     this.onWarning,
@@ -302,6 +333,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onSocks5ProxyState,
     this.onRecordingStateUpdate,
     this.onRecordingProgressUpdate,
+    this.onAudioRecordingStateUpdate,
     this.onPushPublicStreamResult,
     this.onPlayPublicStreamResult,
     this.onPublicStreamSEIMessageReceived,
@@ -309,6 +341,10 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onFirstPublicStreamAudioFrame,
     this.onCloudProxyConnected,
     this.onEchoTestResult,
+    this.onNetworkTimeSynchronized,
+    this.onLicenseWillExpire,
+    this.onInvokeExperimentalAPI,
+    this.onHardwareEchoDetectionResult,
   }) {
     this.onSysStats = onSysStats;
   }

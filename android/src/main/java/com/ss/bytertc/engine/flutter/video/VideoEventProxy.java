@@ -20,6 +20,7 @@ import com.ss.bytertc.engine.data.RemoteAudioPropertiesInfo;
 import com.ss.bytertc.engine.data.RemoteAudioState;
 import com.ss.bytertc.engine.data.RemoteAudioStateChangeReason;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
+import com.ss.bytertc.engine.data.SEIMessageSourceType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
@@ -28,15 +29,19 @@ import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
 import com.ss.bytertc.engine.handler.IRTCVideoEventHandler;
 import com.ss.bytertc.engine.type.AudioDeviceType;
+import com.ss.bytertc.engine.type.AudioRecordingErrorCode;
+import com.ss.bytertc.engine.type.AudioRecordingState;
 import com.ss.bytertc.engine.type.EchoTestResult;
 import com.ss.bytertc.engine.type.FirstFramePlayState;
 import com.ss.bytertc.engine.type.FirstFrameSendState;
+import com.ss.bytertc.engine.type.HardwareEchoDetectionResult;
 import com.ss.bytertc.engine.type.LocalVideoStreamError;
 import com.ss.bytertc.engine.type.LocalVideoStreamState;
 import com.ss.bytertc.engine.type.NetworkDetectionLinkType;
 import com.ss.bytertc.engine.type.NetworkDetectionStopReason;
 import com.ss.bytertc.engine.type.PerformanceAlarmMode;
 import com.ss.bytertc.engine.type.PerformanceAlarmReason;
+import com.ss.bytertc.engine.type.PublicStreamErrorCode;
 import com.ss.bytertc.engine.type.RecordingErrorCode;
 import com.ss.bytertc.engine.type.RecordingState;
 import com.ss.bytertc.engine.type.RemoteStreamSwitch;
@@ -71,6 +76,10 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
 
     public void registerEvent(BinaryMessenger binaryMessenger) {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_video_event");
+    }
+
+    public void destroy() {
+        emitter.destroy();
     }
 
     @Override
@@ -510,6 +519,14 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
     }
 
     @Override
+    public void onAudioRecordingStateUpdate(AudioRecordingState state, AudioRecordingErrorCode errorCode) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("state", state.value());
+        map.put("errorCode", errorCode.value());
+        emitter.emit("onAudioRecordingStateUpdate", map);
+    }
+
+    @Override
     public void onAudioMixingStateChanged(int mixId, AudioMixingState state, AudioMixingError error) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("mixId", mixId);
@@ -567,27 +584,28 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
     }
 
     @Override
-    public void onPushPublicStreamResult(String roomId, String publicStreamId, int errorCode) {
+    public void onPushPublicStreamResult(String roomId, String publicStreamId, PublicStreamErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("roomId", roomId);
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode);
+        map.put("errorCode", errorCode.value());
         emitter.emit("onPushPublicStreamResult", map);
     }
 
     @Override
-    public void onPlayPublicStreamResult(String publicStreamId, int errorCode) {
+    public void onPlayPublicStreamResult(String publicStreamId, PublicStreamErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
-        map.put("errorCode", errorCode);
+        map.put("errorCode", errorCode.value());
         emitter.emit("onPlayPublicStreamResult", map);
     }
 
     @Override
-    public void onPublicStreamSEIMessageReceived(String publicStreamId, ByteBuffer message) {
+    public void onPublicStreamSEIMessageReceived(String publicStreamId, ByteBuffer message, SEIMessageSourceType sourceType) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
         map.put("message", message.array());
+        map.put("sourceType", sourceType.value());
         emitter.emit("onPublicStreamSEIMessageReceived", map);
     }
 
@@ -620,7 +638,34 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
         emitter.emit("onCloudProxyConnected", map);
     }
 
-    void setSwitches(RTCTypeBox box) {
+    @Override
+    public void onNetworkTimeSynchronized() {
+        final HashMap<String, Object> map = new HashMap<>();
+        emitter.emit("onNetworkTimeSynchronized", map);
+    }
+
+    @Override
+    public void onLicenseWillExpire(int days) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("days", days);
+        emitter.emit("onLicenseWillExpire", map);
+    }
+
+    @Override
+    public void onInvokeExperimentalAPI(String param) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("param", param);
+        emitter.emit("onInvokeExperimentalAPI", map);
+    }
+
+    @Override
+    public void onHardwareEchoDetectionResult(HardwareEchoDetectionResult result) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("result", result.value());
+        emitter.emit("onHardwareEchoDetectionResult", map);
+    }
+
+    public void setSwitches(RTCTypeBox box) {
         enableSysStats = box.optBoolean("enableSysStats", enableSysStats);
     }
 }

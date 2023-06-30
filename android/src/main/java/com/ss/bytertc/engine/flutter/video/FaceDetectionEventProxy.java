@@ -21,8 +21,12 @@ import io.flutter.plugin.common.BinaryMessenger;
 public class FaceDetectionEventProxy implements IFaceDetectionObserver {
     private final EventEmitter emitter = new EventEmitter();
 
-    public void registerEvent(BinaryMessenger binaryMessenger) {
-        emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_face_detection");
+    public void registerEvent(BinaryMessenger binaryMessenger, String channelName) {
+        emitter.registerEvent(binaryMessenger, channelName);
+    }
+
+    public void destroy() {
+        emitter.destroy();
     }
 
     @Override
@@ -32,6 +36,7 @@ public class FaceDetectionEventProxy implements IFaceDetectionObserver {
         map.put("imageWidth", result.imageWidth);
         map.put("imageHeight", result.imageHeight);
         map.put("faces", RTCMap.from(result.faces));
+        map.put("frameTimestampUs", result.frameTimestampUs);
 
         HashMap<String, Object> ret = new HashMap<>();
         ret.put("result", map);
@@ -40,13 +45,5 @@ public class FaceDetectionEventProxy implements IFaceDetectionObserver {
 
     @Override
     public void onExpressionDetectResult(ExpressionDetectResult result) {
-//        final HashMap<String, Object> map = new HashMap<>();
-//        map.put("detectResult", result.detectResult);
-//        map.put("faceCount", result.faceCount);
-//        map.put("detectInfo", RTCMap.from(result.detectInfo));
-//
-//        HashMap<String, Object> ret = new HashMap<>();
-//        ret.put("ret", map);
-//        emitter.emit("onExpressionDetectResult", ret);
     }
 }

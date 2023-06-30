@@ -70,6 +70,10 @@ public class RTCRoomEventProxy extends IRTCRoomEventHandler {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_room_event" + instanceId);
     }
 
+    public void destroy() {
+        emitter.destroy();
+    }
+
     @Override
     public void onLeaveRoom(RTCRoomStats stats) {
         final HashMap<String, Object> map = new HashMap<>();
@@ -133,6 +137,16 @@ public class RTCRoomEventProxy extends IRTCRoomEventHandler {
     @Override
     public void onTokenWillExpire() {
         emitter.emit("onTokenWillExpire", new HashMap<>());
+    }
+
+    @Override
+    public void onPublishPrivilegeTokenWillExpire() {
+        emitter.emit("onPublishPrivilegeTokenWillExpire", new HashMap<>());
+    }
+
+    @Override
+    public void onSubscribePrivilegeTokenWillExpire() {
+        emitter.emit("onSubscribePrivilegeTokenWillExpire", new HashMap<>());
     }
 
     @Override

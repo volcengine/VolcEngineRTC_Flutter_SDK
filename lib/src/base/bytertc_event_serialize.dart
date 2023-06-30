@@ -2,14 +2,19 @@
 // SPDX-License-Identifier: MIT
 
 import 'dart:typed_data';
+
 import '../../api/bytertc_audio_defines.dart';
-import '../../api/bytertc_common_defines.dart';
+import '../../api/bytertc_ktv_defines.dart';
+import '../../api/bytertc_media_defines.dart';
+import '../../api/bytertc_rts_defines.dart';
 import '../../api/bytertc_video_defines.dart';
 import 'bytertc_enum_convert.dart';
 
 class OnWarningData {
   final WarningCode code;
+
   const OnWarningData({required this.code});
+
   factory OnWarningData.fromMap(Map<dynamic, dynamic> map) {
     return OnWarningData(code: (map['code'] as int).warningCode);
   }
@@ -17,7 +22,9 @@ class OnWarningData {
 
 class OnErrorData {
   final ErrorCode code;
+
   const OnErrorData({required this.code});
+
   factory OnErrorData.fromMap(Map<dynamic, dynamic> map) {
     return OnErrorData(code: (map['code'] as int).errorCode);
   }
@@ -26,8 +33,10 @@ class OnErrorData {
 class OnCreateRoomStateChangedData {
   final String roomId;
   final int errorCode;
+
   const OnCreateRoomStateChangedData(
       {required this.roomId, required this.errorCode});
+
   factory OnCreateRoomStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnCreateRoomStateChangedData(
         roomId: map['roomId'] as String, errorCode: map['errorCode'] as int);
@@ -36,7 +45,9 @@ class OnCreateRoomStateChangedData {
 
 class OnConnectionStateChangedData {
   final RTCConnectionState state;
+
   const OnConnectionStateChangedData({required this.state});
+
   factory OnConnectionStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnConnectionStateChangedData(
         state: (map['state'] as int).connectionState);
@@ -48,12 +59,14 @@ class OnRoomStateChangedData {
   final String uid;
   final int state;
   final String extraInfo;
+
   const OnRoomStateChangedData({
     required this.roomId,
     required this.uid,
     required this.state,
     required this.extraInfo,
   });
+
   factory OnRoomStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnRoomStateChangedData(
         roomId: map['roomId'] as String,
@@ -65,7 +78,9 @@ class OnRoomStateChangedData {
 
 class OnLeaveRoomData {
   final RTCRoomStats rtcRoomStats;
+
   const OnLeaveRoomData({required this.rtcRoomStats});
+
   factory OnLeaveRoomData.fromMap(Map<dynamic, dynamic> map) {
     if (map['stats'] == null) {
       return OnLeaveRoomData(rtcRoomStats: RTCRoomStats());
@@ -77,7 +92,9 @@ class OnLeaveRoomData {
 class OnUserJoinedData {
   final UserInfo userInfo;
   final int elapsed;
+
   const OnUserJoinedData({required this.userInfo, required this.elapsed});
+
   factory OnUserJoinedData.fromMap(Map<dynamic, dynamic> map) {
     return OnUserJoinedData(
         userInfo: UserInfo.fromMap(map['userInfo']), elapsed: map['elapsed']);
@@ -87,7 +104,9 @@ class OnUserJoinedData {
 class OnUserLeaveData {
   final String uid;
   final UserOfflineReason reason;
+
   const OnUserLeaveData({required this.uid, required this.reason});
+
   factory OnUserLeaveData.fromMap(Map<dynamic, dynamic> map) {
     return OnUserLeaveData(
         uid: map['uid'], reason: (map['reason'] as int).userOfflineReason);
@@ -98,8 +117,10 @@ class OnMediaFrameSendStateChangedData {
   final String roomId;
   final UserInfo userInfo;
   final FirstFrameSendState state;
+
   const OnMediaFrameSendStateChangedData(
       {required this.roomId, required this.userInfo, required this.state});
+
   factory OnMediaFrameSendStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnMediaFrameSendStateChangedData(
         roomId: map['roomId'] as String,
@@ -112,8 +133,10 @@ class OnMediaFramePlayStateChangedData {
   final String roomId;
   final UserInfo userInfo;
   final FirstFramePlayState state;
+
   const OnMediaFramePlayStateChangedData(
       {required this.roomId, required this.userInfo, required this.state});
+
   factory OnMediaFramePlayStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnMediaFramePlayStateChangedData(
         roomId: map['roomId'] as String,
@@ -126,8 +149,10 @@ class OnRemoteAudioStateChangedData {
   final RemoteStreamKey streamKey;
   final RemoteAudioState state;
   final RemoteAudioStateChangeReason reason;
+
   const OnRemoteAudioStateChangedData(
       {required this.streamKey, required this.state, required this.reason});
+
   factory OnRemoteAudioStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnRemoteAudioStateChangedData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -139,8 +164,10 @@ class OnRemoteAudioStateChangedData {
 class OnLocalAudioStateChangedData {
   final LocalAudioStreamState state;
   final LocalAudioStreamError error;
+
   const OnLocalAudioStateChangedData(
       {required this.state, required this.error});
+
   factory OnLocalAudioStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnLocalAudioStateChangedData(
         state: (map['state'] as int).localAudioStreamState,
@@ -150,7 +177,9 @@ class OnLocalAudioStateChangedData {
 
 class OnFirstLocalAudioFrameData {
   final StreamIndex index;
+
   const OnFirstLocalAudioFrameData({required this.index});
+
   factory OnFirstLocalAudioFrameData.fromMap(Map<dynamic, dynamic> map) {
     return OnFirstLocalAudioFrameData(index: (map['index'] as int).streamIndex);
   }
@@ -158,7 +187,9 @@ class OnFirstLocalAudioFrameData {
 
 class OnFirstRemoteAudioFrameData {
   final RemoteStreamKey streamKey;
+
   const OnFirstRemoteAudioFrameData({required this.streamKey});
+
   factory OnFirstRemoteAudioFrameData.fromMap(Map<dynamic, dynamic> map) {
     return OnFirstRemoteAudioFrameData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']));
@@ -169,8 +200,10 @@ class OnLocalVideoStateChangedData {
   final StreamIndex index;
   final LocalVideoStreamState state;
   final LocalVideoStreamError error;
+
   const OnLocalVideoStateChangedData(
       {required this.index, required this.state, required this.error});
+
   factory OnLocalVideoStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnLocalVideoStateChangedData(
         index: (map['index'] as int).streamIndex,
@@ -182,9 +215,11 @@ class OnLocalVideoStateChangedData {
 class OnRemoteVideoStateChangedData {
   final RemoteStreamKey streamKey;
   final RemoteVideoState state;
-  final RemoteVideoStateChangedReason reason;
+  final RemoteVideoStateChangeReason reason;
+
   const OnRemoteVideoStateChangedData(
       {required this.streamKey, required this.state, required this.reason});
+
   factory OnRemoteVideoStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnRemoteVideoStateChangedData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -196,8 +231,10 @@ class OnRemoteVideoStateChangedData {
 class OnFirstRemoteVideoFrameRenderedData {
   final RemoteStreamKey streamKey;
   final VideoFrameInfo videoFrameInfo;
+
   const OnFirstRemoteVideoFrameRenderedData(
       {required this.streamKey, required this.videoFrameInfo});
+
   factory OnFirstRemoteVideoFrameRenderedData.fromMap(
       Map<dynamic, dynamic> map) {
     return OnFirstRemoteVideoFrameRenderedData(
@@ -209,8 +246,10 @@ class OnFirstRemoteVideoFrameRenderedData {
 class OnFirstLocalVideoFrameCapturedData {
   final StreamIndex index;
   final VideoFrameInfo videoFrameInfo;
+
   const OnFirstLocalVideoFrameCapturedData(
       {required this.index, required this.videoFrameInfo});
+
   factory OnFirstLocalVideoFrameCapturedData.fromMap(
       Map<dynamic, dynamic> map) {
     return OnFirstLocalVideoFrameCapturedData(
@@ -222,8 +261,10 @@ class OnFirstLocalVideoFrameCapturedData {
 class OnUserOperateMediaCaptureData {
   final String roomId;
   final String uid;
+
   const OnUserOperateMediaCaptureData(
       {required this.roomId, required this.uid});
+
   factory OnUserOperateMediaCaptureData.fromMap(Map<dynamic, dynamic> map) {
     return OnUserOperateMediaCaptureData(
         roomId: map['roomId'] as String, uid: map['uid'] as String);
@@ -232,7 +273,9 @@ class OnUserOperateMediaCaptureData {
 
 class OnLocalStreamStatsData {
   final LocalStreamStats stats;
+
   const OnLocalStreamStatsData({required this.stats});
+
   factory OnLocalStreamStatsData.fromMap(Map<dynamic, dynamic> map) {
     return OnLocalStreamStatsData(
         stats: LocalStreamStats.fromMap(map['stats']));
@@ -241,7 +284,9 @@ class OnLocalStreamStatsData {
 
 class OnRemoteStreamStatsData {
   final RemoteStreamStats stats;
+
   const OnRemoteStreamStatsData({required this.stats});
+
   factory OnRemoteStreamStatsData.fromMap(Map<dynamic, dynamic> map) {
     return OnRemoteStreamStatsData(
         stats: RemoteStreamStats.fromMap(map['stats']));
@@ -254,6 +299,7 @@ class OnLocalVideoSizeChangedData {
 
   const OnLocalVideoSizeChangedData(
       {required this.streamIndex, required this.videoFrameInfo});
+
   factory OnLocalVideoSizeChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnLocalVideoSizeChangedData(
         streamIndex: (map['index'] as int).streamIndex,
@@ -267,6 +313,7 @@ class OnRemoteVideoSizeChangedData {
 
   const OnRemoteVideoSizeChangedData(
       {required this.streamKey, required this.videoFrameInfo});
+
   factory OnRemoteVideoSizeChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnRemoteVideoSizeChangedData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -280,11 +327,13 @@ class OnStreamMixingEventData {
   final String taskId;
   final TranscoderErrorCode error;
   final StreamMixingType mixType;
+
   const OnStreamMixingEventData(
       {required this.eventType,
       required this.taskId,
       required this.error,
       required this.mixType});
+
   factory OnStreamMixingEventData.fromMap(Map<dynamic, dynamic> map) {
     return OnStreamMixingEventData(
         eventType: (map['eventType'] as int).streamMixingEvent,
@@ -296,7 +345,9 @@ class OnStreamMixingEventData {
 
 class OnRoomStatsData {
   final RTCRoomStats stats;
+
   const OnRoomStatsData({required this.stats});
+
   factory OnRoomStatsData.fromMap(Map<dynamic, dynamic> map) {
     return OnRoomStatsData(stats: RTCRoomStats.fromMap(map['stats']));
   }
@@ -305,7 +356,9 @@ class OnRoomStatsData {
 class OnMessageSendResultData {
   final int msgid;
   final UserMessageSendResult error;
+
   const OnMessageSendResultData({required this.msgid, required this.error});
+
   factory OnMessageSendResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnMessageSendResultData(
         msgid: map['msgid'],
@@ -316,7 +369,9 @@ class OnMessageSendResultData {
 class OnRoomMessageSendResultData {
   final int msgid;
   final RoomMessageSendResult error;
+
   const OnRoomMessageSendResultData({required this.msgid, required this.error});
+
   factory OnRoomMessageSendResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnRoomMessageSendResultData(
         msgid: map['msgid'],
@@ -328,8 +383,10 @@ class OnServerMessageSendResultData {
   final int msgid;
   final UserMessageSendResult error;
   final Uint8List message;
+
   const OnServerMessageSendResultData(
       {required this.msgid, required this.error, required this.message});
+
   factory OnServerMessageSendResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnServerMessageSendResultData(
         msgid: map['msgid'],
@@ -341,7 +398,9 @@ class OnServerMessageSendResultData {
 class OnMessageReceivedData {
   final String uid;
   final String message;
+
   const OnMessageReceivedData({required this.uid, required this.message});
+
   factory OnMessageReceivedData.fromMap(Map<dynamic, dynamic> map) {
     return OnMessageReceivedData(uid: map['uid'], message: map['message']);
   }
@@ -350,7 +409,9 @@ class OnMessageReceivedData {
 class OnBinaryMessageReceivedData {
   final String uid;
   final Uint8List message;
+
   const OnBinaryMessageReceivedData({required this.uid, required this.message});
+
   factory OnBinaryMessageReceivedData.fromMap(Map<dynamic, dynamic> map) {
     return OnBinaryMessageReceivedData(
         uid: map['uid'], message: map['message']);
@@ -360,7 +421,9 @@ class OnBinaryMessageReceivedData {
 class OnVideoStreamBannedData {
   final String uid;
   final bool banned;
+
   const OnVideoStreamBannedData({required this.uid, required this.banned});
+
   factory OnVideoStreamBannedData.fromMap(Map<dynamic, dynamic> map) {
     return OnVideoStreamBannedData(uid: map['uid'], banned: map['banned']);
   }
@@ -369,7 +432,9 @@ class OnVideoStreamBannedData {
 class OnAudioStreamBannedData {
   final String uid;
   final bool banned;
+
   const OnAudioStreamBannedData({required this.uid, required this.banned});
+
   factory OnAudioStreamBannedData.fromMap(Map<dynamic, dynamic> map) {
     return OnAudioStreamBannedData(uid: map['uid'], banned: map['banned']);
   }
@@ -377,7 +442,9 @@ class OnAudioStreamBannedData {
 
 class OnSimulcastSubscribeFallbackData {
   final RemoteStreamSwitch event;
+
   const OnSimulcastSubscribeFallbackData({required this.event});
+
   factory OnSimulcastSubscribeFallbackData.fromMap(Map<dynamic, dynamic> map) {
     return OnSimulcastSubscribeFallbackData(
         event: RemoteStreamSwitch.fromMap(map['event']));
@@ -388,8 +455,10 @@ class OnAudioMixingStateChangedData {
   final int mixId;
   final AudioMixingState state;
   final AudioMixingError error;
+
   const OnAudioMixingStateChangedData(
       {required this.mixId, required this.state, required this.error});
+
   factory OnAudioMixingStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnAudioMixingStateChangedData(
         mixId: map['mixId'],
@@ -401,8 +470,10 @@ class OnAudioMixingStateChangedData {
 class OnAudioMixingPlayingProgressData {
   final int mixId;
   final int progress;
+
   const OnAudioMixingPlayingProgressData(
       {required this.mixId, required this.progress});
+
   factory OnAudioMixingPlayingProgressData.fromMap(Map<dynamic, dynamic> map) {
     return OnAudioMixingPlayingProgressData(
         mixId: map['mixId'], progress: map['progress']);
@@ -411,7 +482,9 @@ class OnAudioMixingPlayingProgressData {
 
 class OnNetworkTypeChangedData {
   final NetworkType type;
+
   const OnNetworkTypeChangedData({required this.type});
+
   factory OnNetworkTypeChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnNetworkTypeChangedData(type: (map['type'] as int).networkType);
   }
@@ -420,8 +493,10 @@ class OnNetworkTypeChangedData {
 class OnSEIMessageReceivedData {
   final RemoteStreamKey streamKey;
   final Uint8List message;
+
   const OnSEIMessageReceivedData(
       {required this.streamKey, required this.message});
+
   factory OnSEIMessageReceivedData.fromMap(Map<dynamic, dynamic> map) {
     return OnSEIMessageReceivedData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -432,7 +507,9 @@ class OnSEIMessageReceivedData {
 class OnSEIStreamUpdateData {
   final RemoteStreamKey streamKey;
   final SEIStreamUpdateEvent event;
+
   const OnSEIStreamUpdateData({required this.streamKey, required this.event});
+
   factory OnSEIStreamUpdateData.fromMap(Map<dynamic, dynamic> map) {
     return OnSEIStreamUpdateData(
         streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -442,6 +519,7 @@ class OnSEIStreamUpdateData {
 
 class OnServerParamsSetResultData {
   final int error;
+
   const OnServerParamsSetResultData({required this.error});
 
   factory OnServerParamsSetResultData.fromMap(Map<dynamic, dynamic> map) {
@@ -454,6 +532,7 @@ class OnServerParamsSetResultData {
 class OnGetPeerOnlineStatusData {
   final String peerUid;
   final UserOnlineStatus status;
+
   const OnGetPeerOnlineStatusData(
       {required this.peerUid, required this.status});
 
@@ -489,6 +568,7 @@ class OnPerformanceAlarmsData {
 
 class OnHttpProxyStateData {
   final int state;
+
   const OnHttpProxyStateData({required this.state});
 
   factory OnHttpProxyStateData.fromMap(Map<dynamic, dynamic> map) {
@@ -500,6 +580,7 @@ class OnHttpProxyStateData {
 
 class OnHttpsProxyStateData {
   final int state;
+
   const OnHttpsProxyStateData({required this.state});
 
   factory OnHttpsProxyStateData.fromMap(Map<dynamic, dynamic> map) {
@@ -515,6 +596,7 @@ class OnSocks5ProxyStateData {
   final String proxyAddress;
   final String localAddress;
   final String remoteAddress;
+
   const OnSocks5ProxyStateData(
       {required this.state,
       required this.cmd,
@@ -538,6 +620,7 @@ class OnRecordingStateUpdateData {
   final RecordingState state;
   final RecordingErrorCode errorCode;
   final RecordingInfo info;
+
   const OnRecordingStateUpdateData(
       {required this.state,
       required this.type,
@@ -571,10 +654,25 @@ class OnRecordingProgressUpdateData {
   }
 }
 
+class OnAudioRecordingStateUpdateData {
+  final AudioRecordingState state;
+  final AudioRecordingErrorCode errorCode;
+
+  const OnAudioRecordingStateUpdateData(
+      {required this.state, required this.errorCode});
+
+  factory OnAudioRecordingStateUpdateData.fromMap(Map<dynamic, dynamic> map) {
+    return OnAudioRecordingStateUpdateData(
+        state: (map['state'] as int).audioRecordingState,
+        errorCode: (map['errorCode'] as int).audioRecordingErrorCode);
+  }
+}
+
 class OnLocalAudioPropertiesReportData {
   final List<LocalAudioPropertiesInfo> audioPropertiesInfos;
 
   const OnLocalAudioPropertiesReportData({required this.audioPropertiesInfos});
+
   factory OnLocalAudioPropertiesReportData.fromMap(Map<dynamic, dynamic> map) {
     List<LocalAudioPropertiesInfo> infos = (map['infos'] as List<dynamic>)
         .map((e) => LocalAudioPropertiesInfo.fromMap(e))
@@ -589,8 +687,10 @@ class OnLocalAudioPropertiesReportData {
 class OnRemoteAudioPropertiesReportData {
   final List<RemoteAudioPropertiesInfo> audioPropertiesInfos;
   final int totalRemoteVolume;
+
   const OnRemoteAudioPropertiesReportData(
       {required this.audioPropertiesInfos, required this.totalRemoteVolume});
+
   factory OnRemoteAudioPropertiesReportData.fromMap(Map<dynamic, dynamic> map) {
     List<RemoteAudioPropertiesInfo> infos = (map['infos'] as List<dynamic>)
         .map((e) => RemoteAudioPropertiesInfo.fromMap(e))
@@ -605,8 +705,10 @@ class OnStreamSyncInfoReceivedData {
   final RemoteStreamKey streamKey;
   final SyncInfoStreamType streamType;
   final Uint8List data;
+
   const OnStreamSyncInfoReceivedData(
       {required this.streamKey, required this.streamType, required this.data});
+
   factory OnStreamSyncInfoReceivedData.fromMap(Map<dynamic, dynamic> map) {
     return OnStreamSyncInfoReceivedData(
       streamKey: RemoteStreamKey.fromMap(map['streamKey']),
@@ -618,7 +720,9 @@ class OnStreamSyncInfoReceivedData {
 
 class OnSysStatsData {
   final SysStats stats;
+
   const OnSysStatsData({required this.stats});
+
   factory OnSysStatsData.fromMap(Map<dynamic, dynamic> map) {
     return OnSysStatsData(stats: SysStats.fromMap(map['stats']));
   }
@@ -626,7 +730,9 @@ class OnSysStatsData {
 
 class OnMeesageData {
   final String message;
+
   const OnMeesageData({required this.message});
+
   factory OnMeesageData.fromMap(Map<dynamic, dynamic> map) {
     return OnMeesageData(message: map['message']);
   }
@@ -637,6 +743,7 @@ class OnErrorMsgData {
   final String errorMessage;
 
   const OnErrorMsgData({required this.errorCode, required this.errorMessage});
+
   factory OnErrorMsgData.fromMap(Map<dynamic, dynamic> map) {
     return OnErrorMsgData(
         errorCode: map['errorCode'], errorMessage: map['errorMessage']);
@@ -650,6 +757,7 @@ class OnLoginResultData {
 
   const OnLoginResultData(
       {required this.uid, required this.errorCode, required this.elapsed});
+
   factory OnLoginResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnLoginResultData(
         uid: map['uid'],
@@ -777,7 +885,9 @@ class OnVideoDeviceWarningData {
 
 class OnAudioRouteChangedData {
   final AudioRoute route;
+
   const OnAudioRouteChangedData({required this.route});
+
   factory OnAudioRouteChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnAudioRouteChangedData(route: (map['route'] as int).audioRoute);
   }
@@ -786,7 +896,9 @@ class OnAudioRouteChangedData {
 class OnActiveSpeakerData {
   final String roomId;
   final String uid;
+
   const OnActiveSpeakerData({required this.roomId, required this.uid});
+
   factory OnActiveSpeakerData.fromMap(Map<dynamic, dynamic> map) {
     return OnActiveSpeakerData(roomId: map['roomId'], uid: map['uid']);
   }
@@ -796,8 +908,10 @@ class OnStreamSubscribedData {
   final SubscribeState stateCode;
   final String uid;
   final SubscribeConfig info;
+
   const OnStreamSubscribedData(
       {required this.stateCode, required this.uid, required this.info});
+
   factory OnStreamSubscribedData.fromMap(Map<dynamic, dynamic> map) {
     return OnStreamSubscribedData(
         stateCode: (map['stateCode'] as int).subscribeState,
@@ -836,7 +950,9 @@ class OnNetworkDetectionResultData {
 
 class OnNetworkDetectionStoppedData {
   final NetworkDetectionStopReason reason;
+
   const OnNetworkDetectionStoppedData({required this.reason});
+
   factory OnNetworkDetectionStoppedData.fromMap(Map<dynamic, dynamic> map) {
     return OnNetworkDetectionStoppedData(
         reason: (map['reason'] as int).networkDetectionStopReason);
@@ -845,7 +961,9 @@ class OnNetworkDetectionStoppedData {
 
 class OnForwardStreamStateChangedData {
   final List<ForwardStreamStateInfo> stateInfos;
+
   const OnForwardStreamStateChangedData({required this.stateInfos});
+
   factory OnForwardStreamStateChangedData.fromMap(Map<dynamic, dynamic> map) {
     return OnForwardStreamStateChangedData(
         stateInfos: (map['stateInfos'] as List<dynamic>)
@@ -856,7 +974,9 @@ class OnForwardStreamStateChangedData {
 
 class OnForwardStreamEventData {
   final List<ForwardStreamEventInfo> eventInfos;
+
   const OnForwardStreamEventData({required this.eventInfos});
+
   factory OnForwardStreamEventData.fromMap(Map<dynamic, dynamic> map) {
     return OnForwardStreamEventData(
         eventInfos: (map['eventInfos'] as List<dynamic>)
@@ -868,8 +988,10 @@ class OnForwardStreamEventData {
 class OnNetworkQualityData {
   final NetworkQualityStats localQuality;
   final List<NetworkQualityStats> remoteQualities;
+
   const OnNetworkQualityData(
       {required this.localQuality, required this.remoteQualities});
+
   factory OnNetworkQualityData.fromMap(Map<dynamic, dynamic> map) {
     return OnNetworkQualityData(
         localQuality: NetworkQualityStats.fromMap(map['localQuality']),
@@ -883,10 +1005,12 @@ class OnPushPublicStreamResultData {
   final String roomId;
   final String publicStreamId;
   final PublicStreamErrorCode errorCode;
+
   const OnPushPublicStreamResultData(
       {required this.roomId,
       required this.publicStreamId,
       required this.errorCode});
+
   factory OnPushPublicStreamResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnPushPublicStreamResultData(
         roomId: map['roomId'],
@@ -898,8 +1022,10 @@ class OnPushPublicStreamResultData {
 class OnPlayPublicStreamResultData {
   final String publicStreamId;
   final PublicStreamErrorCode errorCode;
+
   const OnPlayPublicStreamResultData(
       {required this.publicStreamId, required this.errorCode});
+
   factory OnPlayPublicStreamResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnPlayPublicStreamResultData(
         publicStreamId: map['publicStreamId'],
@@ -910,20 +1036,29 @@ class OnPlayPublicStreamResultData {
 class OnPublicStreamSEIMessageReceivedData {
   final String publicStreamId;
   final Uint8List message;
+  final SEIMessageSourceType sourceType;
+
   const OnPublicStreamSEIMessageReceivedData(
-      {required this.publicStreamId, required this.message});
+      {required this.publicStreamId,
+      required this.message,
+      required this.sourceType});
+
   factory OnPublicStreamSEIMessageReceivedData.fromMap(
       Map<dynamic, dynamic> map) {
     return OnPublicStreamSEIMessageReceivedData(
-        publicStreamId: map['publicStreamId'], message: map['message']);
+        publicStreamId: map['publicStreamId'],
+        message: map['message'],
+        sourceType: (map['sourceType'] as int).seiMessageSourceType);
   }
 }
 
 class OnFirstPublicStreamVideoFrameDecodedData {
   final String publicStreamId;
   final VideoFrameInfo videoFrameInfo;
+
   const OnFirstPublicStreamVideoFrameDecodedData(
       {required this.publicStreamId, required this.videoFrameInfo});
+
   factory OnFirstPublicStreamVideoFrameDecodedData.fromMap(
       Map<dynamic, dynamic> map) {
     return OnFirstPublicStreamVideoFrameDecodedData(
@@ -934,7 +1069,9 @@ class OnFirstPublicStreamVideoFrameDecodedData {
 
 class OnFirstPublicStreamAudioFrameData {
   final String publicStreamId;
+
   const OnFirstPublicStreamAudioFrameData({required this.publicStreamId});
+
   factory OnFirstPublicStreamAudioFrameData.fromMap(Map<dynamic, dynamic> map) {
     return OnFirstPublicStreamAudioFrameData(
         publicStreamId: map['publicStreamId']);
@@ -943,26 +1080,19 @@ class OnFirstPublicStreamAudioFrameData {
 
 class OnAVSyncStateChangeData {
   final AVSyncState state;
+
   const OnAVSyncStateChangeData({required this.state});
+
   factory OnAVSyncStateChangeData.fromMap(Map<dynamic, dynamic> map) {
     return OnAVSyncStateChangeData(state: (map['state'] as int).avSyncState);
   }
 }
 
-class OnRangeAudioInfoData {
-  final List<RangeAudioInfo> rangeAudioInfo;
-  const OnRangeAudioInfoData({required this.rangeAudioInfo});
-  factory OnRangeAudioInfoData.fromMap(Map<dynamic, dynamic> map) {
-    return OnRangeAudioInfoData(
-        rangeAudioInfo: (map['rangeAudioInfo'] as List<dynamic>)
-            .map((e) => RangeAudioInfo.fromMap(e))
-            .toList());
-  }
-}
-
 class OnCloudProxyConnectedData {
   final int interval;
+
   const OnCloudProxyConnectedData({required this.interval});
+
   factory OnCloudProxyConnectedData.fromMap(Map<dynamic, dynamic> map) {
     return OnCloudProxyConnectedData(interval: map['interval']);
   }
@@ -970,7 +1100,9 @@ class OnCloudProxyConnectedData {
 
 class OnEchoTestResultData {
   final EchoTestResult result;
+
   const OnEchoTestResultData({required this.result});
+
   factory OnEchoTestResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnEchoTestResultData(result: (map['result'] as int).echoTestResult);
   }
@@ -980,12 +1112,206 @@ class OnStreamPushEventData {
   final StreamSinglePushEvent eventType;
   final String taskId;
   final int error;
+
   const OnStreamPushEventData(
       {required this.eventType, required this.taskId, required this.error});
+
   factory OnStreamPushEventData.fromMap(Map<dynamic, dynamic> map) {
     return OnStreamPushEventData(
         eventType: (map['eventType'] as int).streamSinglePushEvent,
         taskId: map['taskId'],
         error: map['error']);
+  }
+}
+
+class OnLicenseWillExpireData {
+  final int days;
+
+  const OnLicenseWillExpireData({required this.days});
+
+  factory OnLicenseWillExpireData.fromMap(Map<dynamic, dynamic> map) {
+    return OnLicenseWillExpireData(days: map['days']);
+  }
+}
+
+class OnInvokeExperimentalAPIData {
+  final String param;
+
+  const OnInvokeExperimentalAPIData({required this.param});
+
+  factory OnInvokeExperimentalAPIData.fromMap(Map<dynamic, dynamic> map) {
+    return OnInvokeExperimentalAPIData(param: map['param']);
+  }
+}
+
+class OnPlayProgressData {
+  final String musicId;
+  final int progress;
+
+  const OnPlayProgressData({required this.musicId, required this.progress});
+
+  factory OnPlayProgressData.fromMap(Map<dynamic, dynamic> map) {
+    return OnPlayProgressData(
+        musicId: map['musicId'], progress: map['progress']);
+  }
+}
+
+class OnPlayStateChangeData {
+  final String musicId;
+  final KTVPlayState playState;
+  final KTVPlayerError error;
+
+  const OnPlayStateChangeData({
+    required this.musicId,
+    required this.playState,
+    required this.error,
+  });
+
+  factory OnPlayStateChangeData.fromMap(Map<dynamic, dynamic> map) {
+    return OnPlayStateChangeData(
+      musicId: map['musicId'],
+      playState: (map['playState'] as int?).ktvPlayState,
+      error: (map['error'] as int?).ktvPlayerError,
+    );
+  }
+}
+
+class OnMusicListResultData {
+  final KTVError error;
+  final int totalSize;
+  final List<KTVMusic>? musics;
+
+  const OnMusicListResultData({
+    required this.error,
+    required this.totalSize,
+    this.musics,
+  });
+
+  factory OnMusicListResultData.fromMap(Map<dynamic, dynamic> map) {
+    return OnMusicListResultData(
+      error: (map['error'] as int?).ktvError,
+      totalSize: map['totalSize'],
+      musics: (map['musics'] as List?)
+          ?.map((e) => KTVMusic.fromMap(e))
+          .toList(growable: false),
+    );
+  }
+}
+
+class OnHotMusicResultData {
+  final KTVError error;
+  final List<KTVHotMusicInfo>? hotMusics;
+
+  const OnHotMusicResultData({
+    required this.error,
+    this.hotMusics,
+  });
+
+  factory OnHotMusicResultData.fromMap(Map<dynamic, dynamic> map) {
+    return OnHotMusicResultData(
+      error: (map['error'] as int?).ktvError,
+      hotMusics: (map['hotMusics'] as List?)
+          ?.map((e) => KTVHotMusicInfo.fromMap(e))
+          .toList(growable: false),
+    );
+  }
+}
+
+class OnMusicDetailResultData {
+  final KTVError error;
+  final KTVMusic? music;
+
+  const OnMusicDetailResultData({
+    required this.error,
+    this.music,
+  });
+
+  factory OnMusicDetailResultData.fromMap(Map<dynamic, dynamic> map) {
+    KTVMusic? music;
+    Map<dynamic, dynamic>? m = map['music'];
+    if (m != null) {
+      music = KTVMusic.fromMap(m);
+    }
+    return OnMusicDetailResultData(
+      error: (map['error'] as int?).ktvError,
+      music: music,
+    );
+  }
+}
+
+class OnDownloadSuccessData {
+  final int downloadId;
+  final KTVDownloadResult result;
+
+  const OnDownloadSuccessData({
+    required this.downloadId,
+    required this.result,
+  });
+
+  factory OnDownloadSuccessData.fromMap(Map<dynamic, dynamic> map) {
+    return OnDownloadSuccessData(
+      downloadId: map['downloadId'],
+      result: KTVDownloadResult.fromMap(map['result']),
+    );
+  }
+}
+
+class OnDownloadFailData {
+  final int downloadId;
+  final KTVError error;
+
+  const OnDownloadFailData({
+    required this.downloadId,
+    required this.error,
+  });
+
+  factory OnDownloadFailData.fromMap(Map<dynamic, dynamic> map) {
+    return OnDownloadFailData(
+      downloadId: map['downloadId'],
+      error: (map['error'] as int?).ktvError,
+    );
+  }
+}
+
+class OnDownloadMusicProgressData {
+  final int downloadId;
+  final int downloadProgress;
+
+  const OnDownloadMusicProgressData({
+    required this.downloadId,
+    required this.downloadProgress,
+  });
+
+  factory OnDownloadMusicProgressData.fromMap(Map<dynamic, dynamic> map) {
+    return OnDownloadMusicProgressData(
+      downloadId: map['downloadId'],
+      downloadProgress: map['downloadProgress'],
+    );
+  }
+}
+
+class OnCurrentScoringInfoData {
+  final SingScoringRealtimeInfo? info;
+
+  const OnCurrentScoringInfoData({this.info});
+
+  factory OnCurrentScoringInfoData.fromMap(Map<dynamic, dynamic> map) {
+    Map<dynamic, dynamic>? infoMap = map['info'];
+    SingScoringRealtimeInfo? info;
+    if (infoMap != null) {
+      info = SingScoringRealtimeInfo.fromMap(infoMap);
+    }
+    return OnCurrentScoringInfoData(info: info);
+  }
+}
+
+class OnHardwareEchoDetectionResultData {
+  final HardwareEchoDetectionResult result;
+
+  const OnHardwareEchoDetectionResultData({required this.result});
+
+  factory OnHardwareEchoDetectionResultData.fromMap(Map<dynamic, dynamic> map) {
+    return OnHardwareEchoDetectionResultData(
+        result: (map['result'] as int?).hardwareEchoDetectionResult);
   }
 }

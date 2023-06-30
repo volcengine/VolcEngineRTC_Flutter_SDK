@@ -8,7 +8,7 @@ import 'base/bytertc_event_serialize.dart';
 class RTCVideoEventValue {
   void Function(Map<String, dynamic>)? _valueObserver;
 
-  set valueObserver(Function(Map<String, dynamic>)? valueObserver) {
+  set valueObserver(void Function(Map<String, dynamic>)? valueObserver) {
     _valueObserver = valueObserver;
     if (valueObserver == null) return;
     _valueObserver?.call({'enableSysStats': onSysStats != null});
@@ -274,6 +274,10 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
         final data = OnRecordingProgressUpdateData.fromMap(dic);
         onRecordingProgressUpdate?.call(data.type, data.progress, data.info);
         break;
+      case 'onAudioRecordingStateUpdate':
+        final data = OnAudioRecordingStateUpdateData.fromMap(dic);
+        onAudioRecordingStateUpdate?.call(data.state, data.errorCode);
+        break;
       case 'onPushPublicStreamResult':
         final data = OnPushPublicStreamResultData.fromMap(dic);
         onPushPublicStreamResult?.call(
@@ -286,7 +290,7 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
       case 'onPublicStreamSEIMessageReceived':
         final data = OnPublicStreamSEIMessageReceivedData.fromMap(dic);
         onPublicStreamSEIMessageReceived?.call(
-            data.publicStreamId, data.message);
+            data.publicStreamId, data.message, data.sourceType);
         break;
       case 'onFirstPublicStreamVideoFrameDecoded':
         final data = OnFirstPublicStreamVideoFrameDecodedData.fromMap(dic);
@@ -304,6 +308,21 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
       case 'onEchoTestResult':
         final data = OnEchoTestResultData.fromMap(dic);
         onEchoTestResult?.call(data.result);
+        break;
+      case 'onNetworkTimeSynchronized':
+        onNetworkTimeSynchronized?.call();
+        break;
+      case 'onLicenseWillExpire':
+        final data = OnLicenseWillExpireData.fromMap(dic);
+        onLicenseWillExpire?.call(data.days);
+        break;
+      case 'onInvokeExperimentalAPI':
+        final data = OnInvokeExperimentalAPIData.fromMap(dic);
+        onInvokeExperimentalAPI?.call(data.param);
+        break;
+      case 'onHardwareEchoDetectionResult':
+        final data = OnHardwareEchoDetectionResultData.fromMap(dic);
+        onHardwareEchoDetectionResult?.call(data.result);
         break;
       default:
         break;

@@ -11,7 +11,8 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   final MethodChannel _methodChannel =
       const MethodChannel('com.bytedance.ve_rtc_audio_mixing_manager');
 
-  Future<T?> _invokeMethod<T>(String method, Map<String, dynamic>? arguments) {
+  Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) {
     return _methodChannel.invokeMethod(method, arguments);
   }
 
@@ -32,6 +33,10 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   }
 
   @override
+  Future<void> stopAllAudioMixing() =>
+      _invokeMethod<void>('stopAllAudioMixing');
+
+  @override
   Future<void> pauseAudioMixing(int mixId) {
     return _invokeMethod<void>('pauseAudioMixing', {
       'mixId': mixId,
@@ -39,11 +44,19 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   }
 
   @override
+  Future<void> pauseAllAudioMixing() =>
+      _invokeMethod<void>('pauseAllAudioMixing');
+
+  @override
   Future<void> resumeAudioMixing(int mixId) {
     return _invokeMethod<void>('resumeAudioMixing', {
       'mixId': mixId,
     });
   }
+
+  @override
+  Future<void> resumeAllAudioMixing() =>
+      _invokeMethod<void>('resumeAllAudioMixing');
 
   @override
   Future<void> preloadAudioMixing(
@@ -69,6 +82,12 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   @override
   Future<int?> getAudioMixingDuration(int mixId) {
     return _invokeMethod<int>('getAudioMixingDuration', {'mixId': mixId});
+  }
+
+  @override
+  Future<int?> getAudioMixingPlaybackDuration(int mixId) {
+    return _invokeMethod<int>(
+        'getAudioMixingPlaybackDuration', {'mixId': mixId});
   }
 
   @override
@@ -143,6 +162,17 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
     return _invokeMethod<void>('selectAudioTrack', {
       'mixId': mixId,
       'audioTrackIndex': audioTrackIndex,
+    });
+  }
+
+  @override
+  Future<void> setAllAudioMixingVolume({
+    required int volume,
+    required AudioMixingType type,
+  }) {
+    return _invokeMethod<void>('setAllAudioMixingVolume', {
+      'volume': volume,
+      'type': type.value,
     });
   }
 }

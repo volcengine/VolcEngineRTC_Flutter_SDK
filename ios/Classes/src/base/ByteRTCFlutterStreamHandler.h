@@ -13,8 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
                          methodTarget:(id)methodTarget
                       binaryMessenger:(NSObject<FlutterBinaryMessenger>*)messenger;
 
-- (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result;
-
 - (void)destroy;
 
 @end

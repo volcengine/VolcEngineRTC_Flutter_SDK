@@ -216,7 +216,7 @@ class _RoomPageState extends State<RoomPage> {
       height: 640,
       frameRate: 15,
       maxBitrate: 800,
-      encoderPreference: EncoderPreference.maintainFrameRate,
+      encoderPreference: VideoEncoderPreference.maintainFrameRate,
     );
     _rtcVideo?.setMaxVideoEncoderConfig(solution);
 
@@ -253,8 +253,7 @@ class _RoomPageState extends State<RoomPage> {
         (RemoteStreamKey streamKey, VideoFrameInfo videoFrameInfo) {
       debugPrint('onFirstRemoteVideoFrameDecoded: ${streamKey.uid}');
       String? uid = streamKey.uid;
-      if (uid == null ||
-          _firstRemoteRenderContext?.uid == uid ||
+      if (_firstRemoteRenderContext?.uid == uid ||
           _secondRemoteRenderContext?.uid == uid ||
           _thirdRemoteRenderContext?.uid == uid) {
         return;

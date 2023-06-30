@@ -16,10 +16,11 @@ import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.RTCVideo;
 import com.ss.bytertc.engine.VideoCanvas;
+import com.ss.bytertc.engine.data.RemoteStreamKey;
 import com.ss.bytertc.engine.data.StreamIndex;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
-import com.ss.bytertc.engine.flutter.BuildConfig;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
@@ -100,9 +101,9 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
                 break;
             }
             case "setupRemoteVideo": {
-                int retValue = setupRemoteVideo(arguments);
+                setupRemoteVideo(arguments);
 
-                result.success(retValue);
+                result.success(null);
                 break;
             }
 
@@ -139,7 +140,8 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
                 int backgroundColor = arguments.optInt("backgroundColor");
 
                 RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
-                rtcVideo.updateRemoteStreamVideoCanvas(roomId, uid, streamType, renderMode, backgroundColor);
+                RemoteStreamKey streamKey = new RemoteStreamKey(roomId, uid, streamType);
+                rtcVideo.updateRemoteStreamVideoCanvas(streamKey, renderMode, backgroundColor);
                 result.success(null);
                 break;
             }
@@ -164,48 +166,37 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
     }
 
     private int setupLocalVideo(RTCTypeBox arguments) {
-        final String roomId = arguments.optString("roomId");
-        final String uid = arguments.optString("uid");
         StreamIndex streamType = StreamIndex.fromId(arguments.optInt("streamType"));
         int renderMode = arguments.optInt("renderMode");
         int backgroundColor = arguments.optInt("backgroundColor");
 
-        mVideoCanvas.uid = uid;
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.roomId = roomId;
-        mVideoCanvas.isScreen = (streamType == StreamIndex.STREAM_INDEX_SCREEN);
         mVideoCanvas.background_color = backgroundColor;
 
         return RTCVideoManager.getRTCVideo().setLocalVideoCanvas(streamType, mVideoCanvas);
     }
 
-    private int setupRemoteVideo(RTCTypeBox arguments) {
+    private void setupRemoteVideo(RTCTypeBox arguments) {
         final String roomId = arguments.optString("roomId");
         final String uid = arguments.optString("uid");
         StreamIndex streamType = StreamIndex.fromId(arguments.optInt("streamType"));
         int renderMode = arguments.optInt("renderMode");
         int backgroundColor = arguments.optInt("backgroundColor");
 
-        mVideoCanvas.uid = uid;
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.roomId = roomId;
-        mVideoCanvas.isScreen = (streamType == StreamIndex.STREAM_INDEX_SCREEN);
         mVideoCanvas.background_color = backgroundColor;
 
-        return RTCVideoManager.getRTCVideo().setRemoteVideoCanvas(uid, streamType, mVideoCanvas);
+        final RemoteStreamKey streamKey = new RemoteStreamKey(roomId, uid, streamType);
+
+        RTCVideoManager.getRTCVideo().setRemoteVideoCanvas(streamKey, mVideoCanvas);
     }
 
     private int setupPublicStreamVideo(RTCTypeBox arguments) {
-        final String roomId = arguments.optString("roomId");
         final String uid = arguments.optString("uid");
-        StreamIndex streamType = StreamIndex.fromId(arguments.optInt("streamType"));
         int renderMode = arguments.optInt("renderMode");
         int backgroundColor = arguments.optInt("backgroundColor");
 
-        mVideoCanvas.uid = uid;
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.roomId = roomId;
-        mVideoCanvas.isScreen = (streamType == StreamIndex.STREAM_INDEX_SCREEN);
         mVideoCanvas.background_color = backgroundColor;
 
         RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
@@ -213,16 +204,10 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
     }
 
     private void setupEchoTestVideo(RTCTypeBox arguments) {
-        final String roomId = arguments.optString("roomId");
-        final String uid = arguments.optString("uid");
-        StreamIndex streamType = StreamIndex.fromId(arguments.optInt("streamType"));
         int renderMode = arguments.optInt("renderMode");
         int backgroundColor = arguments.optInt("backgroundColor");
 
-        mVideoCanvas.uid = uid;
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.roomId = roomId;
-        mVideoCanvas.isScreen = (streamType == StreamIndex.STREAM_INDEX_SCREEN);
         mVideoCanvas.background_color = backgroundColor;
 
         EchoTestViewHolder.setView(mVideoCanvas);

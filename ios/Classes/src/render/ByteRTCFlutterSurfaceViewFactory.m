@@ -7,7 +7,8 @@
 #import <Flutter/FlutterBinaryMessenger.h>
 #import <VolcEngineRTC/objc/ByteRTCVideo.h>
 #import "ByteRTCFlutterSurfaceViewFactory.h"
-#import "ByteRTCFlutterVideoManager.h"
+#import "ByteRTCFlutterStreamHandler.h"
+#import "ByteRTCVideoManager+Extension.h"
 
 typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
     
@@ -20,95 +21,10 @@ typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
     RTCVideoCanvasTypeEchoTest = 3,
 };
 
-@interface ByteRTCFlutterSurfaceView : ByteRTCView
+@interface ByteRTCFlutterSurfaceViewPlugin : NSObject <FlutterPlatformView>
 
-@property (nonatomic, weak) ByteRTCFlutterVideoManager *videoManager;
-
-@end
-
-@implementation ByteRTCFlutterSurfaceView
-
-- (instancetype)initWithFrame:(CGRect)frame videoManager:(ByteRTCFlutterVideoManager *)videoManager {
-    self = [super initWithFrame:frame];
-    if (self) {
-        self.videoManager = videoManager;
-    }
-    return self;
-}
-
-- (void)setupLocalVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
-    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
-    canvas.view = self;
-    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
-    canvas.roomId = arguments[@"roomId"];
-    canvas.uid = arguments[@"uid"];
-    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
-    int res = [[self.videoManager getRTCVideo] setLocalVideoCanvas:streamType
-                                                        withCanvas:canvas];
-    result ? result(@(res)) : nil;
-}
-
-- (void)updateLocalVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
-    ByteRTCRenderMode renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
-    NSUInteger backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
-    int res = [[self.videoManager getRTCVideo] updateLocalVideoCanvas:streamType
-                                                       withRenderMode:renderMode
-                                                  withBackgroundColor:backgroundColor];
-    result(@(res));
-}
-
-- (void)setupRemoteVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *uid = arguments[@"uid"];
-    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
-    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
-    canvas.view = self;
-    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
-    canvas.roomId = arguments[@"roomId"];
-    canvas.uid = uid;
-    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
-    int res = [[self.videoManager getRTCVideo] setRemoteVideoCanvas:uid
-                                                          withIndex:streamType
-                                                         withCanvas:canvas];
-    result ? result(@(res)) : nil;
-}
-
-- (void)updateRemoteVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *roomId = arguments[@"roomId"];
-    NSString *uid = arguments[@"uid"];
-    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
-    ByteRTCRenderMode renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
-    NSUInteger backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
-    int res = [[self.videoManager getRTCVideo] updateRemoteStreamVideoCanvas:roomId
-                                                                  withUserId:uid
-                                                                   withIndex:streamType
-                                                              withRenderMode:renderMode
-                                                         withBackgroundColor:backgroundColor];
-    result(@(res));
-}
-
-- (void)setupPublicStreamVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *streamId = arguments[@"uid"];
-    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
-    canvas.view = self;
-    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
-    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
-    int res = [[self.videoManager getRTCVideo] setPublicStreamVideoCanvas:streamId
-                                                               withCanvas:canvas];
-    result ? result(@(res)) : nil;
-}
-
-- (void)setupEchoTestVideo:(NSDictionary *)arguments result:(FlutterResult)result {
-    self.videoManager.echoTestView = self;
-    result ? result(nil) : nil;
-}
-
-@end
-
-@interface ByteRTCFlutterSurfaceViewPlugin : ByteRTCFlutterMethodHandler <FlutterPlatformView>
-
-@property (nonatomic, strong) ByteRTCFlutterSurfaceView *surfaceView;
+@property (nonatomic, strong) ByteRTCView *surfaceView;
+@property (nonatomic, strong) ByteRTCFlutterMethodHandler *methodHandler;
 
 @end
 
@@ -117,14 +33,14 @@ typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
 - (instancetype)initWithMessager:(NSObject<FlutterBinaryMessenger>*)messenger
                            frame:(CGRect)frame
                   viewIdentifier:(int64_t)viewId
-                       arguments:(id)args
-                    videoManager:(ByteRTCFlutterVideoManager *)videoManager {
+                       arguments:(id)args {
     self = [super init];
     if (self) {
-        self.surfaceView = [[ByteRTCFlutterSurfaceView alloc] initWithFrame:frame videoManager:videoManager];
-        [self registerMethodChannelWithName:[NSString stringWithFormat:@"com.bytedance.ve_rtc_surfaceView%lld", viewId]
-                               methodTarget:self.surfaceView
-                            binaryMessenger:messenger];
+        self.surfaceView = [[ByteRTCView alloc] initWithFrame:frame];
+        self.methodHandler = [[ByteRTCFlutterMethodHandler alloc] init];
+        [self.methodHandler registerMethodChannelWithName:[NSString stringWithFormat:@"com.bytedance.ve_rtc_surfaceView%lld", viewId]
+                                             methodTarget:self
+                                          binaryMessenger:messenger];
         if ([args isKindOfClass:[NSDictionary class]]) {
             [self setupVideoView:args];
         }
@@ -136,16 +52,16 @@ typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
     RTCVideoCanvasType canvasType = [args[@"canvasType"] integerValue];
     switch (canvasType) {
         case RTCVideoCanvasTypeLocal:
-            [self.surfaceView setupLocalVideo:args result:nil];
+            [self setupLocalVideo:args result:nil];
             break;
         case RTCVideoCanvasTypeRemote:
-            [self.surfaceView setupRemoteVideo:args result:nil];
+            [self setupRemoteVideo:args result:nil];
             break;
         case RTCVideoCanvasTypePublicStream:
-            [self.surfaceView setupPublicStreamVideo:args result:nil];
+            [self setupPublicStreamVideo:args result:nil];
             break;
         case RTCVideoCanvasTypeEchoTest:
-            [self.surfaceView setupEchoTestVideo:args result:nil];
+            [self setupEchoTestVideo:args result:nil];
             break;
     }
 }
@@ -155,26 +71,105 @@ typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
 }
 
 - (void)dealloc {
-    [self destroy];
+    [self.methodHandler destroy];
+}
+
+- (ByteRTCVideo *)rtcVideo {
+    return [ByteRTCVideoManager shared].rtcVideo;
+}
+
+#pragma mark -
+- (void)setupLocalVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
+    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
+    canvas.view = self.surfaceView;
+    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
+    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
+    int res = -1;
+    if (self.rtcVideo != nil) {
+        res = [self.rtcVideo setLocalVideoCanvas:streamType
+                                      withCanvas:canvas];
+    }
+    result ? result(@(res)) : nil;
+}
+
+- (void)updateLocalVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
+    ByteRTCRenderMode renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
+    NSUInteger backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
+    [self.rtcVideo updateLocalVideoCanvas:streamType
+                           withRenderMode:renderMode
+                      withBackgroundColor:backgroundColor];
+    result(nil);
+}
+
+- (void)setupRemoteVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *uid = arguments[@"uid"];
+    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
+    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
+    canvas.view = self.surfaceView;
+    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
+    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
+    
+    ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
+    streamKey.roomId = arguments[@"roomId"];
+    streamKey.userId = uid;
+    streamKey.streamIndex = streamType;
+    
+    [self.rtcVideo setRemoteVideoCanvas:streamKey withCanvas:canvas];
+    result ? result(nil) : nil;
+}
+
+- (void)updateRemoteVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCStreamIndex streamType = [arguments[@"streamType"] integerValue];
+    ByteRTCRenderMode renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
+    NSUInteger backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
+    
+    ByteRTCRemoteStreamKey *streamKey = [[ByteRTCRemoteStreamKey alloc] init];
+    streamKey.roomId = arguments[@"roomId"];
+    streamKey.userId = arguments[@"uid"];
+    streamKey.streamIndex = streamType;
+    
+    [self.rtcVideo updateRemoteStreamVideoCanvas:streamKey
+                                  withRenderMode:renderMode
+                             withBackgroundColor:backgroundColor];
+    
+    result(nil);
+}
+
+- (void)setupPublicStreamVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *streamId = arguments[@"uid"];
+    ByteRTCVideoCanvas *canvas = [[ByteRTCVideoCanvas alloc] init];
+    canvas.view = self.surfaceView;
+    canvas.renderMode = [arguments[@"renderMode"] unsignedIntegerValue];
+    canvas.backgroundColor = [arguments[@"backgroundColor"] unsignedIntegerValue];
+    int res = -1;
+    if (self.rtcVideo != nil) {
+        res = [self.rtcVideo setPublicStreamVideoCanvas:streamId
+                                             withCanvas:canvas];
+    }
+    result ? result(@(res)) : nil;
+}
+
+- (void)setupEchoTestVideo:(NSDictionary *)arguments result:(FlutterResult)result {
+    [ByteRTCVideoManager shared].echoTestView = self.surfaceView;
+    result ? result(nil) : nil;
 }
 
 @end
 
-
 @interface ByteRTCFlutterSurfaceViewFactory ()
 
 @property (nonatomic, weak) NSObject<FlutterBinaryMessenger>* messenger;
-@property (nonatomic, weak) ByteRTCFlutterVideoManager *videoManager;
 
 @end
 
 @implementation ByteRTCFlutterSurfaceViewFactory
 
-- (instancetype)initWithMessager:(NSObject<FlutterBinaryMessenger>*)messenger videoManager:(ByteRTCFlutterVideoManager *)videoManager {
+- (instancetype)initWithMessager:(NSObject<FlutterBinaryMessenger>*)messenger {
     self = [super init];
     if (self) {
         self.messenger = messenger;
-        self.videoManager = videoManager;
     }
     return self;
 }
@@ -183,12 +178,13 @@ typedef NS_ENUM(NSInteger, RTCVideoCanvasType) {
     return [FlutterStandardMessageCodec sharedInstance];
 }
 
-- (NSObject<FlutterPlatformView> *)createWithFrame:(CGRect)frame viewIdentifier:(int64_t)viewId arguments:(id)args {
+- (NSObject<FlutterPlatformView> *)createWithFrame:(CGRect)frame
+                                    viewIdentifier:(int64_t)viewId
+                                         arguments:(id)args {
     return [[ByteRTCFlutterSurfaceViewPlugin alloc] initWithMessager:self.messenger
                                                                frame:frame
                                                       viewIdentifier:viewId
-                                                           arguments:args
-                                                        videoManager:self.videoManager];
+                                                           arguments:args];
 }
 
 @end

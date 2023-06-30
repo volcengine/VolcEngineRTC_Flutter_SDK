@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import 'bytertc_audio_defines.dart';
+import 'bytertc_video_event_handler.dart';
 
 /// 混音管理类
 ///
@@ -13,16 +14,21 @@ abstract class RTCAudioMixingManager {
   /// 如果已经通过 [RTCAudioMixingManager.preloadAudioMixing] 预加载音乐文件，请确保两者 ID 相同。<br>
   /// 如果使用相同的 ID 重复调用本方法，前一次混音会停止，后一次混音开始，且会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   ///
-  /// [filePath] 需要混音的本地文件的绝对路径。<br>
+  /// [filePath] 需要混音的音频文件的绝对路径。<br>
   /// 支持在线文件的 URL、本地文件的 URI、本地文件的绝对路径或以 `/assets/` 开头的本地文件路径。对于在线文件的 URL，仅支持 https 协议。
   /// 推荐的音频文件采样率：8KHz、16KHz、22.05KHz、44.1KHz、48KHz。
-  /// 不同平台支持的音乐文件格式如下:
-  /// <table border>
-  /// <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th>
-  /// <tr><td>Android</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td>
-  /// <tr><td>iOS</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td>
+  /// 不同平台支持的本地音频文件格式:
+  /// <table>
+  ///    <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th><th>ts</th><th>wma</th></tr>
+  ///    <tr><td>Android</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td></tr>
+  ///    <tr><td>iOS</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td><td></td></tr>
   /// </table>
-  /// <br>
+  /// 不同平台支持的在线音频文件格式:
+  /// <table>
+  ///    <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th><th>ts</th><th>wma</th></tr>
+  ///    <tr><td>Android</td><td>Y</td><td></td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td><td></td></tr>
+  ///    <tr><td>iOS</td><td>Y</td><td></td><td>Y</td><td>Y</td><td></td><td>Y</td><td></td><td></td><td></td></tr>
+  /// </table>
   ///
   /// 注意：
   /// + 可以通过传入不同的 mixId 和 filePath 多次调用本方法，以同时播放多个混音文件，实现混音叠加。
@@ -41,6 +47,14 @@ abstract class RTCAudioMixingManager {
   /// + 调用本方法停止播放音乐文件后，该音乐文件会被自动卸载。
   Future<void> stopAudioMixing(int mixId);
 
+  /// 停止播放所有音频文件
+  ///
+  /// 注意:
+  /// + 调用 [startAudioMixing] 方法开始播放音频文件后，可以调用本方法停止播放所有音频文件。
+  /// + 调用本方法停止播放所有音频文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，通知已停止播放。
+  /// + 调用本方法停止播放所有音频文件后，该音频文件会被自动卸载。
+  Future<void> stopAllAudioMixing();
+
   /// 暂停指定的混音任务
   ///
   /// 注意：
@@ -49,12 +63,27 @@ abstract class RTCAudioMixingManager {
   /// + 调用本方法暂停混音任务后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   Future<void> pauseAudioMixing(int mixId);
 
+  /// 暂停播放所有音频文件
+  ///
+  /// 注意:
+  /// + 调用 [startAudioMixing] 方法开始播放音频文件后，可以通过调用本方法暂停播放所有音频文件。
+  /// + 调用本方法暂停播放所有音频文件后，可调用 [resumeAllAudioMixing] 方法恢复所有播放。
+  /// + 调用本方法暂停播放所有音频文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，通知已暂停播放。
+  Future<void> pauseAllAudioMixing();
+
   /// 恢复指定的混音任务
   ///
   /// 注意：
   /// + 调用 [RTCAudioMixingManager.pauseAudioMixing] 暂停混音任务后，可以通过调用此方法恢复。
   /// + 调用本方法恢复混音任务后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   Future<void> resumeAudioMixing(int mixId);
+
+  /// 恢复播放音频文件及混音
+  ///
+  /// 注意:
+  /// + 调用 [pauseAudioMixing]/[pauseAllAudioMixing] 方法暂停播放音频文件后，可以通过调用本方法恢复播放及混音。
+  /// + 调用本方法恢复播放音频文件后，关于当前的混音状态，会收到回调 [RTCVideoEventHandler.onAudioMixingStateChanged]。
+  Future<void> resumeAllAudioMixing();
 
   /// 预加载指定音乐文件到内存中，以避免频繁播放同一文件时的重复加载，减少 CPU 占用。
   ///
@@ -85,6 +114,21 @@ abstract class RTCAudioMixingManager {
   /// 不论音乐文件是否播放，调用本方法卸载该文件后，混音任务会停止，并收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   Future<void> unloadAudioMixing(int mixId);
 
+  /// 设置默认的混音音量大小，包括音频文件混音和 PCM 混音
+  ///
+  /// [volume] 混音音量相对原音量的比值。范围为 `[0, 400]`，建议范围是 `[0, 100]`<br>
+  ///  + 0：静音
+  ///  + 100：原始音量（默认值）
+  ///  + 400: 最大可调音量 (自带溢出保护)
+  ///
+  /// [type] 混音类型。是否本地播放、以及是否发送到远端
+  ///
+  /// 注意: 该接口的优先级低于 [setAudioMixingVolume]，即通过 [setAudioMixingVolume] 单独设置了音量的混音ID，不受该接口设置的影响。
+  Future<void> setAllAudioMixingVolume({
+    required int volume,
+    required AudioMixingType type,
+  });
+
   /// 调节音乐文件在本地和远端播放的音量大小
   ///
   /// [volume] 是播放音量和原始音量的比值，取值范围是 `[0, 400]`，单位是 %。<br>
@@ -108,6 +152,17 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法获取音乐文件时长前，需要先调用 [RTCAudioMixingManager.preloadAudioMixing] 或 [RTCAudioMixingManager.startAudioMixing]
   Future<int?> getAudioMixingDuration(int mixId);
+
+  /// 获取混音音频文件的实际播放时长（ms）
+  ///
+  /// 返回值：接口调用结果
+  /// + `>0`：成功，实际播放时长；
+  /// + `<0`：失败
+  ///
+  /// 注意：
+  /// + 实际播放时长指的是歌曲不受停止、跳转、倍速、卡顿影响的播放时长。例如，若歌曲正常播放到 1:30 时停止播放 30s 或跳转进度到 2:00, 随后继续正常播放 2分钟，则实际播放时长为 3分30秒。  <br>
+  /// + 调用本接口前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放指定音频文件。
+  Future<int?> getAudioMixingPlaybackDuration(int mixId);
 
   /// 获取音乐文件播放进度 (ms)
   ///
@@ -138,7 +193,7 @@ abstract class RTCAudioMixingManager {
 
   /// 对混音时本地播放的音乐文件进行升/降调调整
   ///
-  /// [pitch] 调整后的音调比原始音调升高/降低的值，取值范围[-12，12]，默认值为 0，即不做调整。  <br>
+  /// [pitch] 调整后的音调比原始音调升高/降低的值，取值范围 `[-12，12]`，默认值为 `0`，即不做调整。  <br>
   /// 取值范围内每相邻两个值的音高距离相差半音，正值表示升调，负值表示降调，设置的绝对值越大表示音调升高或降低越多。<br>
   /// 超出取值范围则设置失败，并且会触发 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，提示 [AudioMixingState] 状态为 `failed` 混音播放失败，[AudioMixingError] 错误码为 `idTypeInvalidPitch` 混音文件音调设置无效。
   ///
@@ -150,7 +205,7 @@ abstract class RTCAudioMixingManager {
 
   /// 设置混音时音乐文件的播放速度
   ///
-  /// [speed] 播放速度与原始文件速度的比例，单位：%，取值范围为 [50,200]，默认值为 100。<br>
+  /// [speed] 播放速度与原始文件速度的比例，单位：%，取值范围为 `[50,200]`，默认值为 `100`。<br>
   /// 超出取值范围设置失败，你会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，提示 [AudioMixingState] 状态为 `failed` 混音播放失败，[AudioMixingError] 错误码为 `invalidPlaybackSpeed` 混音文件播放速度设置无效。
   ///
   /// 注意：
@@ -163,8 +218,8 @@ abstract class RTCAudioMixingManager {
 
   /// 如果你需要使用 [RTCVideo.enableVocalInstrumentBalance] 对混音使音乐文件进行音量调整，你必须通过此接口传入其原始响度。
   ///
-  /// [loudness] 原始响度，单位：lufs，取值范围为 [-70.0, 0.0]。<br>
-  /// 当设置的值小于 -70.0lufs 时，则默认调整为 -70.0lufs，大于 0.0lufs 时，则不对该响度做音均衡处理。默认值为 1.0lufs，即不做处理。
+  /// [loudness] 原始响度，单位：lufs，取值范围为 `[-70.0, 0.0]`。<br>
+  /// 当设置的值小于 `-70.0lufs` 时，则默认调整为 `-70.0lufs`，大于 `0.0lufs` 时，则不对该响度做音均衡处理。默认值为 `1.0lufs`，即不做处理。
   ///
   /// 注意：建议在 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件之前调用该接口，以免播放过程中的音量突变导致听感体验下降。
   Future<void> setAudioMixingLoudness({

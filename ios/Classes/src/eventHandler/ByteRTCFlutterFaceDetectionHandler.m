@@ -10,7 +10,7 @@
 
 #pragma mark - ByteRTCFaceDetectionObserver
 
-- (void)onFaceDetectionResult:(ByteRTCFaceDetectionResult *)result {
+- (void)onFaceDetectResult:(ByteRTCFaceDetectionResult *)result {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"result"] = result.bf_toMap;
     [self emitEvent:dict methodName:@"onFaceDetectResult"];

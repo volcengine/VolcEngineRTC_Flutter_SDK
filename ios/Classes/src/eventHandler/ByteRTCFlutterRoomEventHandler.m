@@ -51,7 +51,7 @@
     [self emitEvent:dict methodName:@"onStreamStateChanged"];
 }
 
-- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onLeaveRoomWithStats:(ByteRTCRoomStats *)stats {
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onLeaveRoom:(ByteRTCRoomStats *)stats {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"stats"] = stats.bf_toMap;
     [self emitEvent:dict methodName:@"onLeaveRoom"];
@@ -109,6 +109,14 @@
 
 - (void)onTokenWillExpire:(ByteRTCRoom *)rtcRoom {
     [self emitEvent:nil methodName:@"onTokenWillExpire"];
+}
+
+- (void)onPublishPrivilegeTokenWillExpire:(ByteRTCRoom *)rtcRoom {
+    [self emitEvent:nil methodName:@"onPublishPrivilegeTokenWillExpire"];
+}
+
+- (void)onSubscribePrivilegeTokenWillExpire:(ByteRTCRoom *)rtcRoom {
+    [self emitEvent:nil methodName:@"onSubscribePrivilegeTokenWillExpire"];
 }
 
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserPublishStream:(NSString *)userId type:(ByteRTCMediaStreamType)type {
@@ -181,14 +189,14 @@
     [self emitEvent:dict methodName:@"onUserBinaryMessageReceived"];
 }
 
-- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserMessageSendResult:(int64_t)msgid error:(ByteRTCUserMessageSendResult)error {
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserMessageSendResult:(NSInteger)msgid error:(ByteRTCUserMessageSendResult)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"msgid"] = @(msgid);
     dict[@"error"] = @(error);
     [self emitEvent:dict methodName:@"onUserMessageSendResult"];
 }
 
-- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onRoomMessageSendResult:(int64_t)msgid error:(ByteRTCRoomMessageSendResult)error {
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onRoomMessageSendResult:(NSInteger)msgid error:(ByteRTCRoomMessageSendResult)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"msgid"] = @(msgid);
     dict[@"error"] = @(error);

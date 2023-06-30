@@ -22,7 +22,7 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   ///
   /// 注意：
   /// + 离开房间后，如果 App 需要使用系统音视频设备，则建议收到此回调后再初始化音视频设备，否则可能由于 SDK 占用音视频设备而导致初始化失败。
-  /// + 用户调用 [RTCRoom.leaveRoom] 方法离开房间后，若立即调用 [RTCEngine.destroyEngine] 方法销毁 RTC 引擎，则将无法收到此回调事件。
+  /// + 用户调用 [RTCRoom.leaveRoom] 方法离开房间后，若立即调用 [RTCVideo.destroy] 方法销毁 RTC 引擎，则将无法收到此回调事件。
   OnLeaveRoomType? onLeaveRoom;
 
   /// 发布端调用 [RTCRoom.setMultiDeviceAVSync] 后音视频同步状态发生改变时，会收到此回调。
@@ -61,6 +61,19 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 收到该回调时需调用 [RTCRoom.updateToken] 更新 Token，否则 Token 过期后，用户将被移出房间无法继续进行音视频通话。
   EmptyCallbackType? onTokenWillExpire;
 
+  /// Token 发布权限过期前 30 秒将触发该回调<br>
+  /// 收到该回调时需调用 [RTCRoom.updateToken] 更新 Token 发布权限。
+  ///
+  /// 注意：若收到该回调后未及时更新 Token，Token 发布权限过期后：
+  /// + 此时尝试发布流会收到 [onStreamStateChanged] 回调，提示错误码为 `noPublishPermission` 没有发布权限；
+  /// + 已在发布中的流会停止发布，发布端会收到 [onStreamStateChanged] 回调，提示错误码为 `noPublishPermission` 没有发布权限，同时远端用户会收到 [onUserUnpublishStream]/[onUserUnpublishScreen] 回调，提示原因为 `publishPrivilegeExpired` 发流端发布权限过期。
+  EmptyCallbackType? onPublishPrivilegeTokenWillExpire;
+
+  /// Token 订阅权限过期前 30 秒将触发该回调。
+  ///
+  /// 收到该回调时需调用 [RTCRoom.updateToken] 更新 Token 订阅权限有效期，若收到该回调后未及时更新 Token，Token 订阅权限过期后，尝试新订阅流会失败，已订阅的流会取消订阅，并且会收到 [onStreamStateChanged] 回调，提示错误码为 `-1003` 没有订阅权限。
+  EmptyCallbackType? onSubscribePrivilegeTokenWillExpire;
+
   /// 房间内新增远端摄像头/麦克风采集音视频流的回调。
   ///
   /// 当房间内的远端用户调用 [RTCRoom.publishStream] 成功发布由摄像头/麦克风采集的媒体流时，本地用户会收到该回调，此时本地用户可以自行选择是否调用 [RTCRoom.subscribeStream] 订阅此流。
@@ -81,7 +94,7 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 收到该回调通知后，你可以自行选择是否调用 [RTCRoom.unsubscribeScreen] 取消订阅此流。
   OnUserUnpublishStreamType? onUserUnpublishScreen;
 
-  /// @nodoc
+  /// @nodoc('Useless')
   @protected
   OnStreamSubscribedType? onStreamSubscribed;
 
@@ -145,6 +158,8 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
     this.onUserJoined,
     this.onUserLeave,
     this.onTokenWillExpire,
+    this.onPublishPrivilegeTokenWillExpire,
+    this.onSubscribePrivilegeTokenWillExpire,
     this.onUserPublishStream,
     this.onUserUnpublishStream,
     this.onUserPublishScreen,

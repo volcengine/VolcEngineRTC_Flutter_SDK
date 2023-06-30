@@ -29,4 +29,25 @@
     }
 }
 
+- (BOOL)createRTCVideo:(NSDictionary *)arguments delegate:(id<ByteRTCVideoDelegate> _Nullable)delegate {
+    NSString *appId = arguments[@"appId"];
+    NSDictionary *origParameters = arguments[@"parameters"];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (origParameters.count != 0) {
+        [parameters addEntriesFromDictionary:origParameters];
+    }
+    parameters[@"rtc.platform"] = @6;
+    
+    self.rtcVideo = [ByteRTCVideo createRTCVideo:appId
+                                        delegate:delegate
+                                      parameters:parameters];
+    [self.rtcVideo setExtensionConfig:[ByteRTCVideoManager shared].groupId];
+    return self.rtcVideo != nil;
+}
+
+- (void)destroyRTCVideo {
+    [ByteRTCVideo destroyRTCVideo];
+    self.rtcVideo = nil;
+}
+
 @end

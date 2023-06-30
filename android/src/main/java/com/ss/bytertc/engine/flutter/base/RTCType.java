@@ -9,18 +9,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.RTCRoomConfig;
+import com.ss.bytertc.engine.ScreenVideoEncoderConfig;
 import com.ss.bytertc.engine.UserInfo;
 import com.ss.bytertc.engine.VideoEncoderConfig;
 import com.ss.bytertc.engine.data.AudioChannel;
-import com.ss.bytertc.engine.data.AudioFormat;
+import com.ss.bytertc.engine.data.AudioFrameSource;
 import com.ss.bytertc.engine.data.AudioMixingConfig;
 import com.ss.bytertc.engine.data.AudioMixingType;
 import com.ss.bytertc.engine.data.AudioPropertiesConfig;
+import com.ss.bytertc.engine.data.AudioPropertiesMode;
+import com.ss.bytertc.engine.data.AudioQuality;
+import com.ss.bytertc.engine.data.AudioRecordingConfig;
+import com.ss.bytertc.engine.data.AudioReportMode;
 import com.ss.bytertc.engine.data.AudioSampleRate;
 import com.ss.bytertc.engine.data.CloudProxyInfo;
 import com.ss.bytertc.engine.data.EchoTestConfig;
 import com.ss.bytertc.engine.data.ForwardStreamInfo;
 import com.ss.bytertc.engine.data.HumanOrientation;
+import com.ss.bytertc.engine.data.MulDimSingScoringMode;
 import com.ss.bytertc.engine.data.Orientation;
 import com.ss.bytertc.engine.data.Position;
 import com.ss.bytertc.engine.data.RTCASRConfig;
@@ -28,39 +34,35 @@ import com.ss.bytertc.engine.data.ReceiveRange;
 import com.ss.bytertc.engine.data.RecordingConfig;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
 import com.ss.bytertc.engine.data.RemoteVideoConfig;
+import com.ss.bytertc.engine.data.SingScoringConfig;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
-import com.ss.bytertc.engine.data.VideoCodecType;
-import com.ss.bytertc.engine.data.VideoPictureType;
-import com.ss.bytertc.engine.data.VideoRotation;
 import com.ss.bytertc.engine.data.VirtualBackgroundSource;
 import com.ss.bytertc.engine.data.VirtualBackgroundSourceType;
 import com.ss.bytertc.engine.live.ByteRTCStreamMixingType;
 import com.ss.bytertc.engine.live.LiveTranscoding;
 import com.ss.bytertc.engine.live.PushSingleStreamParam;
-import com.ss.bytertc.engine.mediaio.RTCEncodedVideoFrame;
 import com.ss.bytertc.engine.publicstream.PublicStreaming;
 import com.ss.bytertc.engine.type.AttenuationType;
-import com.ss.bytertc.engine.type.BackgroundMode;
 import com.ss.bytertc.engine.type.ChannelProfile;
-import com.ss.bytertc.engine.type.DivideModel;
 import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.PauseResumeControlMediaType;
 import com.ss.bytertc.engine.type.ProblemFeedback;
 import com.ss.bytertc.engine.type.PublishFallbackOption;
-import com.ss.bytertc.engine.type.RangeAudioMode;
 import com.ss.bytertc.engine.type.RecordingFileType;
 import com.ss.bytertc.engine.type.RemoteUserPriority;
-import com.ss.bytertc.engine.type.RtcMode;
 import com.ss.bytertc.engine.type.SubscribeFallbackOptions;
 import com.ss.bytertc.engine.type.TorchState;
+import com.ss.bytertc.engine.type.VoiceEqualizationBandFrequency;
+import com.ss.bytertc.engine.type.VoiceEqualizationConfig;
+import com.ss.bytertc.engine.type.VoiceReverbConfig;
 import com.ss.bytertc.engine.utils.AudioFrame;
 import com.ss.bytertc.engine.video.ByteWatermark;
 import com.ss.bytertc.engine.video.RTCWatermarkConfig;
 import com.ss.bytertc.engine.video.VideoCaptureConfig;
-import com.ss.bytertc.engine.video.VideoEffectExpressionConfig;
+import com.ss.bytertc.ktv.data.MusicFilterType;
+import com.ss.bytertc.ktv.data.MusicHotType;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,10 +86,6 @@ public class RTCType {
         );
     }
 
-    /**
-     * @param value
-     * @return
-     */
     @NonNull
     public static MediaStreamType toMediaStreamType(int value) {
         MediaStreamType type = MediaStreamType.valueOf(value);
@@ -179,58 +177,6 @@ public class RTCType {
         return video;
     }
 
-    @NonNull
-    public static RtcMode toRtcMode(int value) {
-        for (RtcMode mode : RtcMode.values()) {
-            if (mode.value() == value) {
-                return mode;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown RtcMode value: " + value);
-    }
-
-    @NonNull
-    public static RangeAudioMode toRangeAudioMode(int value) {
-        for (RangeAudioMode mode : RangeAudioMode.values()) {
-            if (mode.value() == value) {
-                return mode;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown RangeAudioMode value: " + value);
-    }
-
-    public static RTCRoomConfig toRoomConfig(RTCTypeBox value) {
-        ChannelProfile channelProfile = ChannelProfile.fromId(value.optInt("profile"));
-        return new RTCRoomConfig(channelProfile,
-                value.optBoolean("isAutoPublish"),
-                value.optBoolean("isAutoSubscribeAudio"),
-                value.optBoolean("isAutoSubscribeVideo"),
-                toRemoteVideoConfig(value.optBox("roomConfig")));
-    }
-
-    @NonNull
-    public static BackgroundMode toBackgroundMode(int value) {
-        for (BackgroundMode mode : BackgroundMode.values()) {
-            if (mode.value() == value) {
-                return mode;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown BackgroundMode value: " + value);
-    }
-
-    @NonNull
-    public static DivideModel toDivideModel(int value) {
-        for (DivideModel model : DivideModel.values()) {
-            if (model.value() == value) {
-                return model;
-            }
-        }
-        throw new IllegalArgumentException("Unknown DivideModel value: " + value);
-    }
-
     public static VideoEncoderConfig[] toVideoEncoderConfigArray(List<?> values) {
         if (values == null) {
             return new VideoEncoderConfig[0];
@@ -244,16 +190,47 @@ public class RTCType {
         return retValue;
     }
 
-    public static VideoEncoderConfig toVideoEncoderConfig(RTCTypeBox value) {
-        return new VideoEncoderConfig(
+    public static ScreenVideoEncoderConfig toScreenVideoEncoderConfig(RTCTypeBox value) {
+        ScreenVideoEncoderConfig config = new ScreenVideoEncoderConfig(
                 value.optInt("width"),
                 value.optInt("height"),
                 value.optInt("frameRate"),
                 value.optInt("maxBitrate"),
-                0,
-                0,
-                value.optInt("encoderPreference")
-        );
+                value.optInt("minBitrate"));
+        config.encodePreference = toScreenVideoEncoderPreference(value.optInt("encoderPreference"));
+        return config;
+    }
+
+    public static VideoEncoderConfig toVideoEncoderConfig(RTCTypeBox value) {
+        VideoEncoderConfig config = new VideoEncoderConfig(
+                value.optInt("width"),
+                value.optInt("height"),
+                value.optInt("frameRate"),
+                value.optInt("maxBitrate"),
+                value.optInt("minBitrate"));
+        config.encodePreference = toEncoderPreference(value.optInt("encoderPreference"));
+        return config;
+    }
+
+    @NonNull
+    public static VideoEncoderConfig.EncoderPreference toEncoderPreference(int value) {
+        for (VideoEncoderConfig.EncoderPreference preference : VideoEncoderConfig.EncoderPreference.values()) {
+            if (preference.getValue() == value) {
+                return preference;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown VideoEncoderConfig.EncoderPreference value: " + value);
+    }
+
+    public static ScreenVideoEncoderConfig.EncoderPreference toScreenVideoEncoderPreference(int value) {
+        for (ScreenVideoEncoderConfig.EncoderPreference preference : ScreenVideoEncoderConfig.EncoderPreference.values()) {
+            if (preference.getValue() == value) {
+                return preference;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown ScreenVideoEncoderConfig.EncoderPreference value: " + value);
     }
 
     public static AudioFrame toAudioFrame(RTCTypeBox value) {
@@ -310,34 +287,6 @@ public class RTCType {
         return VirtualBackgroundSourceType.values()[value];
     }
 
-    public static VideoEffectExpressionConfig toVideoEffectExpressionConfig(RTCTypeBox value) {
-        VideoEffectExpressionConfig videoEffectExpressionConfig = new VideoEffectExpressionConfig();
-        videoEffectExpressionConfig.enableAgeDetect = value.optBoolean("enableAgeDetect");
-        videoEffectExpressionConfig.enableGenderDetect = value.optBoolean("enableGenderDetect");
-        videoEffectExpressionConfig.enableEmotionDetect = value.optBoolean("enableEmotionDetect");
-        videoEffectExpressionConfig.enableAttractivenessDetect = value.optBoolean("enableAttractivenessDetect");
-        videoEffectExpressionConfig.enableHappinessDetect = value.optBoolean("enableHappinessDetect");
-        return videoEffectExpressionConfig;
-    }
-
-    public static RTCEncodedVideoFrame toRTCEncodedVideoFrame(RTCTypeBox value) {
-        return new RTCEncodedVideoFrame(
-                ByteBuffer.wrap(value.optBytes("buffer")),
-                value.optLong("timestampUs"),
-                value.optLong("timestampDtsUs"),
-                value.optInt("width"),
-                value.optInt("height"),
-                VideoCodecType.fromId(value.optInt("videoCodecType")),
-                VideoPictureType.fromId(value.optInt("videoPictureType")),
-                VideoRotation.fromId(value.optInt("videoRotation"))
-        );
-    }
-
-    /**
-     * @param value
-     * @return
-     * @see RTCMap#from(RemoteStreamKey)
-     */
     public static RemoteStreamKey toRemoteStreamKey(RTCTypeBox value) {
         return new RemoteStreamKey(
                 value.optString("roomId"),
@@ -380,18 +329,25 @@ public class RTCType {
     }
 
     public static LiveTranscoding toLiveTranscoding(RTCTypeBox obj) {
-        LiveTranscoding liveTranscoding = new LiveTranscoding();
+        LiveTranscoding liveTranscoding = LiveTranscoding.getDefualtLiveTranscode();
         liveTranscoding.setUrl(obj.optString("url"));
         liveTranscoding.setRoomId(obj.optString("roomId"));
         liveTranscoding.setUserId(obj.optString("uid"));
         liveTranscoding.setMixType(ByteRTCStreamMixingType.fromId(obj.optInt("mixType")));
         liveTranscoding.setVideo(toLiveVideoConfig(obj.optBox("video")));
-        liveTranscoding.setAuthInfo(obj.optJSONObject("authInfo"));
         liveTranscoding.setLayout(toLiveLayout(obj.optBox("layout")));
         liveTranscoding.setAudio(toLiveAudioConfig(obj.optBox("audio")));
+        liveTranscoding.setSpatialConfig(toLiveSpatialConfig(obj.optBox("spatialConfig")));
         return liveTranscoding;
     }
 
+    public static LiveTranscoding.SpatialConfig toLiveSpatialConfig(RTCTypeBox obj) {
+        LiveTranscoding.SpatialConfig spatialConfig = new LiveTranscoding.SpatialConfig();
+        spatialConfig.setAudienceSpatialOrientation(toHumanOrientation(obj.optBox("orientation")));
+        spatialConfig.setAudienceSpatialPosition(toBytePosition(obj.optBox("position")));
+        spatialConfig.setEnableSpatialRender(obj.optBoolean("enableSpatialRender"));
+        return spatialConfig;
+    }
 
     public static LiveTranscoding.AudioConfig toLiveAudioConfig(RTCTypeBox obj) {
         LiveTranscoding.AudioConfig audioConfig = new LiveTranscoding.AudioConfig();
@@ -399,10 +355,21 @@ public class RTCType {
         audioConfig.setAacProfile(toAACProfile(obj.optString("aacProfile")));
         audioConfig.setChannels(obj.optInt("channels"));
         audioConfig.setSampleRate(obj.optInt("sampleRate"));
-        audioConfig.setCodec(obj.optString("codec"));
+        audioConfig.setCodec(toAudioCodecType(obj.optString("codec")));
         audioConfig.setKBitRate(obj.optInt("kBitrate"));
 
         return audioConfig;
+    }
+
+    @NonNull
+    public static LiveTranscoding.AudioConfig.AudioCodecType toAudioCodecType(String value) {
+        for (LiveTranscoding.AudioConfig.AudioCodecType type : LiveTranscoding.AudioConfig.AudioCodecType.values()) {
+            if (type.getValue().equals(value)) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown LiveTranscoding.AudioConfig.AudioCodecType value: " + value);
     }
 
     @NonNull
@@ -418,14 +385,25 @@ public class RTCType {
 
     public static LiveTranscoding.VideoConfig toLiveVideoConfig(RTCTypeBox obj) {
         LiveTranscoding.VideoConfig videoConfig = new LiveTranscoding.VideoConfig();
-        videoConfig.setCodec(obj.optString("codec"));
+        videoConfig.setCodec(toVideoCodecType(obj.optString("codec")));
         videoConfig.setFps(obj.optInt("fps"));
         videoConfig.setGop(obj.optInt("gop"));
-        videoConfig.setLowLatency(obj.optBoolean("lowLatency"));
+        videoConfig.setBFrame(obj.optBoolean("bFrame"));
         videoConfig.setKBitRate(obj.optInt("kBitrate"));
         videoConfig.setWidth(obj.optInt("width"));
         videoConfig.setHeight(obj.optInt("height"));
         return videoConfig;
+    }
+
+    @NonNull
+    public static LiveTranscoding.VideoConfig.VideoCodecType toVideoCodecType(String value) {
+        for (LiveTranscoding.VideoConfig.VideoCodecType type : LiveTranscoding.VideoConfig.VideoCodecType.values()) {
+            if (type.getValue().equals(value)) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown LiveTranscoding.VideoConfig.VideoCodecType value: " + value);
     }
 
     public static LiveTranscoding.Layout toLiveLayout(RTCTypeBox obj) {
@@ -454,6 +432,9 @@ public class RTCType {
         region.renderMode(toTranscoderRenderMode(obj.optInt("renderMode")));
         region.setLocalUser(obj.optBoolean("localUser"));
         region.setScreenStream(obj.optBoolean("isScreen"));
+        region.setCornerRadius(obj.optDouble("cornerRadius"));
+        Position position = toBytePosition(obj.optBox("spatialPosition"));
+        region.spatialPosition(position.x, position.y, position.z);
 
         region.type(toTranscoderLayoutRegionType(obj.optInt("type")));
         region.data(obj.optBytes("data", null));
@@ -543,8 +524,21 @@ public class RTCType {
         return new AudioPropertiesConfig(
                 obj.optInt("interval"),
                 obj.optBoolean("enableSpectrum"),
-                obj.optBoolean("enableVad")
+                obj.optBoolean("enableVad"),
+                AudioReportMode.fromId(obj.optInt("localMainReportMode")),
+                obj.optFloat("smooth"),
+                toAudioPropertiesMode(obj.optInt("audioReportMode"))
         );
+    }
+
+    public static AudioPropertiesMode toAudioPropertiesMode(int value) {
+        for (AudioPropertiesMode type : AudioPropertiesMode.values()) {
+            if (value == type.value()) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown AudioPropertiesMode value: " + value);
     }
 
     public static StreamSycnInfoConfig toStreamSyncInfoConfig(RTCTypeBox obj) {
@@ -565,27 +559,22 @@ public class RTCType {
         return frameRate;
     }
 
-    public static AudioFormat toAudioFormat(RTCTypeBox box) {
-        return new AudioFormat(
-                AudioSampleRate.fromId(box.optInt("audioSampleRate")),
-                AudioChannel.fromId(box.optInt("channel"))
-        );
-    }
-
     public static AudioMixingConfig toAudioMixingConfig(RTCTypeBox value) {
-        return new AudioMixingConfig(
+        AudioMixingConfig config = new AudioMixingConfig(
                 AudioMixingType.fromId(value.optInt("type")),
                 value.optInt("playCount"),
                 value.optInt("position"),
                 value.optInt("callbackOnProgressInterval")
         );
+        config.syncProgressToRecordFrame = value.optBoolean("syncProgressToRecordFrame");
+        return config;
     }
 
     public static Position toBytePosition(RTCTypeBox value) {
         return new Position(
-                value.optInt("x"),
-                value.optInt("y"),
-                value.optInt("z")
+                value.optFloat("x"),
+                value.optFloat("y"),
+                value.optFloat("z")
         );
     }
 
@@ -665,6 +654,59 @@ public class RTCType {
                 values.optString("uid"),
                 values.optString("url"),
                 values.optBoolean("isScreen")
+        );
+    }
+
+    public static AudioRecordingConfig toAudioRecordingConfig(RTCTypeBox values) {
+        return new AudioRecordingConfig(
+                values.optString("absoluteFileName"),
+                AudioSampleRate.fromId(values.optInt("sampleRate")),
+                AudioChannel.fromId(values.optInt("channel")),
+                AudioFrameSource.fromId(values.optInt("frameSource")),
+                AudioQuality.fromId(values.optInt("quality"))
+        );
+    }
+
+    public static VoiceEqualizationConfig toVoiceEqualizationConfig(RTCTypeBox values) {
+        return new VoiceEqualizationConfig(
+                VoiceEqualizationBandFrequency.fromId(values.optInt("frequency")),
+                values.optInt("gain")
+        );
+    }
+
+    public static VoiceReverbConfig toVoiceReverbConfig(RTCTypeBox values) {
+        return new VoiceReverbConfig(
+                values.optFloat("roomSize"),
+                values.optFloat("decayTime"),
+                values.optFloat("damping"),
+                values.optFloat("wetGain"),
+                values.optFloat("dryGain"),
+                values.optFloat("preDelay")
+        );
+    }
+
+    public static MusicFilterType[] toMusicFilterTypes(List<Integer> values) {
+        MusicFilterType[] filters = new MusicFilterType[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            filters[i] = MusicFilterType.fromId(values.get(i));
+        }
+        return filters;
+    }
+
+    public static MusicHotType[] toMusicHotTypes(List<Integer> values) {
+        MusicHotType[] hotTypes = new MusicHotType[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            hotTypes[i] = MusicHotType.fromId(values.get(i));
+        }
+        return hotTypes;
+    }
+
+    public static SingScoringConfig toSingScoringConfig(RTCTypeBox values) {
+        return new SingScoringConfig(
+                AudioSampleRate.fromId(values.optInt("sampleRate")) ,
+                MulDimSingScoringMode.MUL_DIM_SING_SCORING_MODE_NOTE,
+                values.optString("lyricsFilepath"),
+                values.optString("midiFilepath")
         );
     }
 }

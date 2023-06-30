@@ -26,10 +26,11 @@ public class EventEmitter {
     private static final String METHOD_NAME = "methodName";
 
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+    private EventChannel eventChannel;
     private EventChannel.EventSink eventSink;
 
     public void registerEvent(@NonNull BinaryMessenger binaryMessenger, @NonNull String channelName) {
-        EventChannel eventChannel = new EventChannel(binaryMessenger, channelName);
+        eventChannel = new EventChannel(binaryMessenger, channelName);
         eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object arguments, EventChannel.EventSink events) {
@@ -51,5 +52,9 @@ public class EventEmitter {
         mainThreadHandler.post(() -> {
             if (eventSink != null) eventSink.success(map);
         });
+    }
+
+    public void destroy() {
+        eventChannel.setStreamHandler(null);
     }
 }

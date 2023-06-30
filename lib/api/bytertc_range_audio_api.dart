@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 import 'bytertc_audio_defines.dart';
-import 'bytertc_range_audio_observer.dart';
 
 /// 范围语音接口实例
 abstract class RTCRangeAudio {
@@ -20,29 +19,18 @@ abstract class RTCRangeAudio {
   /// 返回值：方法调用结果
   /// + 0：成功；
   /// + !0: 失败。
-  ///
-  /// 注意：若此前你已调用 [RTCRangeAudio.registerRangeAudioObserver] 注册了范围语音衰减系数监测器，房间内有任何用户调用该接口更新音频收听范围后，你都会收到 [RTCRangeAudioObserver.onRangeAudioInfo] 回调。
   Future<int?> updateReceiveRange(ReceiveRange range);
 
   /// 更新本地用户在房间内空间直角坐标系中的位置坐标
   ///
-  /// [pos] 三维坐标的值，默认为 [0, 0, 0]
+  /// [pos] 三维坐标的值，默认为 `[0, 0, 0]`
   ///
   /// 返回值：方法调用结果
   /// + 0：成功；
   /// + !0：失败。
   ///
-  /// 注意：
-  /// + 调用该接口更新坐标后，你需调用 [RTCRangeAudio.enableRangeAudio] 开启范围语音功能以收听范围语音效果。
-  /// + 若此前你已调用 [RTCRangeAudio.registerRangeAudioObserver] 注册了范围语音衰减系数监测器，房间内有任何用户调用该接口更新自身位置坐标后，你都会收到 [RTCRangeAudioObserver.onRangeAudioInfo] 回调。
+  /// 注意：调用该接口更新坐标后，你需调用 [RTCRangeAudio.enableRangeAudio] 开启范围语音功能以收听范围语音效果。
   Future<int?> updatePosition(Position pos);
-
-  /// 设置范围语音衰减系数监测器
-  ///
-  /// [observer] 范围语音衰减系数监测器。设置后，SDK 会在监测到房间内有用户更新自身位置坐标或音频收听范围后，触发 [RTCRangeAudioObserver.onRangeAudioInfo] 回调。
-  ///
-  /// 注意：该方法仅适用于手动订阅模式，自动订阅无需设置。
-  Future<void> registerRangeAudioObserver(RTCRangeAudioObserver? observer);
 
   /// 设置范围语音的音量衰减模式
   ///
@@ -51,7 +39,7 @@ abstract class RTCRangeAudio {
   /// [type] 音量衰减模式，默认为线性衰减。
   ///
   /// [coefficient] 指数衰减模式下的音量衰减系数，默认值为 1。
-  /// 范围 [0.1,100]，推荐设置为 `50`。
+  /// 范围 `[0.1,100]`，推荐设置为 `50`。
   /// 数值越大，音量的衰减速度越快。
   ///
   /// 返回值：方法调用结果
@@ -63,4 +51,12 @@ abstract class RTCRangeAudio {
     required AttenuationType type,
     required double coefficient,
   });
+
+  /// 添加标签组，用于标记相互之间通话不衰减的用户组。
+  ///
+  /// 在同一个 RTC 房间中，如果多个用户的标签组之间有交集，那么，他们之间互相通话时，通话不衰减。<br>
+  /// 比如，用户身处多个队伍，队伍成员间通话不衰减。那么，可以为每个队伍绑定专属标签，每个用户的标签组包含用户所属各个队伍的标签。
+  ///
+  /// [flags]：标签组。
+  Future<void> setNoAttenuationFlags(List<String> flags);
 }

@@ -5,6 +5,7 @@
 
 package com.ss.bytertc.engine.flutter.base;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.flutter.BuildConfig;
@@ -111,6 +112,15 @@ public class RTCTypeBox {
         return new JSONObject(opt(key, Collections.emptyMap(), Map.class));
     }
 
+    @Nullable
+    public JSONObject optNullJSONObject(String key) {
+        Map<?, ?> opt = opt(key, null, Map.class);
+        if (opt == null) {
+            return null;
+        }
+        return new JSONObject(opt);
+    }
+
     public byte[] optBytes(String key) {
         return opt(key, new byte[0], byte[].class);
     }
@@ -125,9 +135,6 @@ public class RTCTypeBox {
 
     /**
      * 中没有 Float 类型，所以使用 Double 承接数据，转换为 Float
-     *
-     * @param key
-     * @return
      */
     public float optFloat(String key) {
         return opt(key, 0F, Float.class);

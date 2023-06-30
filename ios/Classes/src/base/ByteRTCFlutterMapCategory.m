@@ -52,6 +52,50 @@
     return dict.copy;
 }
 
++ (NSDictionary *)ktvMusicToMap:(ByteRTCKTVMusic *)music {
+    return @{
+        @"musicId": music.musicId ?: @"",
+        @"musicName": music.musicName ?: @"",
+        @"singer": music.singer ?: @"",
+        @"vendorId": music.vendorId ?: @"",
+        @"vendorName": music.vendorName ?: @"",
+        @"updateTimestamp": @(music.updateTimestamp),
+        @"posterUrl": music.posterUrl ?: @"",
+        @"lyricStatus": @(music.lyricStatus),
+        @"duration": @(music.duration),
+        @"enableScore": @(music.enableScore),
+        @"climaxStartTime": @(music.climaxStartTime),
+        @"climaxEndTime": @(music.climaxEndTime),
+    };
+}
+
++ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCKTVHotMusicInfo *)hotMusicInfo {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"hotType"] = @(hotMusicInfo.hotType);
+    if (hotMusicInfo.hotName != nil) {
+        dict[@"hotName"] = hotMusicInfo.hotName;
+    }
+    if (hotMusicInfo.musics != nil && hotMusicInfo.musics.count != 0) {
+        NSMutableArray *musics = [NSMutableArray array];
+        [hotMusicInfo.musics enumerateObjectsUsingBlock:^(ByteRTCKTVMusic *obj, NSUInteger idx, BOOL *stop) {
+            [musics addObject:[self ktvMusicToMap:obj]];
+        }];
+        dict[@"musics"] = musics;
+    }
+    return dict.copy;
+}
+
+
++ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCKTVDownloadResult *)downloadResult {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"musicId"] = downloadResult.musicId ?: @"";
+    dict[@"fileType"] = @(downloadResult.fileType);
+    if (downloadResult.filePath != nil) {
+        dict[@"filePath"] = downloadResult.filePath;
+    }
+    return dict.copy;
+}
+
 @end
 
 @implementation ByteRTCUser (ByteRTCFlutterMapCategory)
@@ -201,6 +245,17 @@
     return dict.copy;
 }
 
++ (ByteRTCRemoteStreamKey *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCRemoteStreamKey * param = [[ByteRTCRemoteStreamKey alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return param;
+    }
+    param.roomId = dict[@"roomId"];
+    param.userId = dict[@"uid"];
+    param.streamIndex = [dict[@"streamIndex"] integerValue];
+    return param;
+}
+
 @end
 
 @implementation ByteRTCVideoFrameInfo (ByteRTCFlutterMapCategory)
@@ -228,7 +283,7 @@
 }
 
 @end
-    
+
 @implementation ByteRTCVideoCompositingRegion (ByteRTCFlutterMapCategory)
 
 + (ByteRTCVideoCompositingRegion *)bf_fromMap:(NSDictionary *)dict {
@@ -249,6 +304,8 @@
     region.contentControl = [dict[@"contentControl"] integerValue];
     region.renderMode = [dict[@"renderMode"] unsignedIntegerValue];
     region.type = [dict[@"type"] integerValue];
+    region.cornerRadius = [dict[@"cornerRadius"] doubleValue];
+    region.spatialPosition = [Position bf_fromMap:dict[@"spatialPosition"]];
     FlutterStandardTypedData *data = dict[@"data"];
     if (data != nil) {
         region.data = data.data;
@@ -258,6 +315,21 @@
         region.dataParam = [ByteRTCTranscoderLayoutRegionDataParam bf_fromMap:dataParam];
     }
     return region;
+}
+
+@end
+
+@implementation ByteRTCTranscodingSpatialConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCTranscodingSpatialConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCTranscodingSpatialConfig *config = [ByteRTCTranscodingSpatialConfig new];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.audienceSpatialOrientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
+    config.audienceSpatialPosition = [Position bf_fromMap:dict[@"position"]];
+    config.enableSpatialRender = [dict[@"enableSpatialRender"] boolValue];
+    return config;
 }
 
 @end
@@ -274,7 +346,10 @@
     ByteRTCTranscodingAudioConfig * audio = [obj audio];
     NSDictionary* audioDict = dict[@"audio"];
     if ([audioDict isKindOfClass:[NSDictionary class]]) {
-        audio.codec = audioDict[@"codec"];
+        NSString *codec = audioDict[@"codec"];
+        if ([codec isEqualToString:@"AAC"]) {
+            audio.codec = ByteRTCTranscodingAudioCodecAAC;
+        }
         audio.sampleRate =  [audioDict[@"sampleRate"] integerValue];
         audio.channels = [audioDict[@"channels"] integerValue];
         audio.kBitRate = [audioDict[@"kBitrate"] integerValue];
@@ -291,13 +366,18 @@
     ByteRTCTranscodingVideoConfig* video = [obj video];
     NSDictionary *videoDict = dict[@"video"];
     if ([videoDict isKindOfClass:[NSDictionary class]]) {
-        video.codec = videoDict[@"codec"];
+        NSString *codec = audioDict[@"codec"];
+        if ([codec isEqualToString:@"H264"]) {
+            video.codec = ByteRTCTranscodingVideoCodecH264;
+        } else if ([codec isEqualToString:@"ByteVC1"]) {
+            video.codec = ByteRTCTranscodingVideoCodecH265;
+        }
         video.height = [videoDict[@"height"]integerValue];
         video.width = [videoDict[@"width"]integerValue];
         video.fps = [videoDict[@"fps"] integerValue];
         video.gop = [videoDict[@"gop"] integerValue];
         video.kBitRate = [videoDict[@"kBitrate"] integerValue];
-        video.lowLatency = [videoDict[@"lowLatency"] boolValue];
+        video.bFrame = [videoDict[@"bFrame"] boolValue];
     }
     
     ByteRTCVideoCompositingLayout * layout = [obj layout];
@@ -323,8 +403,8 @@
     [obj setUrl:dict[@"url"]];
     [obj setRoomId:dict[@"roomId"]];
     [obj setUserId:dict[@"uid"]];
-    [obj setAuthInfo:dict[@"authInfo"]];
     [obj setExpectedMixingType:[dict[@"mixType"] integerValue]];
+    [obj setSpatialConfig:[ByteRTCTranscodingSpatialConfig bf_fromMap:dict[@"spatialConfig"]]];
     return obj;
 }
 
@@ -369,6 +449,7 @@
     config.playCount = [dict[@"playCount"] integerValue];
     config.position = [dict[@"position"] integerValue];
     config.callbackOnProgressInterval = [dict[@"callbackOnProgressInterval"] integerValue];
+    config.syncProgressToRecordFrame = [dict[@"syncProgressToRecordFrame"] boolValue];
     return config;
 }
 
@@ -395,9 +476,9 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return pos;
     }
-    pos.x = [dict[@"x"] intValue];
-    pos.y = [dict[@"y"] intValue];
-    pos.z = [dict[@"z"] intValue];
+    pos.x = [dict[@"x"] floatValue];
+    pos.y = [dict[@"y"] floatValue];
+    pos.z = [dict[@"z"] floatValue];
     return pos;
 }
 
@@ -429,17 +510,6 @@
     ori.right = [Orientation bf_fromMap:dict[@"right"]];
     ori.up = [Orientation bf_fromMap:dict[@"up"]];
     return ori;
-}
-
-@end
-
-@implementation ByteRTCRangeAudioInfo (ByteRTCFlutterMapCategory)
-
-- (NSDictionary *)bf_toMap {
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"uid"] = self.userId;
-    dict[@"factor"] = @(self.factor);
-    return dict.copy;
 }
 
 @end
@@ -501,6 +571,9 @@
     config.interval = [dict[@"interval"] integerValue];
     config.enable_spectrum = [dict[@"enableSpectrum"] boolValue];
     config.enable_vad = [dict[@"enableVad"] boolValue];
+    config.local_main_report_mode = [dict[@"localMainReportMode"] integerValue];
+    config.audio_report_mode = [dict[@"audioReportMode"] integerValue];
+    config.smooth = [dict[@"smooth"] floatValue];
     return config;
 }
 
@@ -606,6 +679,25 @@
     config.height = [dict[@"height"] integerValue];
     config.frameRate = [dict[@"frameRate"] integerValue];
     config.maxBitrate = [dict[@"maxBitrate"] integerValue];
+    config.minBitrate = [dict[@"minBitrate"] integerValue];
+    config.encoderPreference = [dict[@"encoderPreference"] integerValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCScreenVideoEncoderConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCScreenVideoEncoderConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCScreenVideoEncoderConfig *config = [[ByteRTCScreenVideoEncoderConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.width = [dict[@"width"] integerValue];
+    config.height = [dict[@"height"] integerValue];
+    config.frameRate = [dict[@"frameRate"] integerValue];
+    config.maxBitrate = [dict[@"maxBitrate"] integerValue];
+    config.minBitrate = [dict[@"minBitrate"] integerValue];
     config.encoderPreference = [dict[@"encoderPreference"] integerValue];
     return config;
 }
@@ -843,6 +935,8 @@
     dict[@"detectResult"] = @(self.detectResult);
     dict[@"imageWidth"] = @(self.imageWidth);
     dict[@"imageHeight"] = @(self.imageHeight);
+    NSInteger frameTimestampUs = (NSInteger)(CMTimeGetSeconds(self.frameTimestamp) * 1000);
+    dict[@"frameTimestampUs"] = @(frameTimestampUs);
     NSMutableArray *faceDics = [NSMutableArray array];
     for (ByteRTCRectangle *face in self.faces) {
         [faceDics addObject:face.bf_toMap];
@@ -897,6 +991,91 @@
     param.url = dict[@"url"];
     param.isScreen = [dict[@"isScreen"] boolValue];
     return param;
+}
+
+@end
+
+
+@implementation ByteRTCAudioRecordingConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCAudioRecordingConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCAudioRecordingConfig *config = [ByteRTCAudioRecordingConfig new];
+    config.absoluteFileName = dict[@"absoluteFileName"];
+    config.sampleRate = [dict[@"sampleRate"] integerValue];
+    config.channel = [dict[@"channel"] integerValue];
+    config.frameSource = [dict[@"frameSource"] integerValue];
+    config.quality = [dict[@"quality"] integerValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCVoiceEqualizationConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCVoiceEqualizationConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCVoiceEqualizationConfig *config = [ByteRTCVoiceEqualizationConfig new];
+    config.frequency = [dict[@"frequency"] integerValue];
+    config.gain = [dict[@"gain"] intValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCVoiceReverbConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCVoiceReverbConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCVoiceReverbConfig *config = [ByteRTCVoiceReverbConfig new];
+    config.roomSize = [dict[@"roomSize"] floatValue];
+    config.decayTime = [dict[@"decayTime"] floatValue];
+    config.damping = [dict[@"damping"] floatValue];
+    config.wetGain = [dict[@"wetGain"] floatValue];
+    config.dryGain = [dict[@"dryGain"] floatValue];
+    config.preDelay = [dict[@"preDelay"] floatValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCSingScoringConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCSingScoringConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCSingScoringConfig *config = [[ByteRTCSingScoringConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.sampleRate = [dict[@"sampleRate"] integerValue];
+    config.mode = ByteRTCMulDimSingScoringModeNote;
+    config.lyricsFilepath = dict[@"lyricsFilepath"];
+    config.midiFilepath = dict[@"midiFilepath"];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCStandardPitchInfo (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"startTime"] = @(self.startTime);
+    dict[@"duration"] = @(self.duration);
+    dict[@"pitch"] = @(self.pitch);
+    return dict.copy;
+}
+
+@end
+
+@implementation ByteRTCSingScoringRealtimeInfo (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"currentPosition"] = @(self.currentPosition);
+    dict[@"userPitch"] = @(self.userPitch);
+    dict[@"standardPitch"] = @(self.standardPitch);
+    dict[@"sentenceIndex"] = @(self.sentenceIndex);
+    dict[@"sentenceScore"] = @(self.sentenceScore);
+    dict[@"totalScore"] = @(self.totalScore);
+    dict[@"averageScore"] = @(self.averageScore);
+    return dict.copy;
 }
 
 @end

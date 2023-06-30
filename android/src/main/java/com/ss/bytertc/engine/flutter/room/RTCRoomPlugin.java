@@ -12,26 +12,21 @@ import androidx.annotation.UiThread;
 import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.RTCRoomConfig;
 import com.ss.bytertc.engine.UserInfo;
-import com.ss.bytertc.engine.audio.IRangeAudio;
-import com.ss.bytertc.engine.audio.ISpatialAudio;
 import com.ss.bytertc.engine.data.ForwardStreamInfo;
-import com.ss.bytertc.engine.data.HumanOrientation;
-import com.ss.bytertc.engine.data.Position;
-import com.ss.bytertc.engine.data.ReceiveRange;
 import com.ss.bytertc.engine.data.RemoteVideoConfig;
+import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCType;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
-import com.ss.bytertc.engine.flutter.BuildConfig;
-import com.ss.bytertc.engine.type.AttenuationType;
+import com.ss.bytertc.engine.flutter.plugin.RTCFlutterPlugin;
 import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.MessageConfig;
 import com.ss.bytertc.engine.type.PauseResumeControlMediaType;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
@@ -39,172 +34,57 @@ import io.flutter.plugin.common.MethodChannel;
  * RTCRoomPlugin 管理与 RTCRoom 的交互
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class RTCRoomPlugin implements FlutterPlugin {
-    private static final String TAG = "RTCRoomPlugin";
+public class RTCRoomPlugin extends RTCFlutterPlugin {
+
     private final Integer mIns;
     @NonNull
     private final RTCRoom mRTCRoom;
+
+    private final List<RTCFlutterPlugin> flutterPlugins = new ArrayList<>();
     private final RTCRoomEventProxy mRoomEventHandler = new RTCRoomEventProxy();
-    private final RangeAudioEventProxy mRangeAudioEventProxy = new RangeAudioEventProxy();
 
     public RTCRoomPlugin(Integer roomInsId, @NonNull RTCRoom rtcRoom) {
         mIns = roomInsId;
         rtcRoom.setRTCRoomEventHandler(mRoomEventHandler);
         mRTCRoom = rtcRoom;
+        flutterPlugins.add(new RangeAudioPlugin(roomInsId, rtcRoom));
+        flutterPlugins.add(new SpatialAudioPlugin(roomInsId, rtcRoom));
     }
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        super.onAttachedToEngine(binding);
+
+        for (RTCFlutterPlugin plugin: flutterPlugins) {
+            plugin.onAttachedToEngine(binding);
+        }
+        channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_room" + mIns);
+        channel.setMethodCallHandler(callHandler);
         mRoomEventHandler.registerEvent(binding.getBinaryMessenger(), mIns);
-        mRangeAudioEventProxy.registerEvent(binding.getBinaryMessenger(), mIns);
-
-        { // RTCRoom
-            MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_room" + mIns);
-            channel.setMethodCallHandler(roomCallHandler);
-        }
-
-        { // SpatialAudio
-            MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_spatial_audio" + mIns);
-            channel.setMethodCallHandler(spatialAudioCallHandler);
-        }
-
-        { // RangeAudio
-            MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "com.bytedance.ve_rtc_range_audio" + mIns);
-            channel.setMethodCallHandler(rangeAudioCallHandler);
-        }
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        super.onDetachedFromEngine(binding);
+
+        for (RTCFlutterPlugin plugin: flutterPlugins) {
+            plugin.onDetachedFromEngine(binding);
+        }
         RTCVideoManager.destroyRoom(mIns);
+        mRoomEventHandler.destroy();
     }
 
-    private final MethodChannel.MethodCallHandler rangeAudioCallHandler = new MethodChannel.MethodCallHandler() {
+    private final MethodChannel.MethodCallHandler callHandler = new MethodChannel.MethodCallHandler() {
         @UiThread
         @Override
         public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
             if (BuildConfig.DEBUG) {
-                Logger.d(TAG, "IRangeAudio Call: " + call.method);
-            }
-            RTCTypeBox arguments = new RTCTypeBox(call.arguments, call.method);
-            IRangeAudio mRangeAudio = mRTCRoom.getRangeAudio();
-            switch (call.method) {
-                case "enableRangeAudio": {
-                    boolean enable = arguments.optBoolean("enable");
-                    mRangeAudio.enableRangeAudio(enable);
-
-                    result.success(null);
-                    break;
-                }
-
-                case "updateReceiveRange": {
-                    ReceiveRange range = RTCType.toReceiveRange(arguments.optBox("range"));
-                    int retValue = mRangeAudio.updateReceiveRange(range);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "updatePosition": {
-                    Position position = RTCType.toBytePosition(arguments.optBox("pos"));
-                    int retValue = mRangeAudio.updatePosition(position);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "registerRangeAudioObserver": {
-                    boolean observer = arguments.optBoolean("observer");
-                    if (observer) {
-                        mRangeAudioEventProxy.setEnable(true);
-                        mRangeAudio.registerRangeAudioObserver(mRangeAudioEventProxy);
-                    } else {
-                        mRangeAudioEventProxy.setEnable(false);
-                    }
-
-                    result.success(null);
-                    break;
-                }
-
-                case "setAttenuationModel": {
-                    AttenuationType type = RTCType.toAttenuationType(arguments.optInt("type"));
-                    float coefficient = arguments.optFloat("coefficient");
-                    int retValue = mRangeAudio.setAttenuationModel(type, coefficient);
-                    result.success(retValue);
-                    break;
-                }
-            }
-        }
-    };
-
-    private final MethodChannel.MethodCallHandler spatialAudioCallHandler = new MethodChannel.MethodCallHandler() {
-        @UiThread
-        @Override
-        public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-            if (BuildConfig.DEBUG) {
-                Logger.d(TAG, "ISpatialAudio Call: " + call.method);
-            }
-            RTCTypeBox arguments = new RTCTypeBox(call.arguments, call.method);
-            ISpatialAudio mSpatialAudio = mRTCRoom.getSpatialAudio();
-            switch (call.method) {
-                case "enableSpatialAudio": {
-                    boolean enable = arguments.optBoolean("enable");
-                    mSpatialAudio.enableSpatialAudio(enable);
-
-                    result.success(null);
-                    break;
-                }
-
-                case "updatePosition": {
-                    Position position = RTCType.toBytePosition(arguments.optBox("pos"));
-                    int retValue = mSpatialAudio.updatePosition(position);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "updateSelfOrientation": {
-                    HumanOrientation orientation = RTCType.toHumanOrientation(arguments.optBox("orientation"));
-                    int retValue = mSpatialAudio.updateSelfOrientation(orientation);
-
-                    result.success(retValue);
-                    break;
-                }
-
-                case "disableRemoteOrientation": {
-                    mSpatialAudio.disableRemoteOrientation();
-
-                    result.success(null);
-                    break;
-                }
-
-                default: {
-                    result.notImplemented();
-                    break;
-                }
-            }
-        }
-    };
-
-
-    private final MethodChannel.MethodCallHandler roomCallHandler = new MethodChannel.MethodCallHandler() {
-        @UiThread
-        @Override
-        public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-            if (BuildConfig.DEBUG) {
-                Logger.d(TAG, "Room Call: " + call.method);
+                Logger.d(getTAG(), "Room Call: " + call.method);
             }
             RTCRoom room = mRTCRoom;
             RTCTypeBox arguments = new RTCTypeBox(call.arguments, call.method);
 
             switch (call.method) {
-                case "destroyRTCRoom":
-                case "destroy": {
-                    RTCVideoManager.destroyRoom(mIns);
-                    result.success(null);
-                    break;
-                }
-
                 case "joinRoom": {
                     String token = arguments.optString("token");
                     UserInfo userInfo = RTCType.toUserInfo(arguments.optBox("userInfo"));
@@ -224,9 +104,9 @@ public class RTCRoomPlugin implements FlutterPlugin {
 
                 case "setMultiDeviceAVSync": {
                     String audioUserId = arguments.optString("audioUid");
-                    int retValue = room.setMultiDeviceAVSync(audioUserId);
+                    room.setMultiDeviceAVSync(audioUserId);
 
-                    result.success(retValue);
+                    result.success(null);
                     break;
                 }
 
@@ -239,18 +119,18 @@ public class RTCRoomPlugin implements FlutterPlugin {
 
                 case "updateToken": {
                     String token = arguments.optString("token");
-                    room.updateToken(token);
+                    int retCode = room.updateToken(token);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
                 case "setRemoteVideoConfig": {
                     String userId = arguments.optString("uid");
                     RemoteVideoConfig remoteVideoConfig = RTCType.toRemoteVideoConfig(arguments.optBox("videoConfig"));
-                    room.setRemoteVideoConfig(userId, remoteVideoConfig);
+                    int retCode = room.setRemoteVideoConfig(userId, remoteVideoConfig);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
@@ -289,36 +169,52 @@ public class RTCRoomPlugin implements FlutterPlugin {
                 case "subscribeStream": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.subscribeStream(userId, type);
+                    int retCode = room.subscribeStream(userId, type);
 
-                    result.success(null);
+                    result.success(retCode);
+                    break;
+                }
+
+                case "subscribeAllStreams": {
+                    MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
+                    int retCode = room.subscribeAllStreams(type);
+
+                    result.success(retCode);
                     break;
                 }
 
                 case "unsubscribeStream": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.unsubscribeStream(userId, type);
+                    int retCode = room.unsubscribeStream(userId, type);
 
-                    result.success(null);
+                    result.success(retCode);
+                    break;
+                }
+
+                case "unsubscribeAllStreams": {
+                    MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
+                    int retCode = room.unsubscribeAllStreams(type);
+
+                    result.success(retCode);
                     break;
                 }
 
                 case "subscribeScreen": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.subscribeScreen(userId, type);
+                    int retCode = room.subscribeScreen(userId, type);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
                 case "unsubscribeScreen": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.unsubscribeScreen(userId, type);
+                    int retCode = room.unsubscribeScreen(userId, type);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
@@ -376,17 +272,17 @@ public class RTCRoomPlugin implements FlutterPlugin {
 
                 case "startForwardStreamToRooms": {
                     List<ForwardStreamInfo> forwardStreamInfos = RTCType.toForwardStreamInfoList(arguments.getList("forwardStreamInfos"));
-                    room.startForwardStreamToRooms(forwardStreamInfos);
+                    int retCode = room.startForwardStreamToRooms(forwardStreamInfos);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
                 case "updateForwardStreamToRooms": {
                     List<ForwardStreamInfo> forwardStreamInfos = RTCType.toForwardStreamInfoList(arguments.getList("forwardStreamInfos"));
-                    room.updateForwardStreamToRooms(forwardStreamInfos);
+                    int retCode = room.updateForwardStreamToRooms(forwardStreamInfos);
 
-                    result.success(null);
+                    result.success(retCode);
                     break;
                 }
 
@@ -411,17 +307,9 @@ public class RTCRoomPlugin implements FlutterPlugin {
                     break;
                 }
 
-                case "startCloudRendering": {
-                    String effectInfo = arguments.optString("effectInfo");
-                    room.startCloudRendering(effectInfo);
-
-                    result.success(null);
-                    break;
-                }
-
-                case "updateCloudRendering": {
-                    String effectInfo = arguments.optString("effectInfo");
-                    room.updateCloudRendering(effectInfo);
+                case "setRemoteRoomAudioPlaybackVolume": {
+                    int volume = arguments.optInt("volume");
+                    room.setRemoteRoomAudioPlaybackVolume(volume);
 
                     result.success(null);
                     break;

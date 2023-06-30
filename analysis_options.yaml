@@ -1,4 +1,11 @@
 include: package:flutter_lints/flutter.yaml
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+analyzer:
+  exclude: [ build/** ]
+  language:
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    prefer_single_quotes: true

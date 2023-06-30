@@ -1,38 +1,32 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ss.rtc.demo.quickstart">
-
-    <!--    MODIFY_AUDIO_SETTINGS、BLUETOOTH 权限对于音频的路由是必须的。没有BLUETOOTH权限会导致蓝牙耳机连接时，声音从外放播放而不是蓝牙耳机-->
+    <!-- The INTERNET permission is required for development. Specifically,
+             the Flutter tool needs it to communicate with the running application
+             to allow setting breakpoints, to provide hot reload, etc.
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-   <application
-        android:label="QuickStart"
-        android:icon="@mipmap/ic_launcher">
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="QuickStart">
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
+            android:hardwareAccelerated="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

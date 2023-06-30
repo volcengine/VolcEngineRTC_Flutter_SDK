@@ -23,6 +23,10 @@ public class ASREngineEventProxy implements IRTCASREngineEventHandler {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_asr");
     }
 
+    public void destroy() {
+        emitter.destroy();
+    }
+
     @Override
     public void onSuccess() {
         final HashMap<String, Object> map = new HashMap<>();

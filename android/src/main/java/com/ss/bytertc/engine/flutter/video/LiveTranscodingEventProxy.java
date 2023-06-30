@@ -7,13 +7,12 @@ package com.ss.bytertc.engine.flutter.video;
 
 import androidx.annotation.RestrictTo;
 
+import com.bytedance.realx.video.VideoFrame;
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
 import com.ss.bytertc.engine.live.ByteRTCStreamMixingEvent;
 import com.ss.bytertc.engine.live.ByteRTCStreamMixingType;
 import com.ss.bytertc.engine.live.ByteRTCTranscoderErrorCode;
 import com.ss.bytertc.engine.live.ILiveTranscodingObserver;
-
-import org.webrtc.VideoFrame;
 
 import java.util.HashMap;
 
@@ -25,6 +24,10 @@ public class LiveTranscodingEventProxy implements ILiveTranscodingObserver {
 
     public void registerEvent(BinaryMessenger binaryMessenger) {
         emitter.registerEvent(binaryMessenger, "com.bytedance.ve_rtc_live_transcoding");
+    }
+
+    public void destroy() {
+        emitter.destroy();
     }
 
     @Override
@@ -44,7 +47,7 @@ public class LiveTranscodingEventProxy implements ILiveTranscodingObserver {
     }
 
     @Override
-    public void onMixingAudioFrame(String taskId, byte[] audioFrame, int frameNum) {
+    public void onMixingAudioFrame(String taskId, byte[] audioFrame, int frameNum, long timeStampMs) {
 
     }
 
@@ -54,7 +57,12 @@ public class LiveTranscodingEventProxy implements ILiveTranscodingObserver {
     }
 
     @Override
-    public void onDataFrame(String taskId, byte[] dataFrame, long time) {
+    public void onMixingDataFrame(String taskId, byte[] dataFrame, long time) {
+
+    }
+
+    @Override
+    public void onCacheSyncVideoFrames(String taskId, String[] userIds, VideoFrame[] videoFrame, byte[][] dataFrame, int count) {
 
     }
 }

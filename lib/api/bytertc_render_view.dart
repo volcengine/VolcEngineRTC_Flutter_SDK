@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../src/bytertc_render_view_impl.dart';
-import 'bytertc_common_defines.dart';
+import 'bytertc_media_defines.dart';
 import 'bytertc_video_defines.dart';
 
 /// 画布类型
