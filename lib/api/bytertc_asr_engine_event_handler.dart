@@ -16,6 +16,7 @@ class RTCASREngineEventHandler {
   /// 语音识别服务内部发生错误事件。
   OnErrorMsgType? onErrorMsg;
 
+  /// @nodoc
   RTCASREngineEventHandler({
     this.onSuccess,
     this.onMessage,

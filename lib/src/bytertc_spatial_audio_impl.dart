@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/services.dart';
 
 import '../api/bytertc_audio_defines.dart';
@@ -63,4 +64,37 @@ class RTCSpatialAudioImpl implements RTCSpatialAudio {
         'insId': _insId,
         'orientation': orientation.toMap(),
       });
+
+  @override
+  Future<int?> updateSelfPosition(PositionInfo positionInfo) {
+    return _invokeMethod<int>('updateSelfPosition', {
+      'insId': _insId,
+      'positionInfo': positionInfo.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> updateRemotePosition(
+      {required String uid, required PositionInfo positionInfo}) {
+    return _invokeMethod<int>('updateRemotePosition', {
+      'insId': _insId,
+      'uid': uid,
+      'positionInfo': positionInfo.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> removeRemotePosition(String uid) {
+    return _invokeMethod<int>('removeRemotePosition', {
+      'insId': _insId,
+      'uid': uid,
+    });
+  }
+
+  @override
+  Future<int?> removeAllRemotePosition() {
+    return _invokeMethod<int>('removeAllRemotePosition', {
+      'insId': _insId,
+    });
+  }
 }

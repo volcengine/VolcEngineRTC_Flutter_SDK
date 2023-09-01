@@ -1,5 +1,10 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
+
+import '../src/base/bytertc_enum_convert.dart';
+import 'bytertc_room_api.dart';
+import 'bytertc_video_api.dart';
+import 'bytertc_video_event_handler.dart';
 
 /// 远端用户离开房间的原因
 enum UserOfflineReason {
@@ -252,6 +257,7 @@ class SysStats {
   /// 系统内存使用率 (%)
   final double? totalMemoryRatio;
 
+  /// @nodoc
   const SysStats({
     this.cpuCores,
     this.cpuAppUsage,
@@ -288,6 +294,7 @@ class CloudProxyInfo {
   /// 云代理服务器端口
   int cloudProxyPort;
 
+  /// @nodoc
   CloudProxyInfo({
     required this.cloudProxyIp,
     required this.cloudProxyPort,
@@ -298,6 +305,132 @@ class CloudProxyInfo {
     return <String, dynamic>{
       'cloudProxyIp': cloudProxyIp,
       'cloudProxyPort': cloudProxyPort,
+    };
+  }
+}
+
+/// 本地代理的类型。
+enum LocalProxyType {
+  /// Socks5 代理。选用此代理服务器，需满足 Socks5 协议标准文档的要求。
+  socks5,
+
+  /// Http 隧道代理。
+  httpTunnel,
+}
+
+/// 本地代理配置详细信息。
+class LocalProxyConfiguration {
+  /// 本地代理的类型。
+  LocalProxyType localProxyType;
+
+  /// 本地代理服务器 IP。
+  String localProxyIp;
+
+  /// 本地代理服务器端口。
+  int localProxyPort;
+
+  /// 本地代理用户名。
+  String localProxyUsername;
+
+  /// 本地代理密码。
+  String localProxyPassword;
+
+  /// @nodoc
+  LocalProxyConfiguration({
+    this.localProxyType = LocalProxyType.socks5,
+    required this.localProxyIp,
+    required this.localProxyPort,
+    this.localProxyUsername = '',
+    this.localProxyPassword = '',
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'localProxyType': localProxyType.value,
+      'localProxyIp': localProxyIp,
+      'localProxyPort': localProxyPort,
+      'localProxyUsername': localProxyUsername,
+      'localProxyPassword': localProxyPassword,
+    };
+  }
+}
+
+/// 本地代理连接状态。
+enum LocalProxyState {
+  /// TCP 代理服务器连接成功。
+  inited,
+
+  /// 本地代理连接成功。
+  connected,
+
+  /// 本地代理连接出现错误。
+  error,
+}
+
+/// 本地代理错误。
+enum LocalProxyError {
+  /// 本地代理服务器无错误。
+  ok,
+
+  /// 代理服务器回复的版本号不符合 Socks5 协议标准文档的规定，导致 Socks5 代理连接失败。请检查代理服务器是否存在异常。
+  socks5VersionError,
+
+  /// 代理服务器回复的格式错误不符合 Socks5 协议标准文档的规定，导致 Socks5 代理连接失败。请检查代理服务器是否存在异常。
+  socks5FormatError,
+
+  /// 代理服务器回复的字段值不符合 Socks5 协议标准文档的规定，导致 Socks5 代理连接失败。请检查代理服务器是否存在异常。
+  socks5InvalidValue,
+
+  /// 未提供代理服务器的用户名及密码，导致 Socks5 代理连接失败。请重新调用 [RTCVideo.setLocalProxy]，在设置本地代理时填入用户名和密码。
+  socks5UserPassNotGiven,
+
+  /// TCP 关闭，导致 Socks5 代理连接失败。请检查网络或者代理服务器是否存在异常。
+  socks5TcpClosed,
+
+  /// Http 隧道代理错误。请检查 Http 隧道代理服务器或者网络是否存在异常。
+  httpTunnelFailed,
+}
+
+/// 本地日志输出等级。
+enum LocalLogLevel {
+  /// 信息级别。
+  info,
+
+  /// 警告级别（默认值）。
+  warning,
+
+  /// 错误级别。
+  error,
+
+  /// 关闭日志。
+  none,
+}
+
+/// 本地日志参数。
+class RTCLogConfig {
+  /// 日志存储路径。
+  final String logPath;
+
+  /// 日志等级。默认为警告级别。
+  final LocalLogLevel logLevel;
+
+  /// 日志可使用的最大缓存空间，单位为 MB。取值范围为 1～100 MB，默认值为 10 MB。
+  final int logFileSize;
+
+  /// @nodoc
+  const RTCLogConfig({
+    required this.logPath,
+    this.logLevel = LocalLogLevel.warning,
+    this.logFileSize = 10,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'logPath': logPath,
+      'logLevel': logLevel.index,
+      'logFileSize': logFileSize,
     };
   }
 }

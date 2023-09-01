@@ -1,13 +1,25 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/services.dart';
 
-import '../api/bytertc_audio_defines.dart';
-import '../api/bytertc_sing_scoring_event_handler.dart';
 import '../api/bytertc_sing_scoring_manager_api.dart';
 import 'base/bytertc_event_channel.dart';
-import 'bytertc_sing_scoring_event_impl.dart';
+import 'base/bytertc_event_serialize.dart';
+
+extension RTCSingScoringEventProcessor on RTCSingScoringEventHandler {
+  void process(String methodName, Map<dynamic, dynamic> dic) {
+    switch (methodName) {
+      case 'onCurrentScoringInfo':
+        final data = OnCurrentScoringInfoData.fromMap(dic);
+        onCurrentScoringInfo?.call(data.info);
+        break;
+      default:
+        break;
+    }
+  }
+}
 
 class RTCSingScoringManagerImpl implements RTCSingScoringManager {
   final MethodChannel _methodChannel =

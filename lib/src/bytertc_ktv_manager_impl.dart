@@ -1,6 +1,7 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'dart:async';
 
 import 'package:async/async.dart';
@@ -17,15 +18,15 @@ import 'bytertc_ktv_player_impl.dart';
 
 class RTCKTVManagerImpl implements RTCKTVManager {
   final MethodChannel _channel =
-      MethodChannel('com.bytedance.ve_rtc_ktv_manager');
+      const MethodChannel('com.bytedance.ve_rtc_ktv_manager');
   final RTCEventChannel _eventChannel =
       RTCEventChannel('com.bytedance.ve_rtc_ktv_manager_event');
 
-  Map<int, CancelableCompleter<KTVDownloadResult>> _downloadCompleters = Map();
+  final Map<int, CancelableCompleter<DownloadResult>> _downloadCompleters = {};
 
-  Map<int, void Function(int)> _downloadProgressCallbacks = Map();
+  final Map<int, void Function(int)> _downloadProgressCallbacks = {};
 
-  RTCKTVEventHandler? _eventHandler;
+  RTCKTVManagerEventHandler? _eventHandler;
 
   RTCKTVPlayerImpl? _ktvPlayerImpl;
 
@@ -40,8 +41,8 @@ class RTCKTVManagerImpl implements RTCKTVManager {
             case 'onDownloadSuccess':
               _onDownloadSuccess(dic);
               break;
-            case 'onDownloadFail':
-              _onDownloadFail(dic);
+            case 'onDownloadFailed':
+              _onDownloadFailed(dic);
               break;
             case 'onDownloadMusicProgress':
               _onDownloadMusicProgress(dic);
@@ -60,21 +61,23 @@ class RTCKTVManagerImpl implements RTCKTVManager {
 
   void _onDownloadSuccess(Map<dynamic, dynamic> dic) {
     final data = OnDownloadSuccessData.fromMap(dic);
-    CancelableCompleter<KTVDownloadResult>? completer =
+    CancelableCompleter<DownloadResult>? completer =
         _downloadCompleters.remove(data.downloadId);
     _downloadProgressCallbacks.remove(data.downloadId);
-    if (completer == null || completer.isCanceled || completer.isCompleted)
+    if (completer == null || completer.isCanceled || completer.isCompleted) {
       return;
+    }
     completer.complete(data.result);
   }
 
-  void _onDownloadFail(Map<dynamic, dynamic> dic) {
-    final data = OnDownloadFailData.fromMap(dic);
-    CancelableCompleter<KTVDownloadResult>? completer =
+  void _onDownloadFailed(Map<dynamic, dynamic> dic) {
+    final data = OnDownloadFailedData.fromMap(dic);
+    CancelableCompleter<DownloadResult>? completer =
         _downloadCompleters.remove(data.downloadId);
     _downloadProgressCallbacks.remove(data.downloadId);
-    if (completer == null || completer.isCanceled || completer.isCompleted)
+    if (completer == null || completer.isCanceled || completer.isCompleted) {
       return;
+    }
     completer.completeError(data.error);
   }
 
@@ -83,15 +86,15 @@ class RTCKTVManagerImpl implements RTCKTVManager {
     _downloadProgressCallbacks[data.downloadId]?.call(data.downloadProgress);
   }
 
-  CancelableOperation<KTVDownloadResult> _download(
+  CancelableOperation<DownloadResult> _download(
     String method, [
     Map<String, dynamic>? arguments,
     void Function(int downloadProgress)? onReceiveProgress,
   ]) {
     StackTrace stackTrace = StackTrace.current;
     int? _downloadId;
-    CancelableCompleter<KTVDownloadResult> completer =
-        CancelableCompleter<KTVDownloadResult>(onCancel: () {
+    CancelableCompleter<DownloadResult> completer =
+        CancelableCompleter<DownloadResult>(onCancel: () {
       int? downloadId = _downloadId;
       if (downloadId != null) {
         _downloadCompleters.remove(downloadId);
@@ -104,7 +107,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
       if (completer.isCanceled || completer.isCompleted) return;
       _downloadId = value;
       if (_downloadId == null) {
-        completer.completeError(KTVError.internal, stackTrace);
+        completer.completeError(KTVErrorCode.internal, stackTrace);
         return;
       }
       _downloadCompleters[_downloadId!] = completer;
@@ -112,7 +115,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
         _downloadProgressCallbacks[_downloadId!] = onReceiveProgress;
       }
     }, onError: (error) {
-      completer.completeError(KTVError.internal, stackTrace);
+      completer.completeError(KTVErrorCode.internal, stackTrace);
     });
 
     return completer.operation;
@@ -133,7 +136,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
   }
 
   @override
-  void setKTVEventHandler(RTCKTVEventHandler? eventHandler) {
+  void setKTVManagerEventHandler(RTCKTVManagerEventHandler? eventHandler) {
     _eventHandler = eventHandler;
   }
 
@@ -141,7 +144,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
   Future<void> getMusicList({
     int pageNum = 1,
     int pageSize = 20,
-    List<KTVMusicFilterType> filters = const [KTVMusicFilterType.none],
+    List<MusicFilterType> filters = const [MusicFilterType.none],
   }) {
     return _invokeMethod('getMusicList', {
       'pageNum': pageNum,
@@ -155,7 +158,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
     required String keyWord,
     int pageNum = 1,
     int pageSize = 20,
-    List<KTVMusicFilterType> filters = const [KTVMusicFilterType.none],
+    List<MusicFilterType> filters = const [MusicFilterType.none],
   }) {
     return _invokeMethod('searchMusic', {
       'keyWord': keyWord,
@@ -167,11 +170,11 @@ class RTCKTVManagerImpl implements RTCKTVManager {
 
   @override
   Future<void> getHotMusic({
-    List<KTVMusicHotType> hotTypes = const [
-      KTVMusicHotType.contentCenter,
-      KTVMusicHotType.project
+    List<MusicHotType> hotTypes = const [
+      MusicHotType.contentCenter,
+      MusicHotType.project
     ],
-    List<KTVMusicFilterType> filters = const [KTVMusicFilterType.none],
+    List<MusicFilterType> filters = const [MusicFilterType.none],
   }) {
     return _invokeMethod('getHotMusic', {
       'hotTypes': hotTypes.map((e) => e.value).toList(growable: false),
@@ -187,7 +190,7 @@ class RTCKTVManagerImpl implements RTCKTVManager {
   }
 
   @override
-  CancelableOperation<KTVDownloadResult> downloadMusic(String musicId,
+  CancelableOperation<DownloadResult> downloadMusic(String musicId,
       {void Function(int downloadProgress)? onReceiveProgress}) {
     return _download(
       'downloadMusic',
@@ -197,18 +200,18 @@ class RTCKTVManagerImpl implements RTCKTVManager {
   }
 
   @override
-  CancelableOperation<KTVDownloadResult> downloadLyric(
+  CancelableOperation<DownloadResult> downloadLyric(
     String musicId, {
-    KTVDownloadLyricType lyricType = KTVDownloadLyricType.krc,
+    DownloadLyricType lyricType = DownloadLyricType.krc,
   }) {
     return _download('downloadLyric', {
       'musicId': musicId,
-      'lyricType': lyricType.value,
+      'lyricType': lyricType.index,
     });
   }
 
   @override
-  CancelableOperation<KTVDownloadResult> downloadMidi(String musicId) {
+  CancelableOperation<DownloadResult> downloadMidi(String musicId) {
     return _download('downloadMidi', {
       'musicId': musicId,
     });

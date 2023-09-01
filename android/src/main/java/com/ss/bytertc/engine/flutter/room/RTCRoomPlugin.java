@@ -90,147 +90,147 @@ public class RTCRoomPlugin extends RTCFlutterPlugin {
                     UserInfo userInfo = RTCType.toUserInfo(arguments.optBox("userInfo"));
                     RTCRoomConfig roomConfig = RTCType.toRTCRoomConfig(arguments.optBox("roomConfig"));
 
-                    int retCode = room.joinRoom(token, userInfo, roomConfig);
-                    result.success(retCode);
+                    int retValue = room.joinRoom(token, userInfo, roomConfig);
+                    result.success(retValue);
                     break;
                 }
 
                 case "setUserVisibility": {
-                    room.setUserVisibility(arguments.optBoolean("enable"));
+                    int retValue = room.setUserVisibility(arguments.optBoolean("enable"));
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "setMultiDeviceAVSync": {
                     String audioUserId = arguments.optString("audioUid");
-                    room.setMultiDeviceAVSync(audioUserId);
+                    int retValue = room.setMultiDeviceAVSync(audioUserId);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "leaveRoom": {
-                    room.leaveRoom();
+                    int retValue = room.leaveRoom();
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "updateToken": {
                     String token = arguments.optString("token");
-                    int retCode = room.updateToken(token);
+                    int retValue = room.updateToken(token);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "setRemoteVideoConfig": {
                     String userId = arguments.optString("uid");
                     RemoteVideoConfig remoteVideoConfig = RTCType.toRemoteVideoConfig(arguments.optBox("videoConfig"));
-                    int retCode = room.setRemoteVideoConfig(userId, remoteVideoConfig);
+                    int retValue = room.setRemoteVideoConfig(userId, remoteVideoConfig);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "publishStream": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.publishStream(type);
+                    int retValue = room.publishStream(type);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "unpublishStream": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.unpublishStream(type);
+                    int retValue = room.unpublishStream(type);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "publishScreen": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.publishScreen(type);
+                    int retValue = room.publishScreen(type);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "unpublishScreen": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    room.unpublishScreen(type);
+                    int retValue = room.unpublishScreen(type);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "subscribeStream": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.subscribeStream(userId, type);
+                    int retValue = room.subscribeStream(userId, type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "subscribeAllStreams": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.subscribeAllStreams(type);
+                    int retValue = room.subscribeAllStreams(type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "unsubscribeStream": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.unsubscribeStream(userId, type);
+                    int retValue = room.unsubscribeStream(userId, type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "unsubscribeAllStreams": {
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.unsubscribeAllStreams(type);
+                    int retValue = room.unsubscribeAllStreams(type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "subscribeScreen": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.subscribeScreen(userId, type);
+                    int retValue = room.subscribeScreen(userId, type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "unsubscribeScreen": {
                     String userId = arguments.optString("uid");
                     MediaStreamType type = RTCType.toMediaStreamType(arguments.optInt("type"));
-                    int retCode = room.unsubscribeScreen(userId, type);
+                    int retValue = room.unsubscribeScreen(userId, type);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "pauseAllSubscribedStream": {
                     PauseResumeControlMediaType mediaType = RTCType.toPauseResumeControlMediaType(arguments.optInt("mediaType"));
-                    room.pauseAllSubscribedStream(mediaType);
+                    int retValue = room.pauseAllSubscribedStream(mediaType);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "resumeAllSubscribedStream": {
                     PauseResumeControlMediaType mediaType = RTCType.toPauseResumeControlMediaType(arguments.optInt("mediaType"));
-                    room.resumeAllSubscribedStream(mediaType);
+                    int retValue = room.resumeAllSubscribedStream(mediaType);
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
@@ -272,46 +272,72 @@ public class RTCRoomPlugin extends RTCFlutterPlugin {
 
                 case "startForwardStreamToRooms": {
                     List<ForwardStreamInfo> forwardStreamInfos = RTCType.toForwardStreamInfoList(arguments.getList("forwardStreamInfos"));
-                    int retCode = room.startForwardStreamToRooms(forwardStreamInfos);
+                    int retValue = room.startForwardStreamToRooms(forwardStreamInfos);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "updateForwardStreamToRooms": {
                     List<ForwardStreamInfo> forwardStreamInfos = RTCType.toForwardStreamInfoList(arguments.getList("forwardStreamInfos"));
-                    int retCode = room.updateForwardStreamToRooms(forwardStreamInfos);
+                    int retValue = room.updateForwardStreamToRooms(forwardStreamInfos);
 
-                    result.success(retCode);
+                    result.success(retValue);
                     break;
                 }
 
                 case "stopForwardStreamToRooms": {
-                    room.stopForwardStreamToRooms();
+                    int retValue = room.stopForwardStreamToRooms();
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "pauseForwardStreamToAllRooms": {
-                    room.pauseForwardStreamToAllRooms();
+                    int retValue = room.pauseForwardStreamToAllRooms();
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "resumeForwardStreamToAllRooms": {
-                    room.resumeForwardStreamToAllRooms();
+                    int retValue = room.resumeForwardStreamToAllRooms();
 
-                    result.success(null);
+                    result.success(retValue);
                     break;
                 }
 
                 case "setRemoteRoomAudioPlaybackVolume": {
                     int volume = arguments.optInt("volume");
-                    room.setRemoteRoomAudioPlaybackVolume(volume);
+                    int retValue = room.setRemoteRoomAudioPlaybackVolume(volume);
 
-                    result.success(null);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setAudioSelectionConfig": {
+                    int retValue = room.setAudioSelectionConfig(RTCType.toAudioSelectionPriority(arguments.optInt("audioSelectionPriority")));
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setRoomExtraInfo": {
+                    long retValue = room.setRoomExtraInfo(
+                            arguments.optString("key"),
+                            arguments.optString("value"));
+                    result.success(retValue);
+                    break;
+                }
+
+                case "startSubtitle": {
+                    int retValue = room.startSubtitle(RTCType.toSubtitleConfig(arguments.optBox("subtitleConfig")));
+                    result.success(retValue);
+                    break;
+                }
+
+                case "stopSubtitle": {
+                    int retValue = room.stopSubtitle();
+                    result.success(retValue);
                     break;
                 }
 

@@ -14,13 +14,12 @@
     [self emitEvent:dict methodName:@"onPlayProgress"];
 }
 
-- (void)ktvPlayer:(ByteRTCKTVPlayer *)ktvPlayer onPlayStateChange:(NSString *)musicId
-            state:(ByteRTCKTVPlayState)state error:(ByteRTCKTVPlayerError)error {
+- (void)ktvPlayer:(ByteRTCKTVPlayer *)ktvPlayer onPlayStateChanged:(NSString *)musicId state:(ByteRTCPlayState)state error:(ByteRTCKTVPlayerErrorCode)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"musicId"] = musicId;
     dict[@"playState"] = @(state);
     dict[@"error"] = @(error);
-    [self emitEvent:dict methodName:@"onPlayStateChange"];
+    [self emitEvent:dict methodName:@"onPlayStateChanged"];
 }
 
 @end

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -9,10 +9,11 @@ import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.flutter.base.RTCMap;
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
-import com.ss.bytertc.ktv.IKTVEventHandler;
+import com.ss.bytertc.ktv.IKTVManagerEventHandler;
 import com.ss.bytertc.ktv.data.DownloadResult;
 import com.ss.bytertc.ktv.data.HotMusicInfo;
-import com.ss.bytertc.ktv.data.Music;
+import com.ss.bytertc.ktv.data.KTVErrorCode;
+import com.ss.bytertc.ktv.data.MusicInfo;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.Map;
 import io.flutter.plugin.common.BinaryMessenger;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class KTVEventProxy extends IKTVEventHandler {
+public class KTVManagerEventProxy extends IKTVManagerEventHandler {
     private final EventEmitter emitter = new EventEmitter();
 
     public void registerEvent(BinaryMessenger binaryMessenger) {
@@ -33,33 +34,33 @@ public class KTVEventProxy extends IKTVEventHandler {
     }
 
     @Override
-    public void onMusicListResult(int errorCode, int totalSize, Music[] musics) {
+    public void onMusicListResult(MusicInfo[] musicInfos, int totalSize, KTVErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
-        map.put("error", errorCode);
+        map.put("error", errorCode.value());
         map.put("totalSize", totalSize);
-        List<Map<String, ?>> musicList = RTCMap.from(musics);
+        List<Map<String, ?>> musicList = RTCMap.from(musicInfos);
         if (musicList != null) {
-            map.put("musics", musicList);
+            map.put("musicInfos", musicList);
         }
         emitter.emit("onMusicListResult", map);
     }
 
     @Override
-    public void onSearchMusicResult(int errorCode, int totalSize, Music[] musics) {
+    public void onSearchMusicResult(MusicInfo[] musicInfos, int totalSize, KTVErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
-        map.put("error", errorCode);
+        map.put("error", errorCode.value());
         map.put("totalSize", totalSize);
-        List<Map<String, ?>> musicList = RTCMap.from(musics);
+        List<Map<String, ?>> musicList = RTCMap.from(musicInfos);
         if (musicList != null) {
-            map.put("musics", musicList);
+            map.put("musicInfos", musicList);
         }
         emitter.emit("onSearchMusicResult", map);
     }
 
     @Override
-    public void onHotMusicResult(int errorCode, HotMusicInfo[] hotMusics) {
+    public void onHotMusicResult(HotMusicInfo[] hotMusics, KTVErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
-        map.put("error", errorCode);
+        map.put("error", errorCode.value());
         List<Map<String, ?>> hotMusicList = RTCMap.from(hotMusics);
         if (hotMusicList != null) {
             map.put("hotMusics", hotMusicList);
@@ -68,11 +69,11 @@ public class KTVEventProxy extends IKTVEventHandler {
     }
 
     @Override
-    public void onMusicDetailResult(int errorCode, Music music) {
+    public void onMusicDetailResult(MusicInfo musicInfo, KTVErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
-        map.put("error", errorCode);
-        if (music != null) {
-            map.put("music", RTCMap.from(music));
+        map.put("error", errorCode.value());
+        if (musicInfo != null) {
+            map.put("musicInfo", RTCMap.from(musicInfo));
         }
         emitter.emit("onMusicDetailResult", map);
     }
@@ -86,11 +87,11 @@ public class KTVEventProxy extends IKTVEventHandler {
     }
 
     @Override
-    public void onDownloadFail(int downloadId, int errorCode) {
+    public void onDownloadFailed(int downloadId, KTVErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("downloadId", downloadId);
-        map.put("error", errorCode);
-        emitter.emit("onDownloadFail", map);
+        map.put("error", errorCode.value());
+        emitter.emit("onDownloadFailed", map);
     }
 
     @Override
@@ -99,5 +100,12 @@ public class KTVEventProxy extends IKTVEventHandler {
         map.put("downloadId", downloadId);
         map.put("downloadProgress", downloadProgress);
         emitter.emit("onDownloadMusicProgress", map);
+    }
+
+    @Override
+    public void onClearCacheResult(KTVErrorCode errorCode) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("error", errorCode.value());
+        emitter.emit("onClearCacheResult", map);
     }
 }

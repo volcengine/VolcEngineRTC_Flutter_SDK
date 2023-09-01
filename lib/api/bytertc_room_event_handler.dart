@@ -1,10 +1,10 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
-import 'package:flutter/foundation.dart';
-
 import '../src/bytertc_room_event_impl.dart';
 import 'bytertc_event_define.dart';
+import 'bytertc_room_api.dart';
+import 'bytertc_video_api.dart';
 
 /// 房间事件回调
 class RTCRoomEventHandler extends RTCRoomEventValue {
@@ -31,12 +31,15 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 房间内通话统计信息回调。
   ///
   /// 用户进房开始通话后，每 2s 收到一次本回调。
+  @override
   abstract OnRoomStatsType? onRoomStats;
 
   /// 反映通话中本地设备发送音/视频流的统计信息以及网络状况的回调，每 2s 触发一次。
+  @override
   abstract OnLocalStreamStatsType? onLocalStreamStats;
 
   /// 通话中本地设备接收订阅的远端音/视频流的统计信息以及网络状况，每 2s 触发一次。
+  @override
   abstract OnRemoteStreamStatsType? onRemoteStreamStats;
 
   /// 远端可见用户加入房间，或房内隐身用户切换为可见时，房间内的其他用户会收到此回调。
@@ -95,7 +98,6 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   OnUserUnpublishStreamType? onUserUnpublishScreen;
 
   /// @nodoc('Useless')
-  @protected
   OnStreamSubscribedType? onStreamSubscribed;
 
   /// 收到来自房间内广播的文本消息时，收到此回调。
@@ -115,6 +117,23 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
 
   /// 向房间内所有用户发送文本或二进制消息后，收到此回调。
   OnRoomMessageSendResultType? onRoomMessageSendResult;
+
+  /// v3.54.1 新增
+  ///
+  /// 调用 [RTCRoom.setRoomExtraInfo] 设置房间附加信息结果的回调。
+  OnSetRoomExtraInfoResultType? onSetRoomExtraInfoResult;
+
+  /// v3.54.1 新增
+  ///
+  /// 接收同一房间内，其他用户调用 [RTCRoom.setRoomExtraInfo] 设置的房间附加信息的回调。
+  ///
+  /// 新进房的用户会收到进房前房间内已有的全部附加信息通知。
+  OnRoomExtraInfoUpdateType? onRoomExtraInfoUpdate;
+
+  /// v3.54.1 新增
+  ///
+  /// 用户调用 [RTCRoom.setUserVisibility] 设置用户可见性的回调。
+  OnUserVisibilityChangedType? onUserVisibilityChanged;
 
   /// 通过调用服务端 BanUserStream/UnbanUserStream 方法禁用/解禁指定房间内指定用户视频流的发送时，触发此回调。
   ///
@@ -145,8 +164,22 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 加入房间后， 以 2 秒 1 次的频率，报告用户的网络质量信息
   ///
   /// 更多通话中的监测接口，详见[通话中质量监测](https://www.volcengine.com/docs/6348/106866)
+  @override
   abstract OnNetworkQualityType? onNetworkQuality;
 
+  /// v3.54.1 新增
+  ///
+  /// 字幕状态发生改变回调。 <br>
+  /// 调用 [RTCRoom.startSubtitle] 或 [RTCRoom.stopSubtitle] 使字幕状态发生改变或出现错误时，触发该回调。
+  OnSubtitleStateChangedType? onSubtitleStateChanged;
+
+  /// v3.54.1 新增
+  ///
+  /// 字幕相关内容回调。 <br>
+  /// 成功调用 [RTCRoom.startSubtitle] 后，会通过此回调收到字幕内容及相关信息。
+  OnSubtitleMessageReceivedType? onSubtitleMessageReceived;
+
+  /// @nodoc
   RTCRoomEventHandler({
     this.onRoomStateChanged,
     this.onStreamStateChanged,
@@ -171,15 +204,20 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
     this.onUserBinaryMessageReceived,
     this.onUserMessageSendResult,
     this.onRoomMessageSendResult,
+    this.onSetRoomExtraInfoResult,
+    this.onRoomExtraInfoUpdate,
+    this.onUserVisibilityChanged,
     this.onVideoStreamBanned,
     this.onAudioStreamBanned,
     this.onForwardStreamStateChanged,
     this.onForwardStreamEvent,
     OnNetworkQualityType? onNetworkQuality,
-  }) {
-    this.onRoomStats = onRoomStats;
-    this.onLocalStreamStats = onLocalStreamStats;
-    this.onRemoteStreamStats = onRemoteStreamStats;
-    this.onNetworkQuality = onNetworkQuality;
-  }
+    this.onSubtitleStateChanged,
+    this.onSubtitleMessageReceived,
+  }) : super(
+          onRoomStats: onRoomStats,
+          onLocalStreamStats: onLocalStreamStats,
+          onRemoteStreamStats: onRemoteStreamStats,
+          onNetworkQuality: onNetworkQuality,
+        );
 }

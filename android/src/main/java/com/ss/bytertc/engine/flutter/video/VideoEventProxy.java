@@ -11,6 +11,7 @@ import com.ss.bytertc.engine.SysStats;
 import com.ss.bytertc.engine.data.AudioMixingError;
 import com.ss.bytertc.engine.data.AudioMixingState;
 import com.ss.bytertc.engine.data.AudioRoute;
+import com.ss.bytertc.engine.data.DataMessageSourceType;
 import com.ss.bytertc.engine.data.LocalAudioPropertiesInfo;
 import com.ss.bytertc.engine.data.LocalAudioStreamError;
 import com.ss.bytertc.engine.data.LocalAudioStreamState;
@@ -20,7 +21,6 @@ import com.ss.bytertc.engine.data.RemoteAudioPropertiesInfo;
 import com.ss.bytertc.engine.data.RemoteAudioState;
 import com.ss.bytertc.engine.data.RemoteAudioStateChangeReason;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
-import com.ss.bytertc.engine.data.SEIMessageSourceType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
@@ -35,6 +35,9 @@ import com.ss.bytertc.engine.type.EchoTestResult;
 import com.ss.bytertc.engine.type.FirstFramePlayState;
 import com.ss.bytertc.engine.type.FirstFrameSendState;
 import com.ss.bytertc.engine.type.HardwareEchoDetectionResult;
+import com.ss.bytertc.engine.type.LocalProxyError;
+import com.ss.bytertc.engine.type.LocalProxyState;
+import com.ss.bytertc.engine.type.LocalProxyType;
 import com.ss.bytertc.engine.type.LocalVideoStreamError;
 import com.ss.bytertc.engine.type.LocalVideoStreamState;
 import com.ss.bytertc.engine.type.NetworkDetectionLinkType;
@@ -99,6 +102,14 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("code", err);
         emitter.emit("onError", map);
+    }
+
+    @Override
+    public void onExtensionAccessError(String extensionName, String msg) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("extensionName", extensionName);
+        map.put("msg", msg);
+        emitter.emit("onExtensionAccessError", map);
     }
 
     @Override
@@ -601,12 +612,21 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
     }
 
     @Override
-    public void onPublicStreamSEIMessageReceived(String publicStreamId, ByteBuffer message, SEIMessageSourceType sourceType) {
+    public void onPublicStreamSEIMessageReceived(String publicStreamId, ByteBuffer message, DataMessageSourceType sourceType) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("publicStreamId", publicStreamId);
         map.put("message", message.array());
         map.put("sourceType", sourceType.value());
         emitter.emit("onPublicStreamSEIMessageReceived", map);
+    }
+
+    @Override
+    public void onPublicStreamDataMessageReceived(String publicStreamId, ByteBuffer message, DataMessageSourceType sourceType) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("publicStreamId", publicStreamId);
+        map.put("message", message.array());
+        map.put("sourceType", sourceType.value());
+        emitter.emit("onPublicStreamDataMessageReceived", map);
     }
 
     @Override
@@ -663,6 +683,15 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("result", result.value());
         emitter.emit("onHardwareEchoDetectionResult", map);
+    }
+
+    @Override
+    public void onLocalProxyStateChanged(LocalProxyType localProxyType, LocalProxyState localProxyState, LocalProxyError localProxyError) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("localProxyType", localProxyType.value());
+        map.put("localProxyState", localProxyState.value());
+        map.put("localProxyError", localProxyError.value());
+        emitter.emit("onLocalProxyStateChanged", map);
     }
 
     public void setSwitches(RTCTypeBox box) {

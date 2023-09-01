@@ -28,16 +28,23 @@
 #pragma mark - ByteRTCVideoDelegate
 #pragma mark - Core Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onWarning:(ByteRTCWarningCode)Code {
+- (void)rtcEngine:(ByteRTCVideo *)engine onWarning:(ByteRTCWarningCode)code{
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"code"] = @(Code);
+    dict[@"code"] = @(code);
     [self emitEvent:dict methodName:@"onWarning"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onError:(ByteRTCErrorCode)errorCode {
+- (void)rtcEngine:(ByteRTCVideo *)engine onError:(ByteRTCErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"code"] = @(errorCode);
     [self emitEvent:dict methodName:@"onError"];
+}
+
+- (void)rtcEngine:(ByteRTCVideo *)engine onExtensionAccessError:(NSString *)extensionName msg:(NSString *)msg {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"extensionName"] = extensionName;
+    dict[@"msg"] = msg;
+    [self emitEvent:dict methodName:@"onExtensionAccessError"];
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine onCreateRoomStateChanged:(NSString *)roomId errorCode:(NSInteger)errorCode {
@@ -47,13 +54,13 @@
     [self emitEvent:dict methodName:@"onCreateRoomStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onConnectionStateChanged:(ByteRTCConnectionState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onConnectionStateChanged:(ByteRTCConnectionState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
     [self emitEvent:dict methodName:@"onConnectionStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onNetworkTypeChanged:(ByteRTCNetworkType)type {
+- (void)rtcEngine:(ByteRTCVideo *)engine onNetworkTypeChanged:(ByteRTCNetworkType)type {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"type"] = @(type);
     [self emitEvent:dict methodName:@"onNetworkTypeChanged"];
@@ -61,29 +68,29 @@
 
 #pragma mark - Core Audio Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserStartAudioCapture:(NSString* _Nonnull)roomId
-              uid:(NSString *_Nonnull)userId {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserStartAudioCapture:(NSString*)roomId
+              uid:(NSString *)userId {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"uid"] = userId;
     [self emitEvent:dict methodName:@"onUserStartAudioCapture"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserStopAudioCapture:(NSString* _Nonnull)roomId
-              uid:(NSString *_Nonnull)userId {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserStopAudioCapture:(NSString*)roomId
+              uid:(NSString *)userId {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"uid"] = userId;
     [self emitEvent:dict methodName:@"onUserStopAudioCapture"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstRemoteAudioFrame:(ByteRTCRemoteStreamKey * _Nonnull)key {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstRemoteAudioFrame:(ByteRTCRemoteStreamKey *)key {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = key.bf_toMap;
     [self emitEvent:dict methodName:@"onFirstRemoteAudioFrame"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onLocalAudioPropertiesReport:(NSArray<ByteRTCLocalAudioPropertiesInfo *> * _Nonnull)audioPropertiesInfos {
+- (void)rtcEngine:(ByteRTCVideo *)engine onLocalAudioPropertiesReport:(NSArray<ByteRTCLocalAudioPropertiesInfo *> *)audioPropertiesInfos {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     NSMutableArray *infos = [NSMutableArray array];
     for (ByteRTCLocalAudioPropertiesInfo *info in audioPropertiesInfos) {
@@ -93,7 +100,7 @@
     [self emitEvent:dict methodName:@"onLocalAudioPropertiesReport"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onRemoteAudioPropertiesReport:(NSArray<ByteRTCRemoteAudioPropertiesInfo *> * _Nonnull)audioPropertiesInfos totalRemoteVolume:(NSInteger)totalRemoteVolume {
+- (void)rtcEngine:(ByteRTCVideo *)engine onRemoteAudioPropertiesReport:(NSArray<ByteRTCRemoteAudioPropertiesInfo *> *)audioPropertiesInfos totalRemoteVolume:(NSInteger)totalRemoteVolume {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     NSMutableArray *infos = [NSMutableArray array];
     for (ByteRTCRemoteAudioPropertiesInfo *info in audioPropertiesInfos) {
@@ -104,7 +111,7 @@
     [self emitEvent:dict methodName:@"onRemoteAudioPropertiesReport"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onActiveSpeaker:(NSString * _Nonnull)roomId uid:(NSString *_Nonnull)uid {
+- (void)rtcEngine:(ByteRTCVideo *)engine onActiveSpeaker:(NSString *)roomId uid:(NSString *)uid {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"uid"] = uid;
@@ -113,87 +120,87 @@
 
 #pragma mark - Core Video Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserStartVideoCapture:(NSString * _Nonnull)roomId
-              uid:(NSString * _Nonnull)uid {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserStartVideoCapture:(NSString *)roomId
+              uid:(NSString *)uid {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"uid"] = uid;
     [self emitEvent:dict methodName:@"onUserStartVideoCapture"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserStopVideoCapture:(NSString * _Nonnull)roomId
-              uid:(NSString * _Nonnull)uid {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserStopVideoCapture:(NSString *)roomId
+              uid:(NSString *)uid {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"uid"] = uid;
     [self emitEvent:dict methodName:@"onUserStopVideoCapture"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstLocalVideoFrameCaptured:(ByteRTCStreamIndex)streamIndex
-    withFrameInfo:(ByteRTCVideoFrameInfo * _Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstLocalVideoFrameCaptured:(ByteRTCStreamIndex)streamIndex
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"index"] = @(streamIndex);
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onFirstLocalVideoFrameCaptured"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstRemoteVideoFrameRendered:(ByteRTCRemoteStreamKey * _Nonnull)streamKey
-    withFrameInfo:(ByteRTCVideoFrameInfo * _Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstRemoteVideoFrameRendered:(ByteRTCRemoteStreamKey *)streamKey
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = streamKey.bf_toMap;
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onFirstRemoteVideoFrameRendered"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstRemoteVideoFrameDecoded:(ByteRTCRemoteStreamKey * _Nonnull)streamKey
-    withFrameInfo:(ByteRTCVideoFrameInfo * _Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstRemoteVideoFrameDecoded:(ByteRTCRemoteStreamKey *)streamKey
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = streamKey.bf_toMap;
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onFirstRemoteVideoFrameDecoded"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onRemoteVideoSizeChanged:(ByteRTCRemoteStreamKey *_Nonnull)streamKey
-    withFrameInfo:(ByteRTCVideoFrameInfo *_Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onRemoteVideoSizeChanged:(ByteRTCRemoteStreamKey *)streamKey
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = streamKey.bf_toMap;
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onRemoteVideoSizeChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onLocalVideoSizeChanged:(ByteRTCStreamIndex)streamIndex
-    withFrameInfo:(ByteRTCVideoFrameInfo *_Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onLocalVideoSizeChanged:(ByteRTCStreamIndex)streamIndex
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"index"] = @(streamIndex);
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onLocalVideoSizeChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onAudioDeviceStateChanged:(NSString*_Nonnull)device_id
-      device_type:(ByteRTCAudioDeviceType)device_type
-     device_state:(ByteRTCMediaDeviceState)device_state
-     device_error:(ByteRTCMediaDeviceError)device_error {
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioDeviceStateChanged:(NSString *)deviceID
+      device_type:(ByteRTCAudioDeviceType)deviceType
+     device_state:(ByteRTCMediaDeviceState)deviceState
+     device_error:(ByteRTCMediaDeviceError)deviceError {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"deviceId"] = device_id;
-    dict[@"deviceType"] = @(device_type);
-    dict[@"deviceState"] = @(device_state);
-    dict[@"deviceError"] = @(device_error);
+    dict[@"deviceId"] = deviceID;
+    dict[@"deviceType"] = @(deviceType);
+    dict[@"deviceState"] = @(deviceState);
+    dict[@"deviceError"] = @(deviceError);
     [self emitEvent:dict methodName:@"onAudioDeviceStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onVideoDeviceStateChanged:(NSString*_Nonnull)device_id
-      device_type:(ByteRTCVideoDeviceType)device_type
-     device_state:(ByteRTCMediaDeviceState)device_state
-     device_error:(ByteRTCMediaDeviceError)device_error {
+- (void)rtcEngine:(ByteRTCVideo *)engine onVideoDeviceStateChanged:(NSString *)deviceID
+      device_type:(ByteRTCVideoDeviceType)deviceType
+     device_state:(ByteRTCMediaDeviceState)deviceState
+     device_error:(ByteRTCMediaDeviceError)deviceError {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"deviceId"] = device_id;
-    dict[@"deviceType"] = @(device_type);
-    dict[@"deviceState"] = @(device_state);
-    dict[@"deviceError"] = @(device_error);
+    dict[@"deviceId"] = deviceID;
+    dict[@"deviceType"] = @(deviceType);
+    dict[@"deviceState"] = @(deviceState);
+    dict[@"deviceError"] = @(deviceError);
     [self emitEvent:dict methodName:@"onVideoDeviceStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onAudioDeviceWarning:(NSString*_Nonnull)deviceId
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioDeviceWarning:(NSString*)deviceId
        deviceType:(ByteRTCAudioDeviceType)deviceType
     deviceWarning:(ByteRTCMediaDeviceWarning)deviceWarning {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -204,7 +211,7 @@
     
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onVideoDeviceWarning:(NSString*_Nonnull)deviceId
+- (void)rtcEngine:(ByteRTCVideo *)engine onVideoDeviceWarning:(NSString*)deviceId
        deviceType:(ByteRTCVideoDeviceType)deviceType
     deviceWarning:(ByteRTCMediaDeviceWarning)deviceWarning {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -215,8 +222,8 @@
     
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onAudioFrameSendStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFrameSendState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioFrameSendStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFrameSendState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -224,8 +231,8 @@
     [self emitEvent:dict methodName:@"onAudioFrameSendStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onVideoFrameSendStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFrameSendState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onVideoFrameSendStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFrameSendState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -233,8 +240,8 @@
     [self emitEvent:dict methodName:@"onVideoFrameSendStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onScreenVideoFrameSendStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFrameSendState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onScreenVideoFrameSendStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFrameSendState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -242,8 +249,8 @@
     [self emitEvent:dict methodName:@"onScreenVideoFrameSendStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onAudioFramePlayStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFramePlayState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioFramePlayStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFramePlayState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -252,8 +259,8 @@
 }
 
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onVideoFramePlayStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFramePlayState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onVideoFramePlayStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFramePlayState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -261,8 +268,8 @@
     [self emitEvent:dict methodName:@"onVideoFramePlayStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onScreenVideoFramePlayStateChanged:(NSString * _Nonnull)roomId
-          rtcUser:(ByteRTCUser *_Nonnull)user state:(ByteRTCFirstFramePlayState)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onScreenVideoFramePlayStateChanged:(NSString *)roomId
+          rtcUser:(ByteRTCUser *)user state:(ByteRTCFirstFramePlayState)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
     dict[@"userInfo"] = user.bf_toMap;
@@ -272,7 +279,7 @@
 
 #pragma mark - Media Stream Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstLocalAudioFrame:(ByteRTCStreamIndex)streamIndex {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstLocalAudioFrame:(ByteRTCStreamIndex)streamIndex {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"index"] = @(streamIndex);
     [self emitEvent:dict methodName:@"onFirstLocalAudioFrame"];
@@ -281,7 +288,7 @@
 
 #pragma mark - Media Device Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onAudioRouteChanged:(ByteRTCAudioRoute)route {
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioRouteChanged:(ByteRTCAudioRoute)route {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"route"] = @(route);
     [self emitEvent:dict methodName:@"onAudioRouteChanged"];
@@ -289,16 +296,16 @@
 
 #pragma mark custom message Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onSEIMessageReceived:(ByteRTCRemoteStreamKey* _Nonnull)remoteStreamKey
-       andMessage:(NSData* _Nonnull)message {
+- (void)rtcEngine:(ByteRTCVideo *)engine onSEIMessageReceived:(ByteRTCRemoteStreamKey*)remoteStreamKey
+       andMessage:(NSData*)message {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = remoteStreamKey.bf_toMap;
     dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
     [self emitEvent:dict methodName:@"onSEIMessageReceived"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine
-onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
+- (void)rtcEngine:(ByteRTCVideo *)engine
+onSEIStreamUpdate:(ByteRTCRemoteStreamKey *)remoteStreamKey
         eventType:(ByteSEIStreamEventType)eventType {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = remoteStreamKey.bf_toMap;
@@ -306,8 +313,8 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onSEIStreamUpdate"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onStreamSyncInfoReceived:(ByteRTCRemoteStreamKey* _Nonnull)remoteStreamKey
-       streamType:(ByteRTCSyncInfoStreamType)streamType data:(NSData* _Nonnull)data {
+- (void)rtcEngine:(ByteRTCVideo *)engine onStreamSyncInfoReceived:(ByteRTCRemoteStreamKey*)remoteStreamKey
+       streamType:(ByteRTCSyncInfoStreamType)streamType data:(NSData*)data {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = remoteStreamKey.bf_toMap;
     dict[@"streamType"] = @(streamType);
@@ -317,7 +324,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
 
 #pragma mark - Statistics Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onSysStats:(const ByteRTCSysStats * _Nonnull)stats {
+- (void)rtcEngine:(ByteRTCVideo *)engine onSysStats:(const ByteRTCSysStats *)stats {
     if (!self.enableSysStats) {
         return;
     }
@@ -326,7 +333,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onSysStats"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onLocalAudioStateChanged:(ByteRTCLocalAudioStreamState)state
+- (void)rtcEngine:(ByteRTCVideo *)engine onLocalAudioStateChanged:(ByteRTCLocalAudioStreamState)state
             error:(ByteRTCLocalAudioStreamError)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
@@ -334,7 +341,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onLocalAudioStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onRemoteAudioStateChanged:(ByteRTCRemoteStreamKey * _Nonnull)key
+- (void)rtcEngine:(ByteRTCVideo *)engine onRemoteAudioStateChanged:(ByteRTCRemoteStreamKey *)key
             state:(ByteRTCRemoteAudioState)state
            reason:(ByteRTCRemoteAudioStateChangeReason)reason {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -344,7 +351,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onRemoteAudioStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onLocalVideoStateChanged:(ByteRTCStreamIndex)streamIndex
+- (void)rtcEngine:(ByteRTCVideo *)engine onLocalVideoStateChanged:(ByteRTCStreamIndex)streamIndex
   withStreamState:(ByteRTCLocalVideoStreamState)state
   withStreamError:(ByteRTCLocalVideoStreamError)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -354,7 +361,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onLocalVideoStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onRemoteVideoStateChanged:(ByteRTCRemoteStreamKey*_Nonnull)streamKey
+- (void)rtcEngine:(ByteRTCVideo *)engine onRemoteVideoStateChanged:(ByteRTCRemoteStreamKey*)streamKey
    withVideoState:(ByteRTCRemoteVideoState)state withVideoStateReason:(ByteRTCRemoteVideoStateChangeReason)reason {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = streamKey.bf_toMap;
@@ -365,8 +372,8 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
 
 #pragma mark - Rtm
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine
-    onLoginResult:(NSString * _Nonnull)uid
+- (void)rtcEngine:(ByteRTCVideo *)engine
+    onLoginResult:(NSString *)uid
         errorCode:(ByteRTCLoginErrorCode)errorCode
           elapsed:(NSInteger)elapsed {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -376,17 +383,17 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onLoginResult"];
 }
 
-- (void)rtcEngineOnLogout:(ByteRTCVideo * _Nonnull)engine {
+- (void)rtcEngineOnLogout:(ByteRTCVideo *)engine {
     [self emitEvent:nil methodName:@"onLogout"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onServerParamsSetResult:(NSInteger)errorCode {
+- (void)rtcEngine:(ByteRTCVideo *)engine onServerParamsSetResult:(NSInteger)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"error"] = @(errorCode);
     [self emitEvent:dict methodName:@"onServerParamsSetResult"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onGetPeerOnlineStatus:(NSString * _Nonnull)peerUserId
+- (void)rtcEngine:(ByteRTCVideo *)engine onGetPeerOnlineStatus:(NSString *)peerUserId
            status:(ByteRTCUserOnlineStatus)status {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"uid"] = peerUserId;
@@ -394,23 +401,23 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onGetPeerOnlineStatus"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserMessageReceivedOutsideRoom:(NSString * _Nonnull)uid
-          message:(NSString * _Nonnull)message {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserMessageReceivedOutsideRoom:(NSString *)uid
+          message:(NSString *)message {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"uid"] = uid;
     dict[@"message"] = message;
     [self emitEvent:dict methodName:@"onUserMessageReceivedOutsideRoom"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserBinaryMessageReceivedOutsideRoom:(NSString * _Nonnull)uid
-          message:(NSData * _Nonnull)message {
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserBinaryMessageReceivedOutsideRoom:(NSString *)uid
+          message:(NSData *)message {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"uid"] = uid;
     dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
     [self emitEvent:dict methodName:@"onUserBinaryMessageReceivedOutsideRoom"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onUserMessageSendResultOutsideRoom:(NSInteger)msgid
+- (void)rtcEngine:(ByteRTCVideo *)engine onUserMessageSendResultOutsideRoom:(NSInteger)msgid
             error:(ByteRTCUserMessageSendResult)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"msgid"] = @(msgid);
@@ -418,8 +425,8 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onUserMessageSendResultOutsideRoom"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onServerMessageSendResult:(int64_t)msgid
-            error:(ByteRTCUserMessageSendResult)error message:(NSData * _Nonnull)message {
+- (void)rtcEngine:(ByteRTCVideo *)engine onServerMessageSendResult:(int64_t)msgid
+            error:(ByteRTCUserMessageSendResult)error message:(NSData *)message {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"msgid"] = @(msgid);
     dict[@"error"] = @(error);
@@ -429,28 +436,28 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
 
 #pragma mark - Network Probe Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onNetworkDetectionResult:(ByteRTCNetworkDetectionLinkType)type
+- (void)rtcEngine:(ByteRTCVideo *)engine onNetworkDetectionResult:(ByteRTCNetworkDetectionLinkType)type
           quality:(ByteRTCNetworkQuality)quality rtt:(int)rtt
-         lostRate:(double)lost_rate bitrate:(int)bitrate jitter:(int)jitter {
+         lostRate:(double)lostRate bitrate:(int)bitrate jitter:(int)jitter{
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"type"] = @(type);
     dict[@"quality"] = @(quality);
     dict[@"rtt"] = @(rtt);
-    dict[@"lostRate"] = @(lost_rate);
+    dict[@"lostRate"] = @(lostRate);
     dict[@"bitrate"] = @(bitrate);
     dict[@"jitter"] = @(jitter);
     [self emitEvent:dict methodName:@"onNetworkDetectionResult"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onNetworkDetectionStopped:(ByteRTCNetworkDetectionStopReason)err_code {
+- (void)rtcEngine:(ByteRTCVideo *)engine onNetworkDetectionStopped:(ByteRTCNetworkDetectionStopReason)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"reason"] = @(err_code);
+    dict[@"reason"] = @(errorCode);
     [self emitEvent:dict methodName:@"onNetworkDetectionStopped"];
 }
 
 #pragma mark Audio Mix Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onAudioMixingStateChanged:(NSInteger)mixId
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioMixingStateChanged:(NSInteger)mixId
             state:(ByteRTCAudioMixingState)state error:(ByteRTCAudioMixingError)error {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"mixId"] = @(mixId);
@@ -459,7 +466,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onAudioMixingStateChanged"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onAudioMixingPlayingProgress:(NSInteger)mixId
+- (void)rtcEngine:(ByteRTCVideo *)engine onAudioMixingPlayingProgress:(NSInteger)mixId
          progress:(int64_t)progress {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"mixId"] = @(mixId);
@@ -469,10 +476,10 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
 
 #pragma mark Performance Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onPerformanceAlarms:(ByteRTCPerformanceAlarmMode)mode
-           roomId:(NSString *_Nonnull)roomId
+- (void)rtcEngine:(ByteRTCVideo *)engine onPerformanceAlarms:(ByteRTCPerformanceAlarmMode)mode
+           roomId:(NSString *)roomId
            reason:(ByteRTCPerformanceAlarmReason)reason
- sourceWantedData:(ByteRTCSourceWantedData *_Nonnull)data {
+ sourceWantedData:(ByteRTCSourceWantedData *)data {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"mode"] = @(mode);
     dict[@"roomId"] = roomId;
@@ -481,7 +488,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onPerformanceAlarms"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onSimulcastSubscribeFallback:(ByteRTCRemoteStreamSwitchEvent *_Nonnull)event {
+- (void)rtcEngine:(ByteRTCVideo *)engine onSimulcastSubscribeFallback:(ByteRTCRemoteStreamSwitchEvent *)event {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"event"] = event.bf_toMap;
     [self emitEvent:dict methodName:@"onSimulcastSubscribeFallback"];
@@ -489,66 +496,66 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
 
 #pragma mark Proxy Delegate Methods
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onHttpProxyState:(NSInteger)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onHttpProxyState:(NSInteger)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
     [self emitEvent:dict methodName:@"onHttpProxyState"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onHttpsProxyState:(NSInteger)state {
+- (void)rtcEngine:(ByteRTCVideo *)engine onHttpsProxyState:(NSInteger)state {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
     [self emitEvent:dict methodName:@"onHttpsProxyState"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onSocks5ProxyState:(NSInteger)state
-              cmd:(NSString *_Nonnull)cmd
-    proxy_address:(NSString *_Nonnull)proxy_address
-    local_address:(NSString *_Nonnull)local_address
-   remote_address:(NSString *_Nonnull)remote_address {
+- (void)rtcEngine:(ByteRTCVideo *)engine onSocks5ProxyState:(NSInteger)state
+              cmd:(NSString *)cmd
+    proxy_address:(NSString *)proxyAddress
+    local_address:(NSString *)localAddress
+   remote_address:(NSString *)remoteAddress {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
     dict[@"cmd"] = cmd;
-    dict[@"proxyAddress"] = proxy_address;
-    dict[@"localAddress"] = local_address;
-    dict[@"remoteAddress"] = remote_address;
+    dict[@"proxyAddress"] = proxyAddress;
+    dict[@"localAddress"] = localAddress;
+    dict[@"remoteAddress"] = remoteAddress;
     [self emitEvent:dict methodName:@"onSocks5ProxyState"];
 }
 
 #pragma mark FileRecording related callback
 
-- (void)rtcEngine:(ByteRTCVideo* _Nonnull)engine onRecordingStateUpdate:(ByteRTCStreamIndex)type
+- (void)rtcEngine:(ByteRTCVideo *)engine onRecordingStateUpdate:(ByteRTCStreamIndex)type
             state:(ByteRTCRecordingState)state
-       error_code:(ByteRTCRecordingErrorCode)error_code
-   recording_info:(ByteRTCRecordingInfo* _Nonnull)recording_info{
+       error_code:(ByteRTCRecordingErrorCode)errorCode
+   recording_info:(ByteRTCRecordingInfo *)recordingInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
     dict[@"type"] = @(type);
-    dict[@"errorCode"] = @(error_code);
-    dict[@"info"] = recording_info.bf_toMap;
+    dict[@"errorCode"] = @(errorCode);
+    dict[@"info"] = recordingInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onRecordingStateUpdate"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo* _Nonnull)engine onRecordingProgressUpdate:(ByteRTCStreamIndex)type
-          process:(ByteRTCRecordingProgress* _Nonnull)process
-   recording_info:(ByteRTCRecordingInfo* _Nonnull)recording_info {
+- (void)rtcEngine:(ByteRTCVideo *)engine onRecordingProgressUpdate:(ByteRTCStreamIndex)type
+          process:(ByteRTCRecordingProgress *)process
+   recording_info:(ByteRTCRecordingInfo *)recordingInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"type"] = @(type);
     dict[@"progress"] = process.bf_toMap;
-    dict[@"info"] = recording_info.bf_toMap;
+    dict[@"info"] = recordingInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onRecordingProgressUpdate"];
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine onAudioRecordingStateUpdate:(ByteRTCAudioRecordingState)state
-       error_code:(ByteRTCAudioRecordingErrorCode)error_code {
+       error_code:(ByteRTCAudioRecordingErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"state"] = @(state);
-    dict[@"errorCode"] = @(error_code);
+    dict[@"errorCode"] = @(errorCode);
     [self emitEvent:dict methodName:@"onAudioRecordingStateUpdate"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onPushPublicStreamResult:(NSString *_Nonnull)roomId
-        publicStreamId:(NSString *_Nonnull)publicStreamId
+- (void)rtcEngine:(ByteRTCVideo *)engine onPushPublicStreamResult:(NSString *)roomId
+   publicStreamId:(NSString *)publicStreamId
         errorCode:(ByteRTCPublicStreamErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"roomId"] = roomId;
@@ -557,7 +564,7 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onPushPublicStreamResult"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *_Nonnull)engine onPlayPublicStreamResult:(NSString *_Nonnull)publicStreamId
+- (void)rtcEngine:(ByteRTCVideo *)engine onPlayPublicStreamResult:(NSString *)publicStreamId
         errorCode:(ByteRTCPublicStreamErrorCode)errorCode {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"publicStreamId"] = publicStreamId;
@@ -565,9 +572,9 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onPlayPublicStreamResult"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onPublicStreamSEIMessageReceived:(NSString* _Nonnull)publicStreamId
-       andMessage:(NSData* _Nonnull)message
-    andSourceType:(ByteRTCSEIMessageSourceType)sourceType{
+- (void)rtcEngine:(ByteRTCVideo *)engine onPublicStreamSEIMessageReceived:(NSString*)publicStreamId
+       andMessage:(NSData*)message
+    andSourceType:(ByteRTCDataMessageSourceType)sourceType{
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"publicStreamId"] = publicStreamId;
     dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
@@ -575,27 +582,35 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     [self emitEvent:dict methodName:@"onPublicStreamSEIMessageReceived"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstPublicStreamVideoFrameDecoded:(NSString * _Nonnull)publicStreamId
-    withFrameInfo:(ByteRTCVideoFrameInfo * _Nonnull)frameInfo {
+- (void)rtcEngine:(ByteRTCVideo *)engine onPublicStreamDataMessageReceived:(NSString *)publicStreamId andMessage:(NSData *)message andSourceType:(ByteRTCDataMessageSourceType)sourceType {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"publicStreamId"] = publicStreamId;
+    dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
+    dict[@"sourceType"] = @(sourceType);
+    [self emitEvent:dict methodName:@"onPublicStreamDataMessageReceived"];
+}
+
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstPublicStreamVideoFrameDecoded:(NSString *)publicStreamId
+    withFrameInfo:(ByteRTCVideoFrameInfo *)frameInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"publicStreamId"] = publicStreamId;
     dict[@"videoFrame"] = frameInfo.bf_toMap;
     [self emitEvent:dict methodName:@"onFirstPublicStreamVideoFrameDecoded"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onFirstPublicStreamAudioFrame:(NSString * _Nonnull)publicStreamId {
+- (void)rtcEngine:(ByteRTCVideo *)engine onFirstPublicStreamAudioFrame:(NSString *)publicStreamId {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"publicStreamId"] = publicStreamId;
     [self emitEvent:dict methodName:@"onFirstPublicStreamAudioFrame"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo *  _Nonnull)engine onCloudProxyConnected:(NSInteger)interval {
+- (void)rtcEngine:(ByteRTCVideo * )engine onCloudProxyConnected:(NSInteger)interval {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"interval"] = @(interval);
     [self emitEvent:dict methodName:@"onCloudProxyConnected"];
 }
 
-- (void)rtcEngine:(ByteRTCVideo * _Nonnull)engine onEchoTestResult:(ByteRTCEchoTestResult)result {
+- (void)rtcEngine:(ByteRTCVideo *)engine onEchoTestResult:(ByteRTCEchoTestResult)result {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"result"] = @(result);
     [self emitEvent:dict methodName:@"onEchoTestResult"];
@@ -621,6 +636,14 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey * _Nonnull)remoteStreamKey
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"result"] = @(result);
     [self emitEvent:dict methodName:@"onHardwareEchoDetectionResult"];
+}
+
+- (void)rtcEngine:(ByteRTCVideo *)engine onLocalProxyStateChanged:(ByteRTCLocalProxyType)type withProxyState:(ByteRTCLocalProxyState)state withProxyError:(ByteRTCLocalProxyError)error {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"localProxyType"] = @(type);
+    dict[@"localProxyState"] = @(state);
+    dict[@"localProxyError"] = @(error);
+    [self emitEvent:dict methodName:@"onLocalProxyStateChanged"];
 }
 
 @end

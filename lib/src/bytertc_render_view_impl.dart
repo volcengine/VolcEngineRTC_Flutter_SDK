@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -24,10 +25,10 @@ class RTCSurfaceViewState extends State<RTCSurfaceView> {
           onPlatformViewCreated: _onPlatformViewCreated,
           hitTestBehavior: PlatformViewHitTestBehavior.transparent,
           creationParams: {
-            'canvasType': widget.context.canvasType.value,
+            'canvasType': widget.context.canvasType.index,
             'roomId': widget.context.roomId,
             'uid': widget.context.uid,
-            'streamType': widget.context.streamType.value,
+            'streamType': widget.context.streamType.index,
             'renderMode': widget.renderMode.value,
             'backgroundColor': widget.backgroundColor,
             'zOrderOnTop': widget.zOrderOnTop,
@@ -45,10 +46,10 @@ class RTCSurfaceViewState extends State<RTCSurfaceView> {
           onPlatformViewCreated: _onPlatformViewCreated,
           hitTestBehavior: PlatformViewHitTestBehavior.transparent,
           creationParams: {
-            'canvasType': widget.context.canvasType.value,
+            'canvasType': widget.context.canvasType.index,
             'roomId': widget.context.roomId,
             'uid': widget.context.uid,
-            'streamType': widget.context.streamType.value,
+            'streamType': widget.context.streamType.index,
             'renderMode': widget.renderMode.value,
             'backgroundColor': widget.backgroundColor,
           },
@@ -98,7 +99,7 @@ class RTCSurfaceViewState extends State<RTCSurfaceView> {
     return <String, dynamic>{
       'roomId': widget.context.roomId,
       'uid': widget.context.uid,
-      'streamType': widget.context.streamType.value,
+      'streamType': widget.context.streamType.index,
       'renderMode': widget.renderMode.value,
       'backgroundColor': widget.backgroundColor,
     };

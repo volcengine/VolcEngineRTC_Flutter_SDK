@@ -13,6 +13,7 @@ import com.ss.bytertc.engine.RTCRoom;
 import com.ss.bytertc.engine.audio.ISpatialAudio;
 import com.ss.bytertc.engine.data.HumanOrientation;
 import com.ss.bytertc.engine.data.Position;
+import com.ss.bytertc.engine.data.PositionInfo;
 import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCType;
@@ -95,6 +96,34 @@ public class SpatialAudioPlugin extends RTCFlutterPlugin {
                     HumanOrientation orientation = RTCType.toHumanOrientation(arguments.optBox("orientation"));
                     int retValue = mSpatialAudio.updateListenerOrientation(orientation);
 
+                    result.success(retValue);
+                    break;
+                }
+
+                case "updateSelfPosition": {
+                    PositionInfo positionInfo = RTCType.toPositionInfo(arguments.optBox("positionInfo"));
+                    int retValue = mSpatialAudio.updateSelfPosition(positionInfo);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "updateRemotePosition": {
+                    String uid = arguments.optString("uid");
+                    PositionInfo positionInfo = RTCType.toPositionInfo(arguments.optBox("positionInfo"));
+                    int retValue = mSpatialAudio.updateRemotePosition(uid, positionInfo);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "removeRemotePosition": {
+                    String uid = arguments.optString("uid");
+                    int retValue = mSpatialAudio.removeRemotePosition(uid);
+                    result.success(retValue);
+                    break;
+                }
+
+                case "removeAllRemotePosition": {
+                    int retValue = mSpatialAudio.removeAllRemotePosition();
                     result.success(retValue);
                     break;
                 }

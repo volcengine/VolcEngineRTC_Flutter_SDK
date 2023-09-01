@@ -1,10 +1,10 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
 import '../src/base/bytertc_enum_convert.dart';
 
 /// 歌曲过滤方式
-enum KTVMusicFilterType {
+enum MusicFilterType {
   /// 不过滤
   none,
 
@@ -22,7 +22,7 @@ enum KTVMusicFilterType {
 }
 
 /// 榜单类别
-enum KTVMusicHotType {
+enum MusicHotType {
   /// 火山内容中心热歌榜
   contentCenter,
 
@@ -31,7 +31,7 @@ enum KTVMusicHotType {
 }
 
 /// 音乐播放状态
-enum KTVPlayState {
+enum PlayState {
   /// 播放中
   playing,
 
@@ -49,7 +49,7 @@ enum KTVPlayState {
 }
 
 /// 原唱伴唱类型
-enum KTVAudioTrackType {
+enum AudioTrackType {
   /// 播放原唱
   original,
 
@@ -58,7 +58,7 @@ enum KTVAudioTrackType {
 }
 
 ///音乐播放类型
-enum KTVAudioPlayType {
+enum AudioPlayType {
   /// 仅本地播放
   local,
 
@@ -70,7 +70,7 @@ enum KTVAudioPlayType {
 }
 
 /// 歌词格式类型
-enum KTVLyricStatus {
+enum LyricStatus {
   /// 无歌词
   none,
 
@@ -85,7 +85,7 @@ enum KTVLyricStatus {
 }
 
 /// 下载文件类型
-enum KTVDownloadFileType {
+enum DownloadFileType {
   /// 音频文件
   music,
 
@@ -100,7 +100,7 @@ enum KTVDownloadFileType {
 }
 
 /// 歌词文件类型
-enum KTVDownloadLyricType {
+enum DownloadLyricType {
   /// KRC 歌词文件
   krc,
 
@@ -109,7 +109,7 @@ enum KTVDownloadLyricType {
 }
 
 /// KTV 功能相关错误码
-enum KTVError {
+enum KTVErrorCode {
   /// 成功
   ok,
 
@@ -154,10 +154,28 @@ enum KTVError {
 
   /// 内部错误，联系技术支持人员
   internal,
+
+  /// 下载失败，磁盘空间不足。清除缓存后重试。
+  insufficientDiskSpace,
+
+  /// 下载失败，音乐文件解密失败，联系技术支持人员。
+  musicDecryptionFailed,
+
+  /// 下载失败，音乐文件重命名失败，请重试。
+  fileRenameFailed,
+
+  /// 下载失败，下载超时，请重试。
+  downloadTimeOut,
+
+  /// 清除缓存失败，可能原因是文件被占用或者系统异常，请重试。
+  clearCacheFailed,
+
+  /// 取消下载。
+  downloadCanceled,
 }
 
 /// KTV 播放器错误码
-enum KTVPlayerError {
+enum KTVPlayerErrorCode {
   /// 成功
   ok,
 
@@ -199,7 +217,7 @@ enum KTVPlayerError {
 }
 
 /// 歌曲数据
-class KTVMusic {
+class MusicInfo {
   /// 音乐 ID
   final String musicId;
 
@@ -222,7 +240,7 @@ class KTVMusic {
   final String posterUrl;
 
   /// 歌词格式类型
-  final KTVLyricStatus lyricStatus;
+  final LyricStatus lyricStatus;
 
   /// 歌曲长度，单位为毫秒
   final int duration;
@@ -236,7 +254,8 @@ class KTVMusic {
   /// 歌曲高潮片段停止时间，单位为毫秒
   final int climaxEndTime;
 
-  const KTVMusic({
+  /// @nodoc
+  const MusicInfo({
     required this.musicId,
     required this.musicName,
     required this.singer,
@@ -252,8 +271,8 @@ class KTVMusic {
   });
 
   /// @nodoc
-  factory KTVMusic.fromMap(Map<dynamic, dynamic> map) {
-    return KTVMusic(
+  factory MusicInfo.fromMap(Map<dynamic, dynamic> map) {
+    return MusicInfo(
       musicId: map['musicId'],
       musicName: map['musicName'],
       singer: map['singer'],
@@ -271,54 +290,56 @@ class KTVMusic {
 }
 
 /// 热榜歌曲数据
-class KTVHotMusicInfo {
+class HotMusicInfo {
   /// 榜单类别
-  final KTVMusicHotType hotType;
+  final MusicHotType hotType;
 
   /// 热榜名称
   final String? hotName;
 
   /// 歌曲数据
-  final List<KTVMusic>? musics;
+  final List<MusicInfo>? musicInfos;
 
-  const KTVHotMusicInfo({
+  /// @nodoc
+  const HotMusicInfo({
     required this.hotType,
     this.hotName,
-    this.musics,
+    this.musicInfos,
   });
 
   /// @nodoc
-  factory KTVHotMusicInfo.fromMap(Map<dynamic, dynamic> map) {
-    return KTVHotMusicInfo(
+  factory HotMusicInfo.fromMap(Map<dynamic, dynamic> map) {
+    return HotMusicInfo(
       hotType: (map['hotType'] as int?).ktvMusicHotType,
       hotName: map['hotName'],
-      musics: (map['musics'] as List?)
-          ?.map((e) => KTVMusic.fromMap(e))
+      musicInfos: (map['musicInfos'] as List?)
+          ?.map((e) => MusicInfo.fromMap(e))
           .toList(growable: false),
     );
   }
 }
 
 /// 歌曲下载信息
-class KTVDownloadResult {
+class DownloadResult {
   /// 音乐 ID
   final String musicId;
 
   /// 下载文件类型
-  final KTVDownloadFileType fileType;
+  final DownloadFileType fileType;
 
   /// 文件存放路径
   final String? filePath;
 
-  const KTVDownloadResult({
+  /// @nodoc
+  const DownloadResult({
     required this.musicId,
     required this.fileType,
     this.filePath,
   });
 
   /// @nodoc
-  factory KTVDownloadResult.fromMap(Map<dynamic, dynamic> map) {
-    return KTVDownloadResult(
+  factory DownloadResult.fromMap(Map<dynamic, dynamic> map) {
+    return DownloadResult(
       musicId: map['musicId'],
       fileType: (map['fileType'] as int?).ktvDownloadFileType,
       filePath: map['filePath'],

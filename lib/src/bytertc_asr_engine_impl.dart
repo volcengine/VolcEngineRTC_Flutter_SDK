@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import '../api/bytertc_asr_engine_event_handler.dart';
 import 'base/bytertc_event_serialize.dart';
 

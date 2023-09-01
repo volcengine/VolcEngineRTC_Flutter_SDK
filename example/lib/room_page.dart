@@ -6,6 +6,7 @@ import 'package:volc_engine_rtc_example/user_live_view.dart';
 import 'package:volc_engine_rtc/volc_engine_rtc.dart';
 
 import 'constants.dart';
+import 'localizations.dart';
 
 /// VolcEngineRTC 视频通话的主页面
 /// 本示例不限制房间内最大用户数；同时最多渲染四个用户的视频数据（自己和三个远端用户视频数据）；
@@ -206,7 +207,7 @@ class _RoomPageState extends State<RoomPage> {
         RTCVideoContext(appId, eventHandler: _videoHandler));
 
     if (_rtcVideo == null) {
-      _showAlert('引擎创建失败\n请先检查是否设置正确的AppId');
+      _showAlert(Localizator.createVideoErrorTip);
       return;
     }
 
@@ -259,6 +260,7 @@ class _RoomPageState extends State<RoomPage> {
         return;
       }
 
+      /// 设置远端用户视频渲染视图
       if (_firstRemoteRenderContext == null) {
         setState(() {
           _firstRemoteRenderContext =
@@ -323,8 +325,8 @@ class _RoomPageState extends State<RoomPage> {
           content: Text(warning),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, '知道了'),
-              child: const Text('知道了'),
+              onPressed: () => Navigator.pop(context),
+              child: Text(Localizator.ok),
             ),
           ],
         ),
@@ -353,11 +355,11 @@ class _RoomPageState extends State<RoomPage> {
     setState(() {
       _enableAudio = !_enableAudio;
     });
+
+    /// 控制本地音频的发送状态：发送/不发送
     if (_enableAudio) {
-      /// 开启本地音频发送
       _rtcRoom?.publishStream(MediaStreamType.audio);
     } else {
-      /// 关闭本地音频发送
       _rtcRoom?.unpublishStream(MediaStreamType.audio);
     }
   }
@@ -366,11 +368,11 @@ class _RoomPageState extends State<RoomPage> {
     setState(() {
       _enableVideo = !_enableVideo;
     });
+
+    /// 控制视频采集。默认为关闭
     if (_enableVideo) {
-      /// 开启视频采集
       _rtcVideo?.startVideoCapture();
     } else {
-      /// 关闭视频采集
       _rtcVideo?.stopVideoCapture();
     }
   }

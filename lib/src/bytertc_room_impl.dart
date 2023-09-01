@@ -1,6 +1,7 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
@@ -85,24 +86,24 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> setUserVisibility(bool enable) {
-    return _invokeMethod('setUserVisibility', {
+  Future<int?> setUserVisibility(bool enable) {
+    return _invokeMethod<int>('setUserVisibility', {
       'insId': _insId,
       'enable': enable,
     });
   }
 
   @override
-  Future<void> setMultiDeviceAVSync(String audioUid) {
-    return _invokeMethod<void>('setMultiDeviceAVSync', {
+  Future<int?> setMultiDeviceAVSync(String audioUid) {
+    return _invokeMethod<int>('setMultiDeviceAVSync', {
       'insId': _insId,
       'audioUid': audioUid,
     });
   }
 
   @override
-  Future<void> leaveRoom() {
-    return _invokeMethod<void>('leaveRoom', {'insId': _insId});
+  Future<int?> leaveRoom() {
+    return _invokeMethod<int>('leaveRoom', {'insId': _insId});
   }
 
   @override
@@ -121,28 +122,28 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> publishStream(MediaStreamType type) {
-    return _invokeMethod<void>(
+  Future<int?> publishStream(MediaStreamType type) {
+    return _invokeMethod<int>(
         'publishStream', {'insId': _insId, 'type': type.value});
   }
 
   @override
-  Future<void> unpublishStream(MediaStreamType type) {
-    return _invokeMethod<void>(
+  Future<int?> unpublishStream(MediaStreamType type) {
+    return _invokeMethod<int>(
         'unpublishStream', {'insId': _insId, 'type': type.value});
   }
 
   @override
-  Future<void> publishScreen(MediaStreamType type) {
-    return _invokeMethod<void>('publishScreen', {
+  Future<int?> publishScreen(MediaStreamType type) {
+    return _invokeMethod<int>('publishScreen', {
       'insId': _insId,
       'type': type.value,
     });
   }
 
   @override
-  Future<void> unpublishScreen(MediaStreamType type) {
-    return _invokeMethod<void>('unpublishScreen', {
+  Future<int?> unpublishScreen(MediaStreamType type) {
+    return _invokeMethod<int>('unpublishScreen', {
       'insId': _insId,
       'type': type.value,
     });
@@ -176,6 +177,7 @@ class RTCRoomImpl implements RTCRoom {
     });
   }
 
+  @override
   Future<int?> unsubscribeAllStreams(MediaStreamType type) {
     return _invokeMethod<int>('unsubscribeAllStreams', {
       'insId': _insId,
@@ -204,19 +206,19 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> pauseAllSubscribedStream(PauseResumeControlMediaType mediaType) {
-    return _invokeMethod<void>('pauseAllSubscribedStream', {
+  Future<int?> pauseAllSubscribedStream(PauseResumeControlMediaType mediaType) {
+    return _invokeMethod<int>('pauseAllSubscribedStream', {
       'insId': _insId,
-      'mediaType': mediaType.value,
+      'mediaType': mediaType.index,
     });
   }
 
   @override
-  Future<void> resumeAllSubscribedStream(
+  Future<int?> resumeAllSubscribedStream(
       PauseResumeControlMediaType mediaType) {
-    return _invokeMethod<void>('resumeAllSubscribedStream', {
+    return _invokeMethod<int>('resumeAllSubscribedStream', {
       'insId': _insId,
-      'mediaType': mediaType.value,
+      'mediaType': mediaType.index,
     });
   }
 
@@ -229,7 +231,7 @@ class RTCRoomImpl implements RTCRoom {
       'insId': _insId,
       'uid': uid,
       'message': message,
-      'config': config.value,
+      'config': config.index,
     });
   }
 
@@ -242,7 +244,7 @@ class RTCRoomImpl implements RTCRoom {
       'insId': _insId,
       'uid': uid,
       'message': message,
-      'config': config.value,
+      'config': config.index,
     });
   }
 
@@ -281,22 +283,22 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> stopForwardStreamToRooms() {
-    return _invokeMethod<void>('stopForwardStreamToRooms', {
+  Future<int?> stopForwardStreamToRooms() {
+    return _invokeMethod<int>('stopForwardStreamToRooms', {
       'insId': _insId,
     });
   }
 
   @override
-  Future<void> pauseForwardStreamToAllRooms() {
-    return _invokeMethod<void>('pauseForwardStreamToAllRooms', {
+  Future<int?> pauseForwardStreamToAllRooms() {
+    return _invokeMethod<int>('pauseForwardStreamToAllRooms', {
       'insId': _insId,
     });
   }
 
   @override
-  Future<void> resumeForwardStreamToAllRooms() {
-    return _invokeMethod<void>('resumeForwardStreamToAllRooms', {
+  Future<int?> resumeForwardStreamToAllRooms() {
+    return _invokeMethod<int>('resumeForwardStreamToAllRooms', {
       'insId': _insId,
     });
   }
@@ -312,9 +314,42 @@ class RTCRoomImpl implements RTCRoom {
   }
 
   @override
-  Future<void> setRemoteRoomAudioPlaybackVolume(int volume) =>
-      _invokeMethod<void>('setRemoteRoomAudioPlaybackVolume', {
+  Future<int?> setRemoteRoomAudioPlaybackVolume(int volume) =>
+      _invokeMethod<int>('setRemoteRoomAudioPlaybackVolume', {
         'insId': _insId,
         'volume': volume,
       });
+
+  @override
+  Future<int?> setAudioSelectionConfig(
+      AudioSelectionPriority audioSelectionPriority) {
+    return _invokeMethod<int>('setAudioSelectionConfig', {
+      'insId': _insId,
+      'audioSelectionPriority': audioSelectionPriority.index,
+    });
+  }
+
+  @override
+  Future<int?> setRoomExtraInfo({required String key, required String value}) {
+    return _invokeMethod<int>('setRoomExtraInfo', {
+      'insId': _insId,
+      'key': key,
+      'value': value,
+    });
+  }
+
+  @override
+  Future<int?> startSubtitle(SubtitleConfig subtitleConfig) {
+    return _invokeMethod<int>('startSubtitle', {
+      'insId': _insId,
+      'subtitleConfig': subtitleConfig.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> stopSubtitle() {
+    return _invokeMethod<int>('stopSubtitle', {
+      'insId': _insId,
+    });
+  }
 }

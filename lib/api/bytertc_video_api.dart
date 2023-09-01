@@ -10,13 +10,16 @@ import 'package:async/async.dart';
 import '../src/bytertc_video_impl.dart';
 import 'bytertc_asr_engine_event_handler.dart';
 import 'bytertc_audio_defines.dart';
+import 'bytertc_audio_effect_player_api.dart';
 import 'bytertc_audio_mixing_api.dart';
+import 'bytertc_cdn_stream_observer.dart';
 import 'bytertc_face_detection_observer.dart';
 import 'bytertc_ktv_manager_api.dart';
 import 'bytertc_live_transcoding_observer.dart';
 import 'bytertc_media_defines.dart';
-import 'bytertc_push_single_stream_to_cdn_observer.dart';
+import 'bytertc_media_player_api.dart';
 import 'bytertc_room_api.dart';
+import 'bytertc_room_event_handler.dart';
 import 'bytertc_rts_defines.dart';
 import 'bytertc_sing_scoring_manager_api.dart';
 import 'bytertc_video_defines.dart';
@@ -29,19 +32,30 @@ abstract class RTCVideo {
   ///
   /// 如果当前线程中未创建引擎实例，那么你必须先使用此方法，以使用 RTC 提供的各种音视频能力。  <br>
   /// 如果当前线程中已创建了引擎实例，再次调用此方法时，会返回已创建的引擎实例。
-  static Future<RTCVideo?> createRTCVideo(RTCVideoContext context) {
-    return RTCVideoImpl.createRTCVideo(context);
-  }
+  static Future<RTCVideo?> createRTCVideo(RTCVideoContext context) =>
+      RTCVideoImpl.createRTCVideo(context);
 
   /// 获取当前 SDK 版本信息
-  static Future<String?> getSDKVersion() {
-    return RTCVideoImpl.getSDKVersion();
-  }
+  static Future<String?> getSDKVersion() => RTCVideoImpl.getSDKVersion();
+
+  /// v3.54.1 新增
+  ///
+  /// 配置 SDK 本地日志参数，包括日志级别、存储路径、可使用的最大缓存空间。
+  ///
+  /// [logConfig]：本地日志参数。
+  ///
+  /// 返回值：
+  /// + 0：成功。
+  /// + –1：失败，本方法必须在创建引擎前调用。
+  /// + –2：失败，参数填写错误。
+  ///
+  /// 本方法必须在调用 [RTCVideo.createRTCVideo] 之前调用。
+  static Future<int?> setLogConfig(RTCLogConfig logConfig) =>
+      RTCVideoImpl.setLogConfig(logConfig);
 
   /// 获取 SDK 内各种错误码、警告码的描述文字。
-  static Future<String?> getErrorDescription(int code) {
-    return RTCVideoImpl.getErrorDescription(code);
-  }
+  static Future<String?> getErrorDescription(int code) =>
+      RTCVideoImpl.getErrorDescription(code);
 
   /// 销毁由 [RTCVideo.createRTCVideo] 所创建的引擎实例，并释放所有相关资源。
   ///
@@ -59,22 +73,30 @@ abstract class RTCVideo {
   /// 调用该方法开启采集后，本地用户会收到 [RTCVideoEventHandler.onAudioDeviceStateChanged] 的回调。
   /// 可见用户进房后调用该方法，房间中的其他用户会收到 [RTCVideoEventHandler.onUserStartAudioCapture] 回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 若未取得当前设备的麦克风权限，调用该方法后会触发 [RTCVideoEventHandler.onWarning] 回调。
   /// + 调用 [RTCVideo.stopAudioCapture] 可以关闭音频采集设备，否则，SDK 只会在销毁引擎的时候自动关闭设备。
   /// + 由于不同硬件设备初始化响应时间不同，频繁调用本方法和 [RTCVideo.stopAudioCapture] 可能出现短暂无声问题，建议使用 [RTCRoom.publishStream]/[RTCRoom.unpublishStream] 实现临时闭麦和重新开麦。
   /// + 无论是否发布音频数据，你都可以调用该方法开启音频采集，并且调用后方可发布音频。
-  Future<void> startAudioCapture();
+  Future<int?> startAudioCapture();
 
   /// 关闭内部音频采集，默认为关闭状态
   ///
   /// 调用该方法后，本地用户会收到 [RTCVideoEventHandler.onAudioDeviceStateChanged] 的回调。
   /// 可见用户进房后调用该方法，房间中的其他用户会收到 [RTCVideoEventHandler.onUserStopAudioCapture] 的回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用 [RTCVideo.startAudioCapture] 可以开启音频采集设备。
   /// + 设备开启后若一直未调用该方法关闭设备，则 SDK 会在销毁引擎的时候自动关闭音频采集设备。
-  Future<void> stopAudioCapture();
+  Future<int?> stopAudioCapture();
 
   /// 设置音频场景类型
   ///
@@ -82,19 +104,27 @@ abstract class RTCVideo {
   /// 选择音频场景后，RTC 会自动根据客户端音频路由和发布订阅状态，适用通话音量/媒体音量。<br>
   /// 在进房前和进房后设置均可生效。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 通话音量更适合通话，会议等对信息准确度要求更高的场景。通话音量会激活系统硬件信号处理，使通话声音会更清晰。此时，音量无法降低到 0。
   /// + 媒体音量更适合娱乐场景，因其声音的表现力会更强。媒体音量下，音量最低可以降低到 0。
-  Future<void> setAudioScenario(AudioScenario audioScenario);
+  Future<int?> setAudioScenario(AudioScenario audioScenario);
 
   /// 设置音质档位
   ///
   /// 当所选的 [RoomProfile] 中的音频参数无法满足你的场景需求时，调用本接口切换的音质档位。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 该方法在进房前后均可调用；
   /// + 支持通话过程中动态切换音质档位。
-  Future<void> setAudioProfile(AudioProfileType audioProfile);
+  Future<int?> setAudioProfile(AudioProfileType audioProfile);
 
   /// 支持根据业务场景，设置通话中的音频降噪模式。
   ///
@@ -102,8 +132,12 @@ abstract class RTCVideo {
   ///
   /// [ansMode]：降噪模式。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 该接口进房前后均可调用，可重复调用，仅最后一次调用生效。
-  Future<void> setAnsMode(AnsMode ansMode);
+  Future<int?> setAnsMode(AnsMode ansMode);
 
   /// 设置变声特效类型
   ///
@@ -134,8 +168,8 @@ abstract class RTCVideo {
   /// [config]：语音均衡效果。
   ///
   /// 返回值：
-  /// + 0：成功；
-  /// + < 0：失败。
+  /// + `0`：成功；
+  /// + `<0`：失败。
   ///
   /// 注意：根据奈奎斯特采样率，音频采样率必须大于等于设置的中心频率的两倍，否则，设置不生效。
   Future<int?> setLocalVoiceEqualization(VoiceEqualizationConfig config);
@@ -146,8 +180,8 @@ abstract class RTCVideo {
   /// [config]：混响效果。
   ///
   /// 返回值：
-  /// + 0：成功；
-  /// + < 0：失败。
+  /// + `0`：成功；
+  /// + `<0`：失败。
   ///
   /// 调用 [RTCVideo.enableLocalVoiceReverb] 开启混响效果。
   Future<int?> setLocalVoiceReverbParam(VoiceReverbConfig config);
@@ -160,16 +194,20 @@ abstract class RTCVideo {
   /// 调节音频采集音量
   ///
   /// [volume] 指采集的音量值和原始音量的比值，范围是 `[0, 400]`，单位为 %。<br>
-  /// 只改变音频数据的音量信息，不涉及本端硬件的音量调节。
+  /// 只改变音频数据的音量信息，不涉及本端硬件的音量调节。<br>
   /// 为保证更好的通话质量，建议将 volume 值设为 `[0,100]`。
   /// + 0：静音
   /// + 100：原始音量
   /// + 400: 最大可为原始音量的 4 倍(自带溢出保护)
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 无论是采集来自麦克风的音频流，还是屏幕音频流，都可以使用此接口进行音量调节。
   /// + 在开启音频采集前后，你都可以使用此接口设定采集音量。
-  Future<void> setCaptureVolume({
+  Future<int?> setCaptureVolume({
     StreamIndex index = StreamIndex.main,
     required int volume,
   });
@@ -183,16 +221,24 @@ abstract class RTCVideo {
   /// + 100：原始音量；
   /// + 400: 最大可为原始音量的 4 倍(自带溢出保护)。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 假设某远端用户 A 始终在被调节的目标用户范围内，当该方法与 [RTCVideo.setRemoteAudioPlaybackVolume] 或 [RTCRoom.setRemoteRoomAudioPlaybackVolume] 共同使用时，本地收听用户 A 的音量将为两次设置的音量效果的叠加。
-  Future<void> setPlaybackVolume(int volume);
+  Future<int?> setPlaybackVolume(int volume);
 
   /// 启用音量提示
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 开启提示后，你可以：
   /// + 通过 [RTCVideoEventHandler.onLocalAudioPropertiesReport] 获取本地麦克风和屏幕音频流采集的音量信息。
   /// + 通过 [RTCVideoEventHandler.onRemoteAudioPropertiesReport] 获取订阅的远端用户的音量信息。
   /// + 通过 [RTCVideoEventHandler.onActiveSpeaker] 回调获取房间内的最活跃用户信息。
-  Future<void> enableAudioPropertiesReport(AudioPropertiesConfig config);
+  Future<int?> enableAudioPropertiesReport(AudioPropertiesConfig config);
 
   /// 调节来自指定远端用户的音频播放音量
   ///
@@ -212,7 +258,7 @@ abstract class RTCVideo {
   /// 假设某远端用户 A 始终在被调节的目标用户范围内：
   /// + 当该方法与 [RTCRoom.setRemoteRoomAudioPlaybackVolume] 共同使用时，本地收听用户 A 的音量为后调用的方法设置的音量；
   /// + 当该方法与 [RTCVideo.setPlaybackVolume] 方法共同使用时，本地收听用户 A 的音量将为两次设置的音量效果的叠加。
-  Future<void> setRemoteAudioPlaybackVolume({
+  Future<int?> setRemoteAudioPlaybackVolume({
     required String roomId,
     required String uid,
     required int volume,
@@ -222,19 +268,27 @@ abstract class RTCVideo {
   ///
   /// [mode] 耳返功能是否开启。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 耳返功能仅适用于由 RTC SDK 内部采集的音频。
   /// + 使用耳返功能必须佩戴耳机。为保证低延时耳返最佳体验，建议佩戴有线耳机。蓝牙耳机不支持硬件耳返。 <br>
   /// + RTC SDK 支持硬件耳返和软件耳返。一般来说，硬件耳返延时低且音质好。如果 App 在手机厂商的硬件耳返白名单内，且运行环境存在支持硬件耳返的 SDK，RTC SDK 默认启用硬件耳返。使用华为手机硬件耳返功能时，请添加[华为硬件耳返的依赖配置](https://www.volcengine.com/docs/6348/113523)。
-  Future<void> setEarMonitorMode(EarMonitorMode mode);
+  Future<int?> setEarMonitorMode(EarMonitorMode mode);
 
   /// 设置耳返的音量。
   ///
   /// [volume] 是耳返的音量相对原始音量的比值，取值范围：`[0,100]`，单位：%。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// 设置耳返音量前，你必须先调用 [RTCVideo.setEarMonitorMode] 打开耳返功能。
-  Future<void> setEarMonitorVolume(int volume);
+  Future<int?> setEarMonitorVolume(int volume);
 
   /// 在纯媒体音频场景下,切换 iOS 设备与耳机之间的蓝牙传输协议<br>
   /// 仅 iOS 适用。
@@ -244,7 +298,7 @@ abstract class RTCVideo {
   /// 以下场景你会收到 [RTCVideoEventHandler.onAudioDeviceWarning] 回调：
   /// + 当前不支持设置 HFP；
   /// + 非纯媒体音频场景，建议在调用此接口前调用 [setAudioScenario] 设置纯媒体音频场景。
-  Future<void> setBluetoothMode(BluetoothMode mode);
+  Future<int?> setBluetoothMode(BluetoothMode mode);
 
   /// 开启本地语音变调功能，多用于 K 歌场景
   ///
@@ -253,35 +307,51 @@ abstract class RTCVideo {
   /// [pitch] 相对于语音原始音调的升高/降低值，取值范围 `[-12，12]`，默认值为 `0`，即不做调整。  <br>
   /// 取值范围内每相邻两个值的音高距离相差半音，正值表示升调，负值表示降调，设置的绝对值越大表示音调升高或降低越多。  <br>
   /// 超出取值范围则设置失败，并且会触发 [RTCVideoEventHandler.onWarning] 回调。
-  Future<void> setLocalVoicePitch(int pitch);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> setLocalVoicePitch(int pitch);
 
   /// 开启/关闭音量均衡功能
   ///
-  /// 开启音量均衡功能后，人声的响度会调整为 -16lufs。如果已调用 [RTCAudioMixingManager.setAudioMixingLoudness] 传入了混音音乐的原始响度，此音乐播放时，响度会调整为 -20lufs。
+  /// 开启音量均衡功能后，人声的响度会调整为 -16lufs。如果已调用 [RTCMediaPlayer.setLoudness] 传入了混音音乐的原始响度，此音乐播放时，响度会调整为 -20lufs。
   ///
-  /// 注意：该接口须在调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音频文件之前调用。
-  Future<void> enableVocalInstrumentBalance(bool enable);
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
+  /// 注意：该接口须在调用 [RTCMediaPlayer.start] 开始播放音频文件之前调用。
+  Future<int?> enableVocalInstrumentBalance(bool enable);
 
   /// 打开/关闭音量闪避功能，适用于在 RTC 通话过程中会同时播放短视频或音乐的场景，如“一起看”、“在线 KTV”等
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 开启该功能后，当检测到远端人声时，本地的媒体播放音量会自动减弱，从而保证远端人声的清晰可辨；当远端人声消失时，本地媒体音量会恢复到闪避前的音量水平。
-  Future<void> enablePlaybackDucking(bool enable);
+  Future<int?> enablePlaybackDucking(bool enable);
 
-  /// 设置视频流发布端是否开启发布多路编码参数不同的视频流的模式，默认关闭
+  /// 设置视频流发布端是否开启发布多路编码参数不同的视频流的模式，默认关闭。
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
   /// + 你应在进房前或进房后但未发布流时，调用此方法。
   /// + 开启推送多路视频流模式后，你可以调用 [RTCVideo.setVideoEncoderConfig] 为多路视频流分别设置编码参数。
   /// + 该功能关闭时，或该功能开启但未设置多路流参数时，默认只发一路视频流，该流的编码参数为：分辨率 640px × 360px，帧率 15fps。
-  Future<void> enableSimulcastMode(bool enable);
+  Future<int?> enableSimulcastMode(bool enable);
 
   /// 视频发布端设置期望发布的最大分辨率视频流参数，包括分辨率、帧率、码率、缩放模式、网络不佳时的回退策略等
   ///
   /// [maxSolution] 期望发布的最大分辨率视频流参数。
   ///
   /// 注意：
-  /// + 若调用该方法设置了期望发布的最大分辨率的流参数之前，已调用 [RTCVideo.enableSimulcastMode] 开启发布多路视频流的模式，SDK 会根据订阅端的设置自动调整发布的流数以及各路流的参数，其中最大分辨率为设置的分辨率，流数最多 4 条，具体参看[推送多路流](https://www.volcengine.com/docs/6348/70139)文档；否则仅发布该条最大分辨率的视频流。
-  /// + 调用该方法设置多路视频流参数前，SDK 默认仅发布一条分辨率为 640px × 360px，帧率为 15fps 的视频流。
+  /// + 你可以同时使用 [RTCVideo.enableSimulcastMode] 方法来发布多路分辨率不同的流。具体而言，若期望发布多路不同分辨率的流，你需要在发布流之前调用本方法以及 [RTCVideo.enableSimulcastMode] 方法开启多路流模式，SDK 会根据订阅端的设置智能调整发布的流数（最多发布 4 条）以及各路流的参数。其中，调用本方法设置的分辨率为各路流中的最大分辨率。具体规则参看[推送多路流](https://www.volcengine.com/docs/6348/70139)文档。
+  /// + 调用该方法前，SDK 默认仅发布一条分辨率为 640px × 360px，帧率为 15fps 的视频流。
   /// + 该方法适用于摄像头采集的视频流，设置屏幕共享视频流参数参看 [RTCVideo.setScreenVideoEncoderConfig]。
   Future<int?> setMaxVideoEncoderConfig(VideoEncoderConfig maxSolution);
 
@@ -291,7 +361,8 @@ abstract class RTCVideo {
   /// 当设置了多路参数时，分辨率和帧率必须是从大到小排列。需注意，所设置的分辨率是各路流的最大分辨率。
   ///
   /// 注意：
-  /// + 该方法是否生效取决于是否同时调用了 [RTCVideo.enableSimulcastMode] 开启发布多路参数不同的视频流模式。若未开启推送多路流模式，但调用本方法设置了多个分辨率，SDK 默认发布分辨率最大的一条流，多个分辨率的设置会在开启推送多路流模式之后生效。
+  /// + 该方法设置的多路参数是否均生效，取决于是否同时调用了 [RTCVideo.enableSimulcastMode] 开启发布多路参数不同的视频流模式。若未开启推送多路流模式，但调用本方法设置了多个分辨率，SDK 则默认发布设置的第一条流，多个分辨率的设置会在开启推送多路流模式之后生效。
+  /// + 若期望推送多路不同分辨率的流，你需要在发布流之前调用本方法以及 [RTCVideo.enableSimulcastMode] 方法。
   /// + 调用该方法设置多路视频流参数前，SDK 默认仅发布一条分辨率为 640px × 360px，帧率为 15fps 的视频流。
   /// + 调用该方法设置分辨率不同的多条流后，SDK 会根据订阅端设置的期望订阅参数自动匹配发送的流，具体规则参看[推送多路流](https://www.volcengine.com/docs/6348/70139)文档。
   /// + 该方法适用于摄像头采集的视频流，设置屏幕共享视频流参数参看 [RTCVideo.setScreenVideoEncoderConfig]。
@@ -330,25 +401,37 @@ abstract class RTCVideo {
   /// 调用该方法后，本地用户会收到 [RTCVideoEventHandler.onVideoDeviceStateChanged] 的回调。
   /// 可见用户进房后调用该方法，房间中的其他用户会收到 [RTCVideoEventHandler.onUserStartVideoCapture] 回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 若未取得当前设备的摄像头权限，调用该方法后会触发 [RTCVideoEventHandler.onVideoDeviceStateChanged] 回调。
   /// + 调用 [RTCVideo.stopVideoCapture] 可以关闭视频采集设备，否则，SDK 只会在销毁引擎的时候自动关闭设备。
   /// + 无论是否发布视频数据，你都可以调用该方法开启视频采集，并且调用后方可发布视频。
   /// + 内部视频采集使用的摄像头由 [RTCVideo.switchCamera] 接口指定。
   /// + Android 需要在 Gradle 里引入 Kotlin；iOS 需要在应用中向用户申请摄像头权限后才能开始采集。
-  Future<void> startVideoCapture();
+  Future<int?> startVideoCapture();
 
   /// 关闭本地视频采集，默认为关闭状态
   ///
   /// 调用该方法，本地用户会收到 [RTCVideoEventHandler.onVideoDeviceStateChanged] 的回调。
   /// 可见用户进房后调用该方法，房间中的其他用户会收到 [RTCVideoEventHandler.onUserStopVideoCapture] 回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   ///  注意：
   /// + 调用 [RTCVideo.startVideoCapture] 可以开启视频采集设备。
   /// + 设备开启后若一直未调用该方法关闭，则 SDK 会在销毁引擎的时候自动关闭音频采集设备。
-  Future<void> stopVideoCapture();
+  Future<int?> stopVideoCapture();
 
   /// 为本地采集到的视频流开启镜像
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
   /// + 切换视频源不影响镜像设置。
@@ -359,7 +442,7 @@ abstract class RTCVideo {
   /// <tr><td>移动端</td><td>本地渲染镜像，编码传输不镜像</td><td> 本地渲染不镜像，编码传输不镜像 </td><td>/</td>
   /// <tr><td>桌面端</td><td>/</td><td>/</td><td> 本地渲染镜像，编码传输不镜像 </td>
   /// </table>
-  Future<void> setLocalVideoMirrorType(MirrorType mirrorType);
+  Future<int?> setLocalVideoMirrorType(MirrorType mirrorType);
 
   /// 设置采集视频的旋转模式，默认以 App 方向为旋转参考系
   ///
@@ -367,11 +450,15 @@ abstract class RTCVideo {
   ///
   /// [rotationMode] 视频旋转参考系为 App 方向或重力方向。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 旋转仅对内部视频采集生效，不适用于外部视频源和屏幕源。
   /// + 调用该接口时已开启视频采集，将立即生效；调用该接口时未开启视频采集，则将在采集开启后生效。
   /// + 更多信息请参考[视频采集方向](https://www.volcengine.com/docs/6348/106458)。
-  Future<void> setVideoRotationMode(VideoRotationMode rotationMode);
+  Future<int?> setVideoRotationMode(VideoRotationMode rotationMode);
 
   /// 在自定义视频前处理及编码前，设置 RTC 链路中的视频帧朝向，默认为 Adaptive 模式
   ///
@@ -379,19 +466,27 @@ abstract class RTCVideo {
   /// 单流转推场景下，建议根据业务需要固定视频帧朝向为 Portrait 或 Landscape 模式。<br>
   /// 不同模式的具体显示效果参看[视频帧朝向](https://www.volcengine.com/docs/6348/128787)。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 设置视频帧朝向仅对内部视频采集生效，不适用于外部视频源和屏幕源。
   /// + 编码分辨率的更新与视频帧处理是异步操作，进房后切换视频帧朝向可能导致画面出现短暂的裁切异常，因此建议在进房前设置视频帧朝向，且不在进房后进行切换。
-  Future<void> setVideoOrientation(VideoOrientation orientation);
+  Future<int?> setVideoOrientation(VideoOrientation orientation);
 
   /// 切换移动端前置/后置摄像头
   ///
   /// 调用此接口后，在本地会触发 [RTCVideoEventHandler.onVideoDeviceStateChanged] 回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用该方法前默认使用前置摄像头。
   /// + 如果你正在使用相机进行视频采集，切换操作当即生效；如果相机未启动，后续开启内部采集时，会打开设定的摄像头。
-  Future<void> switchCamera(CameraId cameraId);
+  Future<int?> switchCamera(CameraId cameraId);
 
   /// 获取视频特效接口。
   RTCVideoEffect get videoEffectInterface;
@@ -406,7 +501,7 @@ abstract class RTCVideo {
   /// + 1001: 特效 SDK 不支持该功能；
   /// + <0: 其他错误，具体参看[错误码表](https://www.volcengine.com/docs/6705/102042)。
   @Deprecated(
-      'Deprecated since 3.50.1 and will be deleted in v3.56.1, use RTCVideoEffect.initCVResource instead.')
+      'Deprecated since v3.50.1 and will be deleted in v3.56.1, use RTCVideoEffect.initCVResource instead.')
   Future<int?> checkVideoEffectLicense(String licenseFile);
 
   /// 创建/销毁视频特效引擎
@@ -426,9 +521,13 @@ abstract class RTCVideo {
   Future<int?> enableVideoEffect(bool enable);
 
   /// 设置视频特效算法模型路径
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   @Deprecated(
       'Deprecated since v3.50.1 and will be deleted in v3.56.1, use RTCVideoEffect.initCVResource instead.')
-  Future<void> setVideoEffectAlgoModelPath(String modelPath);
+  Future<int?> setVideoEffectAlgoModelPath(String modelPath);
 
   /// 设置视频特效素材包
   ///
@@ -626,6 +725,33 @@ abstract class RTCVideo {
   /// 注意：调用 [RTCVideo.stopVideoCapture] 关闭内部采集后，设置的曝光补偿失效。
   Future<int?> setCameraExposureCompensation(double val);
 
+  /// v3.54.1 新增
+  ///
+  /// 启用或禁用内部采集时人脸自动曝光模式。此模式会改善强逆光下，脸部过暗的问题；但也会导致 ROI 以外区域过亮/过暗的问题。
+  ///
+  /// 返回值：
+  /// + `0`：成功。
+  /// + `<0`：失败。
+  ///
+  /// 你必须在调用 [RTCVideo.startVideoCapture] 开启采集前，调用此接口方可生效。
+  Future<int?> enableCameraAutoExposureFaceMode(bool enable);
+
+  /// v3.54.1 新增
+  ///
+  /// 设置内部采集适用动态帧率时，帧率的最小值。
+  ///
+  /// [framerate]：最小值。单位为 fps。默认值是 7。<br>
+  /// 动态帧率的最大帧率是通过 [RTCVideo.setVideoCaptureConfig] 设置的帧率值。当传入参数大于最大帧率时，使用固定帧率模式，帧率为最大帧率；当传入参数小于最大帧率时，使用动态帧率。
+  ///
+  /// 返回值：
+  /// + 0：成功。
+  /// + !0：失败。
+  ///
+  /// 注意：
+  /// + 你必须在调用 [RTCVideo.startVideoCapture] 开启采集前，调用此接口方可生效。
+  /// + 如果由于性能降级、静态适配等原因导致采集最大帧率变化时，已设置的最小帧率值会与新的采集最大帧率值重新比较。比较结果变化可能导致固定/动态帧率模式切换。
+  Future<int?> setCameraAdaptiveMinimumFrameRate(int framerate);
+
   /// 通过视频帧发送 SEI 数据。
   ///
   /// 在视频通话场景下，SEI 数据会随视频帧发送；在语音通话场景下，SDK 会自动生成一路 16px × 16px 的黑帧视频流用来发送 SEI 数据。
@@ -636,7 +762,7 @@ abstract class RTCVideo {
   /// [message]：是 SEI 消息内容，超过 4KB 的消息会被丢弃。
   ///
   /// [repeatCount]：是消息发送重复次数。取值范围是 `[0, max{29, %{视频帧率}-1}]`。推荐范围 `[2,4]`。<br>
-  /// 调用此接口后，这些 SEI 数据会添加到从当前视频帧开始的连续 `%{repeat_count}` 个视频帧中。
+  /// 调用此接口后，这些 SEI 数据会添加到从当前视频帧开始的连续 `%{repeat_count}+1` 个视频帧中。
   ///
   /// [mode]：SEI 发送模式。
   ///
@@ -669,10 +795,14 @@ abstract class RTCVideo {
   /// + `focusOffset`：缩放系数增量，范围为 `[0, 7]`。例如，设置为 0.5 时，如果调用 [setVideoDigitalZoomControl] 选择 `cameraZoomIn`，则缩放系数增加 0.5。缩放系数范围 `[1，8]`，默认为 `1`，原始大小。
   /// + `moveOffset`：移动百分比，范围为 `[0, 0.5]`，默认为 0，不移动。如果调用 [setVideoDigitalZoomControl] 选择的是左右移动，则移动距离为 size x 原始视频宽度；如果选择的是上下移动，则移动距离为 size x 原始视频高度。例如，视频帧边长为 1080 px，设置为 0.5 时，实际移动距离为 0.5 x 1080 px = 540 px。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 每次调用本接口只能设置一种参数。如果缩放系数和移动步长都需要设置，分别调用本接口传入相应参数。
   /// + 由于移动步长的默认值为 `0`，在调用 [setVideoDigitalZoomControl] 或 [startVideoDigitalZoomControl] 进行数码变焦操作前，应先调用本接口。
-  Future<void> setVideoDigitalZoomConfig({
+  Future<int?> setVideoDigitalZoomConfig({
     required ZoomConfigType type,
     double size,
   });
@@ -683,19 +813,27 @@ abstract class RTCVideo {
   ///
   /// [direction]：数码变焦操作类型。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 由于默认步长为 `0`，调用该方法前需通过 [setVideoDigitalZoomConfig] 设置参数。
   /// + 调用该方法进行移动前，应先使用本方法或 [startVideoDigitalZoomControl] 进行放大，否则无法移动。
   /// + 当数码变焦操作超出范围时，将置为临界值。例如，移动到了图片边界、放大到了 8 倍、缩小到原图大小。
   /// + 如果你希望实现持续数码变焦操作，调用 [startVideoDigitalZoomControl]。
   /// + 你还可以对摄像头进行光学变焦控制，参看 [setCameraZoomRatio]。
-  Future<void> setVideoDigitalZoomControl(ZoomDirectionType direction);
+  Future<int?> setVideoDigitalZoomControl(ZoomDirectionType direction);
 
   /// 开启本地摄像头持续数码变焦，缩放或移动。设置对本地预览画面和发布到远端的视频都生效。
   ///
   /// v3.51.1 新增。
   ///
   /// [direction]：数码变焦操作类型。
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
   /// + 由于默认步长为 `0`，调用该方法前需通过 [setVideoDigitalZoomConfig] 设置参数。
@@ -704,14 +842,18 @@ abstract class RTCVideo {
   /// + 你也可以调用 [stopVideoDigitalZoomControl] 手动停止控制。
   /// + 如果你希望实现单次数码变焦操作，调用 [setVideoDigitalZoomControl]。
   /// + 你还可以对摄像头进行光学变焦控制，参看 [setCameraZoomRatio]。
-  Future<void> startVideoDigitalZoomControl(ZoomDirectionType direction);
+  Future<int?> startVideoDigitalZoomControl(ZoomDirectionType direction);
 
   /// 停止本地摄像头持续数码变焦。
   ///
   /// v3.51.1 新增。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 关于开始数码变焦，参看 [startVideoDigitalZoomControl]。
-  Future<void> stopVideoDigitalZoomControl();
+  Future<int?> stopVideoDigitalZoomControl();
 
   /// 强制切换当前的音频播放路由
   ///
@@ -721,17 +863,21 @@ abstract class RTCVideo {
   /// [audioRoute]：音频播放路由。<br>
   /// 对 Android 设备，不同的音频设备连接状态下，可切换的音频设备情况不同。参见[移动端设置音频路由](https://www.volcengine.com/docs/6348/117836)。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 你必须调用 [setAudioScenario] 将音频场景切换为 `communication` 后，再调用本接口。
   /// + 对于绝大多数音频场景，使用 [setDefaultAudioRoute] 设置默认音频路由，并借助 RTC SDK 的音频路由自动切换逻辑即可完成。切换逻辑参见[移动端设置音频路由](https://www.volcengine.com/docs/6348/117836)。你应仅在例外的场景下，使用此接口，比如在接入外接音频设备时，手动切换音频路由。
   /// + 不同音频场景中，音频路由和发布订阅状态到音量类型的映射关系详见 [AudioScenario]。
-  Future<void> setAudioRoute(AudioRoute audioRoute);
+  Future<int?> setAudioRoute(AudioRoute audioRoute);
 
   /// 将默认的音频播放设备设置为听筒或扬声器
   ///
   /// 返回值：
-  /// + 0: 方法调用成功。立即生效。当所有音频外设移除后，音频路由将被切换到默认设备。
-  /// + < 0: 方法调用失败。指定除扬声器和听筒以外的设备将会失败。
+  /// + `0`: 方法调用成功。立即生效。当所有音频外设移除后，音频路由将被切换到默认设备。
+  /// + `<0`: 方法调用失败。指定除扬声器和听筒以外的设备将会失败。
   ///
   /// 注意：
   /// + 进房前后都可以调用。
@@ -745,10 +891,14 @@ abstract class RTCVideo {
 
   /// 启用匹配外置声卡的音频处理模式
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 当采用外接声卡进行音频采集时，建议开启此模式，以获得更好的音质。
   /// + 开启此模式时，仅支持耳机播放。如果需要使用扬声器或者外置音箱播放，关闭此模式。
-  Future<void> enableExternalSoundCard(bool enable);
+  Future<int?> enableExternalSoundCard(bool enable);
 
   /// 新增转推直播任务，并设置合流的图片、视频视图布局和音频属性
   ///
@@ -762,25 +912,85 @@ abstract class RTCVideo {
   /// [observer] 端云一体转推直播观察者。<br>
   /// 通过注册 observer 接收转推直播相关的回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 在调用该接口前，你需要在[控制台](https://console.volcengine.com/rtc/workplaceRTC)开启转推直播功能。
   /// + 调用该方法后，关于启动结果和推流过程中的错误，会收到 [RTCLiveTranscodingObserver.onStreamMixingEvent] 回调。
   /// + 调用 [RTCVideo.stopLiveTranscoding] 停止转推直播。
-  Future<void> startLiveTranscoding({
+  @Deprecated('Deprecated since v3.54.1, use startPushMixedStreamToCDN instead')
+  Future<int?> startLiveTranscoding({
     required String taskId,
     required LiveTranscoding transcoding,
     required RTCLiveTranscodingObserver observer,
   });
 
   /// 停止转推直播
-  Future<void> stopLiveTranscoding(String taskId);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  @Deprecated('Deprecated since v3.54.1, use stopPushStreamToCDN instead')
+  Future<int?> stopLiveTranscoding(String taskId);
 
   /// 更新转推直播参数
   ///
   /// [transcoding] 转推直播配置参数。除特殊说明外，均支持过程中更新。调用时，结构体中没有传入值的属性，会被更新为默认值。
-  Future<void> updateLiveTranscoding({
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  @Deprecated(
+      'Deprecated since v3.54.1, use updatePushMixedStreamToCDN instead')
+  Future<int?> updateLiveTranscoding({
     required String taskId,
     required LiveTranscoding transcoding,
+  });
+
+  /// v3.54.1 新增
+  ///
+  /// 新增合流转推直播任务，并设置合流的图片、视频视图布局和音频属性。<br>
+  /// 同一个任务中转推多路直播流时，SDK 会先将多路流合成一路流，然后再进行转推。
+  ///
+  /// [taskId]：转推直播任务 ID，长度不超过 126 字节。<br>
+  /// 你可以在同一房间内发起多个转推直播任务，并用不同的任务 ID 加以区分。当你需要发起多个转推直播任务时，应使用多个 ID；当你仅需发起一个转推直播任务时，建议使用空字符串。
+  ///
+  /// [mixedConfig]：推直播配置参数。
+  ///
+  /// [observer]：端云一体转推直播观察者。通过注册 observer 接收转推直播相关的回调。
+  ///
+  /// 返回值：
+  /// + 0：成功；
+  /// + !0：失败。具体原因参看 [ReturnStatus]。
+  ///
+  /// 注意：
+  /// + 在调用该接口前，你需要在[控制台](https://console.volcengine.com/rtc/workplaceRTC)开启转推直播功能。
+  /// + 调用该方法后，关于启动结果和推流过程中的错误，会收到 [RTCMixedStreamObserver.onMixingEvent] 回调。
+  /// + 调用 [RTCVideo.stopPushStreamToCDN] 停止转推直播。
+  Future<int?> startPushMixedStreamToCDN({
+    required String taskId,
+    required MixedStreamConfig mixedConfig,
+    RTCMixedStreamObserver? observer,
+  });
+
+  /// v3.54.1 新增
+  ///
+  /// 更新合流转推直播参数，会收到 [RTCMixedStreamObserver.onMixingEvent] 回调。<br>
+  /// 使用 [RTCVideo.startPushMixedStreamToCDN] 启用转推直播功能后，使用此方法更新功能配置参数。
+  ///
+  /// [taskId]：转推直播任务 ID。指定想要更新参数设置的转推直播任务。
+  ///
+  /// [mixedConfig]：转推直播配置参数。除特殊说明外，均支持过程中更新。<br>
+  /// 调用时，结构体中没有传入值的属性，会被更新为默认值。
+  ///
+  /// 返回值：
+  /// + 0：成功；
+  /// + !0：失败。具体原因参看 [ReturnStatus]
+  Future<int?> updatePushMixedStreamToCDN({
+    required String taskId,
+    required MixedStreamConfig mixedConfig,
   });
 
   /// 新增单流转推直播任务
@@ -793,18 +1003,26 @@ abstract class RTCVideo {
   /// [observer] 单流转推直播观察者。<br>
   /// 通过注册 observer 接收单流转推直播相关的回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 在调用该接口前，你需要在[控制台](https://console.volcengine.com/rtc/workplaceRTC)开启转推直播功能。
   /// + 调用该方法后，关于启动结果和推流过程中的错误，会收到 [RTCPushSingleStreamToCDNObserver.onStreamPushEvent] 回调。
   /// + 调用 [RTCVideo.stopPushStreamToCDN] 停止任务。
-  Future<void> startPushSingleStreamToCDN({
+  Future<int?> startPushSingleStreamToCDN({
     required String taskId,
     required PushSingleStreamParam param,
     required RTCPushSingleStreamToCDNObserver observer,
   });
 
   /// 停止单流转推直播任务
-  Future<void> stopPushStreamToCDN(String taskId);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> stopPushStreamToCDN(String taskId);
 
   /// 发布一路公共流
   ///
@@ -840,7 +1058,7 @@ abstract class RTCVideo {
     required PublicStreaming publicStreamParam,
   });
 
-  ///订阅指定公共流
+  /// 订阅指定公共流
   ///
   /// 无论用户是否在房间内，都可以调用本接口获取和播放指定的公共流。<br>
   /// 如果指定流暂未发布，则本地客户端将在其开始发布后接收到流数据。
@@ -896,7 +1114,7 @@ abstract class RTCVideo {
   /// 将用户反馈的问题上报到 RTC
   ///
   /// [types] 是预设的问题类型集合，可多选。
-  /// [problemDesc] 是预设问题以外的其他问题的具体描述
+  /// [info] 是预设问题以外的其他问题的具体描述
   ///
   /// 返回值：
   /// + 0: 上报成功
@@ -906,28 +1124,36 @@ abstract class RTCVideo {
   ///
   /// 注意：如果用户上报时在房间内，那么问题会定位到用户当前所在的一个或多个房间；如果用户上报时不在房间内，那么问题会定位到引擎此前退出的房间。
   Future<int?> feedback({
-    required List<ProblemFeedback> types,
-    required String problemDesc,
+    required List<ProblemFeedbackOption> types,
+    ProblemFeedbackInfo? info,
   });
 
   /// 设置发布的音视频流回退选项
   ///
   /// 你可以调用该接口设置网络不佳或设备性能不足时从大流起进行降级处理，以保证通话质量。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 该方法仅在调用 [RTCVideo.enableSimulcastMode] 开启了发送多路视频流的情况下生效。
   /// + 你必须在进房前设置，进房后设置或更改设置无效。
   /// + 设置回退选项后，本端发布的音视频流发生回退或从回退中恢复时，订阅该音视频流的客户端会收到 [RTCVideoEventHandler.onSimulcastSubscribeFallback]。
   /// + 你可以调用客户端 API 或者在服务端下发策略设置回退。当使用服务端下发配置实现时，下发配置优先级高于客户端 API。
-  Future<void> setPublishFallbackOption(PublishFallbackOption option);
+  Future<int?> setPublishFallbackOption(PublishFallbackOption option);
 
   /// 设置订阅的音视频流回退选项
   ///
   /// 你可调用该接口设置网络不佳或设备性能不足时允许订阅流进行降级或只订阅音频流，以保证通话流畅。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 你必须在进房前设置，进房后设置或更改设置无效。
   /// + 设置回退选项后，本端订阅的音视频流发生回退或从回退中恢复时,会收到 [RTCVideoEventHandler.onSimulcastSubscribeFallback]。
   /// + 你可以调用客户端 API 或者在服务端下发策略设置回退。当使用服务端下发配置实现时，下发配置优先级高于客户端 API。
-  Future<void> setSubscribeFallbackOption(SubscribeFallbackOption option);
+  Future<int?> setSubscribeFallbackOption(SubscribeFallbackOption option);
 
   /// 设置指定远端用户在回退中的优先级
   ///
@@ -944,8 +1170,12 @@ abstract class RTCVideo {
   ///
   /// [key] 是加密密钥，长度限制为 36 位，超出部分将会被截断
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：该方法必须在进房之前调用，可重复调用，以最后调用的参数作为生效参数。
-  Future<void> setEncryptInfo({
+  Future<int?> setEncryptInfo({
     required EncryptType aesType,
     required String key,
   });
@@ -969,38 +1199,62 @@ abstract class RTCVideo {
 
   /// 使用 RTC SDK 内部采集模块开始采集屏幕音频流和（或）视频流
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意:
   /// + 屏幕共享相关接口仅适用于 iOS 12 及以上版本。
   /// + 对于 iOS，当从控制中心发起屏幕采集时无需调用本方法。
   /// + 采集后，你还需要调用 [RTCRoom.publishScreen] 发布采集到的屏幕音视频。
   /// + 开启屏幕音频/视频采集成功后，本地用户会收到 [RTCVideoEventHandler.onVideoDeviceStateChanged] 和 [RTCVideoEventHandler.onAudioDeviceStateChanged] 的回调。
   /// + 要关闭屏幕音视频内部采集，调用 [RTCVideo.stopScreenCapture]。
-  Future<void> startScreenCapture(ScreenMediaType type);
+  Future<int?> startScreenCapture(ScreenMediaType type);
 
   /// 开启屏幕采集后，更新采集的媒体类型
-  Future<void> updateScreenCapture(ScreenMediaType type);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> updateScreenCapture(ScreenMediaType type);
 
   /// 屏幕共享时，停止屏幕流采集
-  Future<void> stopScreenCapture();
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> stopScreenCapture();
 
   /// 仅适用于 iOS，向屏幕共享 Extension 发送自定义消息
   ///
   /// 注意：需在开启屏幕采集之后调用该方法
-  Future<void> sendScreenCaptureExtensionMessage(Uint8List message);
+  Future<int?> sendScreenCaptureExtensionMessage(Uint8List message);
 
   /// 设置运行时的参数
-  Future<void> setRuntimeParameters(Map<String, dynamic> params);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> setRuntimeParameters(Map<String, dynamic> params);
 
   /// 开启自动语音识别服务
   ///
   /// 该方法将识别后的用户语音转化成文字，并通过 [RTCASREngineEventHandler.onMessage] 回调。
-  Future<void> startASR({
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> startASR({
     required RTCASRConfig asrConfig,
     required RTCASREngineEventHandler handler,
   });
 
   /// 关闭语音识别服务
-  Future<void> stopASR();
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> stopASR();
 
   /// 将通话过程中的音视频数据录制到本地的文件中
   ///
@@ -1020,12 +1274,18 @@ abstract class RTCVideo {
 
   /// 停止本地录制
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用 [RTCVideo.startFileRecording] 开启本地录制后，你必须调用该方法停止录制。
   /// + 调用该方法后，会收到 [RTCVideoEventHandler.onRecordingStateUpdate] 提示录制结果。
-  Future<void> stopFileRecording([StreamIndex streamIndex = StreamIndex.main]);
+  Future<int?> stopFileRecording([StreamIndex streamIndex = StreamIndex.main]);
 
-  /// 开启录制语音通话，生成本地文件
+  /// 开启录制语音通话，生成本地文件。
+  ///
+  /// 在进房前后开启录制，如果未打开麦克风采集，录制任务正常进行，只是不会将数据写入生成的本地文件；只有调用 [startAudioCapture] 接口打开麦克风采集后，才会将录制数据写入本地文件。
   ///
   /// 返回值：方法调用结果
   /// + 0: 正常
@@ -1034,8 +1294,7 @@ abstract class RTCVideo {
   ///
   /// 注意：
   /// + 录制包含各种音频效果。但不包含混音的背景音乐。
-  /// + 调用 [stopAudioRecording] 关闭录制。
-  /// + 加入房间后才可调用。如果加入了多个房间，录制的文件中会包含各个房间的音频。离开最后一个房间后，录制任务自动停止。
+  /// + 加入房间前后均可调用。在进房前调用该方法，退房之后，录制任务不会自动停止，需调用 [stopAudioRecording] 关闭录制。在进房后调用该方法，退房之后，录制任务会自动被停止。如果加入了多个房间，录制的文件中会包含各个房间的音频。
   /// + 调用该方法后，你会收到 [RTCVideoEventHandler.onAudioRecordingStateUpdate] 回调。
   Future<int?> startAudioRecording(AudioRecordingConfig config);
 
@@ -1049,7 +1308,25 @@ abstract class RTCVideo {
   Future<int?> stopAudioRecording();
 
   /// 创建混音管理接口实例
+  @Deprecated(
+      'Deprecated since v3.54.1, use RTCVideo.getAudioEffectPlayer and RTCVideo.getMediaPlayer instead')
   RTCAudioMixingManager get audioMixingManager;
+
+  /// v3.54.1 新增
+  ///
+  /// 创建音效播放器实例。
+  ///
+  /// 返回值：音效播放器实例。
+  FutureOr<RTCAudioEffectPlayer?> getAudioEffectPlayer();
+
+  /// v3.54.1 新增
+  ///
+  /// 创建音乐播放器实例。
+  ///
+  /// [playerId]：音乐播放器实例 id。取值范围为 `[0, 3]`。最多同时存在4个实例，超出取值范围时返回 nullptr。
+  ///
+  /// 返回值：音乐播放器实例。
+  FutureOr<RTCMediaPlayer?> getMediaPlayer(int playerId);
 
   /// 登录以发送房间外消息和向业务服务器发送消息
   ///
@@ -1077,18 +1354,26 @@ abstract class RTCVideo {
   ///
   /// 调用本接口登出后，无法调用房间外消息以及端到服务器消息相关的方法或收到相关回调。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 登出后，会收到 [RTCVideoEventHandler.onLogout]
-  Future<void> logout();
+  Future<int?> logout();
 
   /// 更新用户用于登录的 Token
   ///
   /// Token 有一定的有效期，当 Token 过期时，需调用此方法更新登录的 Token 信息。 <br>
   /// 调用 [RTCVideo.login] 登录时，如果使用了过期的 Token，将导致登录失败，并会收到 [RTCVideoEventHandler.onLoginResult]。此时需要重新获取 Token，并调用此方法更新 Token。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 如果 Token 无效导致登录失败，则调用此方法更新 Token 后，SDK 会自动重新登录，而不需要再次调用 [RTCVideo.login]。
   /// + Token 过期时，如果已经成功登录，则不会受到影响。Token 过期的错误会在下一次使用过期 Token 登录时，或因本地网络状况不佳导致断网重新登录时通知给用户。
-  Future<void> updateLoginToken(String token);
+  Future<int?> updateLoginToken(String token);
 
   /// 设置应用服务器参数
   ///
@@ -1098,19 +1383,27 @@ abstract class RTCVideo {
   ///
   /// [url] 是业务服务器的地址
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 必须先调用 [RTCVideo.login] 登录后，才能调用本接口。
   /// + 调用本接口后，会收到 [RTCVideoEventHandler.onServerParamsSetResult]。
-  Future<void> setServerParams({
+  Future<int?> setServerParams({
     required String signature,
     required String url,
   });
 
   /// 发送消息前，查询指定远端用户或本地用户的登录状态
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 必须调用 [RTCVideo.login] 登录后，才能调用本接口。
   /// + 调用本接口后，会收到 [RTCVideoEventHandler.onGetPeerOnlineStatus]
   /// + 在发送房间外消息之前，用户可以通过本接口了解对端用户是否登录，从而决定是否发送消息。也可以通过本接口查询自己查看自己的登录状态。
-  Future<void> getPeerOnlineStatus(String peerUid);
+  Future<int?> getPeerOnlineStatus(String peerUid);
 
   /// 给房间外指定的用户发送文本消息
   ///
@@ -1166,10 +1459,14 @@ abstract class RTCVideo {
   ///
   /// [expectedDownlinkBitrate] 设置期望下行带宽，单位：kbps。范围为 `{0, [100-10000]}`，其中， `0` 表示由 SDK 指定最高码率。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 成功调用本接口后，会在 3s 内收到一次 [RTCVideoEventHandler.onNetworkDetectionResult] 回调，此后每 2s 收到一次该回调，通知探测结果；
   /// + 若探测停止，则会收到一次 [RTCVideoEventHandler.onNetworkDetectionStopped] 通知探测停止。
-  Future<NetworkDetectionStartReturn> startNetworkDetection({
+  Future<int?> startNetworkDetection({
     required bool isTestUplink,
     required int expectedUplinkBitrate,
     required bool isTestDownlink,
@@ -1178,8 +1475,12 @@ abstract class RTCVideo {
 
   /// 停止通话前网络探测
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 调用本接口后，会收到 [RTCVideoEventHandler.onNetworkDetectionStopped] 回调通知探测停止。
-  Future<void> stopNetworkDetection();
+  Future<int?> stopNetworkDetection();
 
   /// 在屏幕共享时，设置屏幕音频流和麦克风采集到的音频流的混流方式
   ///
@@ -1188,7 +1489,11 @@ abstract class RTCVideo {
   /// + `screen`: 默认值，将屏幕音频流和麦克风采集到的音频流分为两路音频流
   ///
   /// 你应该在 [RTCRoom.publishScreen] 之前，调用此方法，否则你将收到 [RTCVideoEventHandler.onWarning] 报错。
-  Future<void> setScreenAudioStreamIndex(StreamIndex index);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> setScreenAudioStreamIndex(StreamIndex index);
 
   /// 发送音频流同步信息
   ///
@@ -1213,9 +1518,13 @@ abstract class RTCVideo {
   /// 控制本地音频流播放状态：播放/不播放
   ///
   /// 本方法仅控制本地收到音频流的播放状态，并不影响本地音频播放设备。
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   @Deprecated(
       'Deprecated since v3.50.1 and will be deleted in v3.56.1, use RTCVideo.setPlaybackVolume instead.')
-  Future<void> muteAudioPlayback(bool muteState);
+  Future<int?> muteAudioPlayback(bool muteState);
 
   /// 开启音视频回路测试
   ///
@@ -1253,20 +1562,28 @@ abstract class RTCVideo {
   /// [imagePath] 为水印图片路径，支持本地文件绝对路径、Asset 资源路径（/assets/xx.png）、URI 地址（content://），长度限制为 512 字节。  <br>
   /// 水印图片为 PNG 或 JPG 格式。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用 [RTCVideo.clearVideoWatermark] 移除指定视频流的水印。
   /// + 同一路流只能设置一个水印，新设置的水印会代替上一次的设置。你可以多次调用本方法来设置不同流的水印。
   /// + 进入房间前后均可调用此方法。
   /// + 若开启本地预览镜像，或开启本地预览和编码传输镜像，则远端水印均不镜像；在开启本地预览水印时，本端水印会镜像。
   /// + 开启大小流后，水印对大小流均生效，且针对小流进行等比例缩小。
-  Future<void> setVideoWatermark({
+  Future<int?> setVideoWatermark({
     StreamIndex streamIndex = StreamIndex.main,
     required String imagePath,
     required WatermarkConfig watermarkConfig,
   });
 
   /// 移除指定视频流的水印
-  Future<void> clearVideoWatermark(
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> clearVideoWatermark(
       [StreamIndex streamIndex = StreamIndex.main]);
 
   /// 截取本地视频画面
@@ -1305,18 +1622,26 @@ abstract class RTCVideo {
 
   /// 开启云代理
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 在加入房间前调用此接口。
   /// + 在开启云代理后，进行通话前网络探测。
   /// + 开启云代理后，并成功链接云代理服务器后，会收到 [RTCVideoEventHandler.onCloudProxyConnected]。
   /// + 要关闭云代理，调用 [RTCVideo.stopCloudProxy]。
-  Future<void> startCloudProxy(List<CloudProxyInfo> cloudProxiesInfo);
+  Future<int?> startCloudProxy(List<CloudProxyInfo> cloudProxiesInfo);
 
   /// 关闭云代理
-  Future<void> stopCloudProxy();
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> stopCloudProxy();
 
   /// 创建 K 歌评分管理接口
-  RTCSingScoringManager get singScoringManager;
+  FutureOr<RTCSingScoringManager?> getSingScoringManager();
 
   /// 摄像头处于关闭状态时，使用静态图片填充本地推送的视频流。
   ///
@@ -1354,12 +1679,16 @@ abstract class RTCVideo {
   ///
   /// [mode]：是否对齐，默认不对齐。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 你必须在实时合唱场景下使用此功能。在加入房间时，所有人应设置 [RoomProfile] 为 `chorus`。
-  /// + 订阅的所有远端流必须通过 [RTCAudioMixingManager.startAudioMixing] 开启了背景音乐混音，并将 [AudioMixingConfig] 中的 `syncProgressToRecordFrame` 设置为 `true`。
+  /// + 订阅的所有远端流必须通过 [RTCMediaPlayer.start] 开启了背景音乐混音，并将 [AudioMixingConfig] 中的 `syncProgressToRecordFrame` 设置为 `true`。
   /// + 如果订阅的某个音频流延迟过大，可能无法实现精准对齐。
   /// + 合唱的参与者不应调用此 API，因为调用此 API 会增加延迟。如果希望从听众变为合唱参与者，应关闭对齐功能。
-  Future<void> setAudioAlignmentProperty({
+  Future<int?> setAudioAlignmentProperty({
     required RemoteStreamKey streamKey,
     required AudioAlignmentMode mode,
   });
@@ -1419,4 +1748,28 @@ abstract class RTCVideo {
   /// + 建议在收到 [RTCVideoEventHandler.onHardwareEchoDetectionResult] 通知的检测结果后，调用本接口停止检测。
   /// + 在用户进入房间前结束回声检测，释放对音频设备的占用，以免影响正常通话。
   Future<int?> stopHardwareEchoDetection();
+
+  /// v3.54.1 新增。
+  ///
+  /// 启用蜂窝网络辅助增强，改善通话质量。
+  ///
+  /// 返回值：
+  /// + 0：成功。
+  /// + !0：失败，具体原因参看 [ReturnStatus]。
+  ///
+  /// 此功能默认不开启。
+  Future<int?> setCellularEnhancement(MediaTypeEnhancementConfig config);
+
+  /// v3.54.1 新增。
+  ///
+  /// 设置本地代理。
+  ///
+  /// [configurations]：本地代理配置参数。<br>
+  /// 你可以根据自己的需要选择同时设置 Http 隧道 和 Socks5 两类代理，或者单独设置其中一类代理。如果你同时设置了 Http 隧道 和 Socks5 两类代理，此时，媒体和信令采用 Socks5 代理， Http 请求采用 Http 隧道代理；如果只设置 Http 隧道 或 Socks5 一类代理，媒体、信令和 Http 请求均采用已设置的代理。 <br>
+  /// 调用此接口设置本地代理后，若想清空当前已有的代理设置，可再次调用此接口，选择不设置任何代理即可清空。
+  ///
+  /// 注意：
+  /// + 该方法需要在进房前调用。
+  /// + 调用该方法设置本地代理后，SDK 会触发 [RTCVideoEventHandler.onLocalProxyStateChanged]，返回代理连接的状态。
+  Future<int?> setLocalProxy(List<LocalProxyConfiguration>? configurations);
 }

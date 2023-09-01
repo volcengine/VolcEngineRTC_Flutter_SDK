@@ -34,9 +34,6 @@ public class AudioMixingPlugin extends RTCFlutterPlugin {
         channel.setMethodCallHandler(callHandler);
     }
 
-    /**
-     * 响应 IAudioMixingManager 接口
-     */
     private final MethodChannel.MethodCallHandler callHandler = (call, result) -> {
         if (BuildConfig.DEBUG) {
             Logger.d(getTAG(), "IAudioMixingManager Call: " + call.method);

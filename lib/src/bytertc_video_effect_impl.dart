@@ -1,6 +1,7 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/services.dart';
 
 import '../api/bytertc_face_detection_observer.dart';

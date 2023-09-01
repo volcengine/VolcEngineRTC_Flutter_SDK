@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
 #import <VolcEngineRTC/objc/rtc/ByteRTCKTVManager.h>
 #import "ByteRTCFlutterKTVManagerPlugin.h"
 #import "ByteRTCFlutterKTVPlayerPlugin.h"
-#import "ByteRTCFlutterKTVEventHandler.h"
+#import "ByteRTCFlutterKTVManagerEventHandler.h"
 
 @interface ByteRTCFlutterKTVManagerPlugin ()
 
 @property (nonatomic, strong) ByteRTCKTVManager *ktvManager;
-@property (nonatomic, strong) ByteRTCFlutterKTVEventHandler *eventHandler;
-@property (nonatomic, strong, nullable) ByteRTCFlutterKTVPlayerPlugin *ktvPlayer;
+@property (nonatomic, strong) ByteRTCFlutterKTVManagerEventHandler *eventHandler;
+@property (nonatomic, strong, nullable) ByteRTCFlutterKTVPlayerPlugin *ktvPlayerPlugin;
 
 @end
 
@@ -22,7 +22,7 @@
     self = [super init];
     if (self) {
         self.ktvManager = ktvManager;
-        self.eventHandler = [[ByteRTCFlutterKTVEventHandler alloc] init];
+        self.eventHandler = [[ByteRTCFlutterKTVManagerEventHandler alloc] init];
         ktvManager.delegate = self.eventHandler;
     }
     return self;
@@ -40,7 +40,7 @@
 - (void)destroy {
     [super destroy];
     [self.eventHandler destroy];
-    [self.ktvPlayer destroy];
+    [self.ktvPlayerPlugin destroy];
 }
 
 #pragma mark - method
@@ -48,7 +48,7 @@
     int pageNum = [arguments[@"pageNum"] intValue];
     int pageSize = [arguments[@"pageSize"] intValue];
     NSArray<NSNumber *> *filterList = arguments[@"filters"];
-    __block ByteRTCKTVMusicFilterType filters = ByteRTCKTVMusicFilterTypeNone;
+    __block ByteRTCMusicFilterType filters = ByteRTCMusicFilterTypeNone;
     [filterList enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL *stop) {
         filters = filters | [obj unsignedIntegerValue];
     }];
@@ -61,7 +61,7 @@
     int pageNum = [arguments[@"pageNum"] intValue];
     int pageSize = [arguments[@"pageSize"] intValue];
     NSArray<NSNumber *> *filterList = arguments[@"filters"];
-    __block ByteRTCKTVMusicFilterType filters = ByteRTCKTVMusicFilterTypeNone;
+    __block ByteRTCMusicFilterType filters = ByteRTCMusicFilterTypeNone;
     [filterList enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL *stop) {
         filters = filters | [obj unsignedIntegerValue];
     }];
@@ -71,12 +71,12 @@
 
 - (void)getHotMusic:(NSDictionary *)arguments result:(FlutterResult)result {
     NSArray<NSNumber *> *hotTypeList = arguments[@"hotTypes"];
-    __block ByteRTCKTVMusicHotType hotTypes = 0;
+    __block ByteRTCMusicHotType hotTypes = 0;
     [hotTypeList enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL *stop) {
         hotTypes = hotTypes | [obj unsignedIntegerValue];
     }];
     NSArray<NSNumber *> *filterList = arguments[@"filters"];
-    __block ByteRTCKTVMusicFilterType filters = ByteRTCKTVMusicFilterTypeNone;
+    __block ByteRTCMusicFilterType filters = ByteRTCMusicFilterTypeNone;
     [filterList enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL *stop) {
         filters = filters | [obj unsignedIntegerValue];
     }];
@@ -98,7 +98,7 @@
 
 - (void)downloadLyric:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *musicId = arguments[@"musicId"];
-    ByteRTCKTVDownloadLyricType lyricType = [arguments[@"lyricType"] integerValue];
+    ByteRTCDownloadLyricType lyricType = [arguments[@"lyricType"] integerValue];
     int downloadId = [self.ktvManager downloadLyric:musicId lyricType:lyricType];
     result(@(downloadId));
 }
@@ -127,15 +127,15 @@
 }
 
 - (void)getKTVPlayer:(NSDictionary *)arguments result:(FlutterResult)result {
-    if (self.ktvPlayer != nil) {
+    if (self.ktvPlayerPlugin != nil) {
         result(@(YES));
         return;
     }
     ByteRTCKTVPlayer *ktvPlayer = [self.ktvManager getKTVPlayer];
     BOOL res = !!ktvPlayer;
     if (res) {
-        self.ktvPlayer = [[ByteRTCFlutterKTVPlayerPlugin alloc] initWithRTCKTVPlayer:ktvPlayer];
-        [self.ktvPlayer registerWithRegistrar:self.registrar];
+        self.ktvPlayerPlugin = [[ByteRTCFlutterKTVPlayerPlugin alloc] initWithRTCKTVPlayer:ktvPlayer];
+        [self.ktvPlayerPlugin registerWithRegistrar:self.registrar];
     }
     result(@(res));
 }

@@ -7,6 +7,8 @@ import 'dart:typed_data';
 import '../src/base/bytertc_enum_convert.dart';
 import 'bytertc_audio_defines.dart';
 import 'bytertc_media_defines.dart';
+import 'bytertc_room_api.dart';
+import 'bytertc_video_api.dart';
 import 'bytertc_video_event_handler.dart';
 
 /// 用于初始化 RTCVideo 的配置
@@ -22,6 +24,7 @@ class RTCVideoContext {
   /// 私有参数。如需使用请联系技术支持人员。
   Map<String, dynamic>? parameters;
 
+  /// @nodoc
   RTCVideoContext(
     this.appId, {
     this.eventHandler,
@@ -193,6 +196,7 @@ class RemoteStreamSwitch {
   /// 触发流回退的原因
   final FallbackOrRecoverReason? reason;
 
+  /// @nodoc
   const RemoteStreamSwitch({
     this.uid,
     this.isScreen,
@@ -222,7 +226,8 @@ enum StreamMixingType {
   /// 服务端合流
   byServer,
 
-  /// 客户端合流
+  /// @nodoc(`Not available`)
+  /// 端云一体合流。SDK 智能决策在客户端或服务端完成合流。
   byClient,
 }
 
@@ -260,7 +265,7 @@ enum StreamMixingEvent {
   stopFailed,
 
   /// 更新转推直播任务配置的请求超时
-  changeMixeType,
+  changeMixType,
 
   /// 得到客户端合流音频首帧
   firstAudioFrameByClientMix,
@@ -282,7 +287,7 @@ enum StreamMixingEvent {
 }
 
 /// 转推直播错误码
-enum TranscoderErrorCode {
+enum StreamMixingErrorCode {
   /// 推流成功
   ok,
 
@@ -394,6 +399,7 @@ class LiveTranscodingVideoConfig {
   /// 合流视频高度。单位为 px，范围为 `[2, 1920]`，必须是偶数。默认值为 360 px。设置值为非偶数时，自动向上取偶数。
   int height;
 
+  /// @nodoc
   LiveTranscodingVideoConfig({
     this.codec = TranscodingVideoCodec.h264,
     this.fps = 30,
@@ -435,6 +441,7 @@ class LiveTranscodingAudioConfig {
   /// AAC 规格，默认值为 `lc`。
   AACProfile aacProfile;
 
+  /// @nodoc
   LiveTranscodingAudioConfig({
     this.codec = TranscodingAudioCodec.aac,
     this.kBitrate = 64,
@@ -463,6 +470,7 @@ class TranscoderLayoutRegionDataParam {
   /// 原始图片的高度，单位为 px。
   int imageHeight;
 
+  /// @nodoc
   TranscoderLayoutRegionDataParam({
     required this.imageWidth,
     required this.imageHeight,
@@ -532,6 +540,10 @@ class LiveTranscodingRegion {
   /// 空间位置
   Position spatialPosition;
 
+  /// 设置某用户是否应用空间音频效果。
+  bool applySpatialAudio;
+
+  /// @nodoc
   LiveTranscodingRegion({
     required this.uid,
     required this.roomId,
@@ -550,6 +562,7 @@ class LiveTranscodingRegion {
     this.data,
     this.dataParam,
     this.spatialPosition = const Position.zero(),
+    this.applySpatialAudio = true,
   });
 
   /// @nodoc
@@ -564,17 +577,18 @@ class LiveTranscodingRegion {
       'zorder': zorder,
       'alpha': alpha,
       'cornerRadius': cornerRadius,
-      'contentControl': contentControl.value,
+      'contentControl': contentControl.index,
       'renderMode': renderMode.value,
       'localUser': localUser,
       'isScreen': isScreen,
-      'type': type.value,
+      'type': type.index,
       'spatialPosition': spatialPosition.toMap(),
+      'applySpatialAudio': applySpatialAudio,
     });
-    if (this.data != null) {
+    if (data != null) {
       dic['data'] = data;
     }
-    if (this.dataParam != null) {
+    if (dataParam != null) {
       dic['dataParam'] = dataParam?.toMap();
     }
     return dic;
@@ -592,6 +606,7 @@ class LiveTranscodingLayout {
   /// 视频的背景颜色。格式为 RGB 定义下的 Hex 值。默认值 `#000000`。
   String backgroundColor;
 
+  /// @nodoc
   LiveTranscodingLayout({
     required this.regions,
     this.appData = '',
@@ -625,12 +640,14 @@ class LiveTranscodingSpatialConfig {
   /// 当你启用此效果时，你需要设定推流中各个 [LiveTranscodingSpatialConfig] 的 `audienceSpatialPosition` 值，实现空间音频效果。
   final bool enableSpatialRender;
 
+  /// @nodoc
   const LiveTranscodingSpatialConfig({
     this.audienceSpatialOrientation = const HumanOrientation.origin(),
     this.audienceSpatialPosition = const Position.zero(),
     this.enableSpatialRender = false,
   });
 
+  /// @nodoc
   const LiveTranscodingSpatialConfig.disabled() : this();
 
   /// @nodoc
@@ -667,14 +684,15 @@ class LiveTranscoding {
   /// 空间音频信息
   LiveTranscodingSpatialConfig spatialConfig;
 
+  /// @nodoc
   LiveTranscoding({
     this.mixType = StreamMixingType.byServer,
     required this.url,
     required this.roomId,
     required this.uid,
     required this.video,
-    required this.layout,
     required this.audio,
+    required this.layout,
     this.spatialConfig = const LiveTranscodingSpatialConfig.disabled(),
   });
 
@@ -683,10 +701,10 @@ class LiveTranscoding {
         'url': url,
         'roomId': roomId,
         'uid': uid,
-        'mixType': mixType.value,
+        'mixType': mixType.index,
         'video': video.toMap(),
-        'layout': layout.toMap(),
         'audio': audio.toMap(),
+        'layout': layout.toMap(),
         'spatialConfig': spatialConfig.toMap(),
       };
 }
@@ -730,6 +748,7 @@ class PushSingleStreamParam {
   /// 媒体流是否为屏幕流
   bool isScreen;
 
+  /// @nodoc
   PushSingleStreamParam({
     required this.roomId,
     required this.uid,
@@ -759,6 +778,7 @@ class SourceWantedData {
   /// 如果未开启发送性能回退，此值表示推荐的视频输入帧率，单位 fps；如果开启了发送性能回退，此值表示当前推流的最大帧率，单位 fps。
   final int? frameRate;
 
+  /// @nodoc
   const SourceWantedData({
     this.width,
     this.height,
@@ -809,6 +829,7 @@ class SubscribeConfig {
   /// 仅码流支持 SVC 分级编码特性时方可生效。
   final int? frameRate;
 
+  /// @nodoc
   const SubscribeConfig({
     this.isScreen,
     this.subVideo,
@@ -851,6 +872,7 @@ class Rectangle {
   /// 矩形高度(px)
   final int? height;
 
+  /// @nodoc
   const Rectangle({
     this.x,
     this.y,
@@ -888,6 +910,7 @@ class FaceDetectionResult {
   /// 进行人脸识别的视频帧的时间戳。
   final int? frameTimestampUs;
 
+  /// @nodoc
   const FaceDetectionResult({
     this.detectResult,
     this.imageWidth,
@@ -937,6 +960,7 @@ class VirtualBackgroundSource {
   /// + 自定义图片带有局部透明效果时，透明部分由黑色代替。
   String sourcePath;
 
+  /// @nodoc
   VirtualBackgroundSource({
     required this.sourceType,
     this.sourceColor = 0,
@@ -946,7 +970,7 @@ class VirtualBackgroundSource {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'sourceType': sourceType.value,
+      'sourceType': sourceType.index,
       'sourceColor': sourceColor,
       'sourcePath': sourcePath,
     };
@@ -964,6 +988,7 @@ class VideoFrameInfo {
   /// 视频帧顺时针旋转角度
   final VideoRotation? rotation;
 
+  /// @nodoc
   const VideoFrameInfo({
     this.width,
     this.height,
@@ -1008,6 +1033,7 @@ class VideoCaptureConfig {
   /// 视频采集帧率 (fps)
   int frameRate = 0;
 
+  /// @nodoc
   VideoCaptureConfig({
     this.capturePreference = VideoCapturePreference.auto,
     this.width = 0,
@@ -1018,7 +1044,7 @@ class VideoCaptureConfig {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'capturePreference': capturePreference.value,
+      'capturePreference': capturePreference.index,
       'width': width,
       'height': height,
       'frameRate': frameRate,
@@ -1113,6 +1139,7 @@ class VideoEncoderConfig {
   /// 编码策略偏好
   VideoEncoderPreference encoderPreference;
 
+  /// @nodoc
   VideoEncoderConfig({
     required this.width,
     required this.height,
@@ -1130,7 +1157,7 @@ class VideoEncoderConfig {
       'frameRate': frameRate,
       'maxBitrate': maxBitrate,
       'minBitrate': minBitrate,
-      'encoderPreference': encoderPreference.value,
+      'encoderPreference': encoderPreference.index,
     };
   }
 }
@@ -1160,6 +1187,7 @@ class ScreenVideoEncoderConfig {
   /// 屏幕流编码模式。参见 [ScreenVideoEncoderPreference].
   ScreenVideoEncoderPreference encoderPreference;
 
+  /// @nodoc
   ScreenVideoEncoderConfig({
     required this.width,
     required this.height,
@@ -1196,6 +1224,7 @@ class RemoteVideoConfig {
   /// 视频高度，单位：px
   int height;
 
+  /// @nodoc
   RemoteVideoConfig({
     this.frameRate = 0,
     this.width = 0,
@@ -1232,6 +1261,7 @@ class RoomConfig {
   /// 远端视频流参数
   RemoteVideoConfig? remoteVideoConfig;
 
+  /// @nodoc
   RoomConfig({
     this.profile = RoomProfile.communication,
     this.isAutoPublish = true,
@@ -1243,7 +1273,7 @@ class RoomConfig {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'profile': profile.value,
+      'profile': profile.index,
       'isAutoPublish': isAutoPublish,
       'isAutoSubscribeAudio': isAutoSubscribeAudio,
       'isAutoSubscribeVideo': isAutoSubscribeVideo,
@@ -1292,6 +1322,7 @@ class Watermark {
   /// 水印图片高度与视频流高度的比值，取值范围为 [0,1)
   final double height;
 
+  /// @nodoc
   const Watermark({
     this.x = 0,
     this.y = 0,
@@ -1299,6 +1330,7 @@ class Watermark {
     this.height = 0,
   });
 
+  /// @nodoc
   const Watermark.none() : this();
 
   /// @nodoc
@@ -1323,6 +1355,7 @@ class WatermarkConfig {
   /// 竖屏时的水印位置和大小
   Watermark positionInPortraitMode;
 
+  /// @nodoc
   WatermarkConfig({
     this.visibleInPreview = true,
     this.positionInLandscapeMode = const Watermark.none(),
@@ -1353,6 +1386,7 @@ class SourceCrop {
   /// 裁剪后得到的视频帧高度相对于裁剪前整体画面的归一化比例，取值范围(0.0, 1.0]
   double heightProportion;
 
+  /// @nodoc
   SourceCrop({
     this.locationX = 0,
     this.locationY = 0,
@@ -1414,6 +1448,7 @@ class PublicStreamingRegion {
   /// 用户视频布局的相对位置和大小
   SourceCrop sourceCrop;
 
+  /// @nodoc
   PublicStreamingRegion({
     required this.uid,
     required this.roomId,
@@ -1442,8 +1477,8 @@ class PublicStreamingRegion {
       'h': h,
       'zorder': zorder,
       'alpha': alpha,
-      'streamType': streamType.value,
-      'mediaType': mediaType.value,
+      'streamType': streamType.index,
+      'mediaType': mediaType.index,
       'renderMode': renderMode.value,
       'sourceCrop': sourceCrop.toMap()
     };
@@ -1469,6 +1504,7 @@ class PublicStreamingLayout {
   /// 背景颜色。格式为 RGB 定义下的 Hex 值，如 #FFB6C1 表示浅粉色。默认值 #000000，表示为黑色
   String backgroundColor;
 
+  /// @nodoc
   PublicStreamingLayout({
     required this.regions,
     this.interpolationMode = 0,
@@ -1503,6 +1539,7 @@ class PublicStreamingVideoConfig {
   /// 公共流视频高度，必填。单位为 px，范围为 `[16, 1280]`，必须是偶数。
   int height;
 
+  /// @nodoc
   PublicStreamingVideoConfig({
     this.fps = 30,
     this.kBitrate = 500,
@@ -1534,6 +1571,7 @@ class PublicStreamingAudioConfig {
   /// + `2`: 双声道
   int channels;
 
+  /// @nodoc
   PublicStreamingAudioConfig({
     this.kBitrate = 16,
     this.sampleRate = 44100,
@@ -1566,6 +1604,7 @@ class PublicStreaming {
   /// 公共流布局，必填。
   PublicStreamingLayout layout;
 
+  /// @nodoc
   PublicStreaming({
     required this.roomId,
     required this.video,
@@ -1601,6 +1640,7 @@ class LocalSnapshot {
   /// 图片高度
   int height;
 
+  /// @nodoc
   LocalSnapshot({
     this.taskId = 0,
     required this.streamIndex,
@@ -1627,6 +1667,7 @@ class RemoteSnapshot {
   /// 图片高度
   int height;
 
+  /// @nodoc
   RemoteSnapshot({
     this.taskId = 0,
     required this.streamKey,
@@ -1667,4 +1708,468 @@ enum ZoomDirectionType {
 
   /// 恢复到原始画面
   cameraReset,
+}
+
+/// 蜂窝网络辅助增强应用的媒体模式。
+class MediaTypeEnhancementConfig {
+  /// 对信令消息，是否启用蜂窝网络辅助增强。默认不启用。
+  bool enhanceSignaling;
+
+  /// 对屏幕共享以外的其他音频，是否启用蜂窝网络辅助增强。默认不启用。
+  bool enhanceAudio;
+
+  /// 对屏幕共享视频以外的其他视频，是否启用蜂窝网络辅助增强。默认不启用。
+  bool enhanceVideo;
+
+  /// 对屏幕共享音频，是否启用蜂窝网络辅助增强。默认不启用。
+  bool enhanceScreenAudio;
+
+  /// 对屏幕共享视频，是否启用蜂窝网络辅助增强。默认不启用。
+  bool enhanceScreenVideo;
+
+  /// @nodoc
+  MediaTypeEnhancementConfig({
+    this.enhanceSignaling = false,
+    this.enhanceAudio = false,
+    this.enhanceVideo = false,
+    this.enhanceScreenAudio = false,
+    this.enhanceScreenVideo = false,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'enhanceSignaling': enhanceSignaling,
+      'enhanceAudio': enhanceAudio,
+      'enhanceVideo': enhanceVideo,
+      'enhanceScreenAudio': enhanceScreenAudio,
+      'enhanceScreenVideo': enhanceScreenVideo,
+    };
+  }
+}
+
+/// 视频编码格式(新)。
+enum MixedStreamVideoCodecType {
+  /// H.264 格式，默认值。
+  h264,
+
+  /// ByteVC1 格式。
+  byteVC1,
+}
+
+/// 视频转码配置参数(新)。值不合法或未设置时，自动使用默认值。
+class MixedStreamVideoConfig {
+  /// 视频编码格式。默认值为 `0`。
+  ///
+  /// 本参数不支持过程中更新。
+  final MixedStreamVideoCodecType videoCodec;
+
+  /// 合流视频帧率。单位为 FPS，取值范围为 [1,60]，默认值为 15 FPS。
+  final int fps;
+
+  /// 视频 I 帧时间间隔。单位为秒，取值范围为 [1, 5]，默认值为 2 秒。
+  ///
+  /// 本参数不支持过程中更新。
+  final int gop;
+
+  /// 合流视频码率。单位为 Kbps，取值范围为 [1,10000]，默认值为自适应模式。
+  final int bitrate;
+
+  /// 合流视频宽度。单位为 px，范围为 [2, 1920]，必须是偶数。默认值为 640 px。<br>
+  /// 设置值为非偶数时，自动向上取偶数。
+  final int width;
+
+  /// 合流视频高度。单位为 px，范围为 [2, 1920]，必须是偶数。默认值为 360 px。
+  /// 设置值为非偶数时，自动向上取偶数。
+  final int height;
+
+  /// 是否在合流中开启 B 帧，仅服务端合流支持.
+  final bool enableBFrame;
+
+  /// @nodoc
+  const MixedStreamVideoConfig({
+    this.videoCodec = MixedStreamVideoCodecType.h264,
+    this.fps = 15,
+    this.gop = 2,
+    this.bitrate = 500,
+    this.width = 360,
+    this.height = 640,
+    this.enableBFrame = false,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'videoCodec': videoCodec.index,
+      'fps': fps,
+      'gop': gop,
+      'bitrate': bitrate,
+      'width': width,
+      'height': height,
+      'enableBFrame': enableBFrame,
+    };
+  }
+}
+
+/// 音频编码类型。(新)
+enum MixedStreamAudioCodecType {
+  /// AAC 格式。
+  acc,
+}
+
+/// AAC 编码规格。(新)
+enum MixedStreamAudioProfile {
+  /// AAC-LC 规格，默认值。
+  lc,
+
+  /// HE-AAC v1 规格。
+  hev1,
+
+  /// HE-AAC v2 规格。
+  hev2,
+}
+
+/// 音频转码配置参数。(新)<br>
+/// 值不合法或未设置时，自动使用默认值。<br>
+/// 本参数不支持过程中更新。
+class MixedStreamAudioConfig {
+  /// 音频编码格式。
+  final MixedStreamAudioCodecType audioCodec;
+
+  /// 音频码率，单位 Kbps。可取范围 [32, 192]，默认值为 64 Kbps。
+  final int bitrate;
+
+  /// 音频采样率，单位 Hz。可取 32000 Hz、44100 Hz、48000 Hz，默认值为 48000 Hz。
+  final int sampleRate;
+
+  /// 音频声道数。可取 1（单声道）、2（双声道），默认值为 2。
+  final int channels;
+
+  /// AAC 编码规格。默认值为 `0`。
+  final MixedStreamAudioProfile audioProfile;
+
+  /// @nodoc
+  const MixedStreamAudioConfig({
+    this.audioCodec = MixedStreamAudioCodecType.acc,
+    this.bitrate = 64,
+    this.sampleRate = 48000,
+    this.channels = 2,
+    this.audioProfile = MixedStreamAudioProfile.lc,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'audioCodec': audioCodec.index,
+      'bitrate': bitrate,
+      'sampleRate': sampleRate,
+      'channels': channels,
+      'audioProfile': audioProfile.index,
+    };
+  }
+}
+
+/// 推流 CDN 的空间音频参数。(新)
+class MixedStreamSpatialConfig {
+  /// 是否开启推流 CDN 时的空间音频效果。<br>
+  /// 当你启用此效果时，你需要设定推流中各个 [MixedStreamLayoutRegionConfig] 的 `spatialPosition` 值，实现空间音频效果。
+  final bool enableSpatialRender;
+
+  /// 听众的空间位置。<br>
+  /// 听众指收听来自 CDN 的音频流的用户。
+  final Position audienceSpatialPosition;
+
+  /// 听众的空间朝向。<br>
+  /// 听众指收听来自 CDN 的音频流的用户。
+  final HumanOrientation audienceSpatialOrientation;
+
+  /// @nodoc
+  const MixedStreamSpatialConfig({
+    this.enableSpatialRender = false,
+    this.audienceSpatialPosition = const Position.zero(),
+    this.audienceSpatialOrientation = const HumanOrientation.origin(),
+  });
+
+  /// @nodoc
+  const MixedStreamSpatialConfig.disabled() : this();
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'enableSpatialRender': enableSpatialRender,
+      'position': audienceSpatialPosition.toMap(),
+      'orientation': audienceSpatialOrientation.toMap(),
+    };
+  }
+}
+
+/// 合流输出内容类型。(新)
+enum MixedStreamMediaType {
+  /// 输出的混流包含音频和视频。
+  audioAndVideo,
+
+  /// 输出的混流只包含音频。
+  audioOnly,
+
+  /// 输出的混流只包含视频。
+  videoOnly,
+}
+
+/// 图片或视频流的缩放模式。(新)
+enum MixedStreamRenderMode {
+  /// 视窗填满优先，默认值。<br>
+  /// 视频尺寸等比缩放，直至视窗被填满。当视频尺寸与显示窗口尺寸不一致时，多出的视频将被截掉。
+  hidden,
+
+  /// 视频帧内容全部显示优先。<br>
+  /// 视频尺寸等比缩放，优先保证视频内容全部显示。当视频尺寸与显示窗口尺寸不一致时，会把窗口未被填满的区域填充成背景颜色。
+  fit,
+
+  /// 视频帧自适应画布。<br>
+  /// 视频尺寸非等比例缩放，把窗口充满。在此过程中，视频帧的长宽比例可能会发生变化。
+  adaptive,
+}
+
+/// region 中流的类型属性。
+enum MixedStreamVideoType {
+  /// 主流。由摄像头/麦克风采集到的流。
+  main,
+
+  /// 屏幕流。
+  screen,
+}
+
+/// 合流布局区域类型。(新)
+enum MixedStreamLayoutRegionType {
+  /// 合流布局区域类型为视频。
+  videoStream,
+
+  /// 合流布局区域类型为图片。
+  image,
+}
+
+/// 图片合流相关参数。(新)
+class MixedStreamLayoutRegionImageWaterMarkConfig {
+  /// 原始图片的宽度，单位为 px。
+  final int imageWidth;
+
+  /// 原始图片的高度，单位为 px。
+  final int imageHeight;
+
+  /// @nodoc
+  const MixedStreamLayoutRegionImageWaterMarkConfig({
+    this.imageWidth = 0,
+    this.imageHeight = 0,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'imageWidth': imageWidth,
+      'imageHeight': imageHeight,
+    };
+  }
+}
+
+/// 单个图片或视频流在合流中的布局信息。(新)<br>
+/// 开启转推直播功能后，在多路图片或视频流合流时，你可以设置其中一路流在合流中的预设布局信息。
+///
+/// 注意：
+/// + 视频流对应区域左上角的实际坐标是通过画面尺寸和归一化比例相乘，并四舍五入取整得到的。假如：Canvas.Width = 1920, Region.LocationX = 0.33，那么该画布左上角的横坐标为 634（1920×0.33=633.6，四舍五入取整）。
+/// + 视频流对应区域宽度和高度的像素值是通过画面尺寸和归一化比例相乘，四舍五入取整，并向上转换为偶数得到的。假如：Canvas.Width = 1920, Region.WidthProportion = 0.21，那么该画布横向宽度为 404px（1920x0.21=403.2，四舍五入取整后，再向上转换为偶数）。
+class MixedStreamLayoutRegionConfig {
+  /// 视频流发布用户的用户 ID。必填。
+  final String uid;
+
+  /// 图片或视频流所在房间的房间 ID。必填。<br>
+  /// 如果此图片或视频流是通过 [RTCRoom.startForwardStreamToRooms] 转发到你所在房间的媒体流时，你应将房间 ID 设置为你所在的房间 ID。
+  final String roomId;
+
+  /// 视频流对应区域左上角的横坐标相对整体画面的归一化比例，取值的范围为 [0.0, 1.0)。默认值为 0.0。
+  final double locationX;
+
+  /// 视频流对应区域左上角的纵坐标相对整体画面的归一化比例，取值的范围为 [0.0, 1.0)。默认值为 0.0。
+  final double locationY;
+
+  /// 视频流对应区域宽度相对整体画面的归一化比例，取值的范围为 [0.0, 1.0]。默认值为 1.0。
+  final double widthProportion;
+
+  /// 视频流对应区域高度相对整体画面的归一化比例，取值的范围为 [0.0, 1.0]。默认值为 1.0。
+  final double heightProportion;
+
+  /// 用户视频布局在画布中的层级。取值范围为 [0 - 100]，0 为底层，值越大越上层。默认值为 0。
+  final int zOrder;
+
+  /// 透明度，可选范围为 (0.0, 1.0]，0.0 为全透明。默认值为 1.0。
+  final double alpha;
+
+  /// 圆角半径相对画布宽度的比例。默认值为 `0.0`。
+  ///
+  /// 做范围判定时，首先根据画布的宽高，将 `width`，`height`，和 `cornerRadius` 分别转换为像素值：`width_px`，`height_px`，和 `cornerRadius_px`。然后判定是否满足 `cornerRadius_px < min(width_px/2, height_px/2)`：若满足，则设置成功；若不满足，则将 `cornerRadius_px` 设定为 `min(width_px/2, height_px/2)`，然后将 `cornerRadius` 设定为 `cornerRadius_px` 相对画布宽度的比例值。
+  final double cornerRadius;
+
+  /// 合流内容控制。默认值为 `audioAndVideo`。
+  final MixedStreamMediaType mediaType;
+
+  /// 图片或视频流的缩放模式。默认值为 1。
+  final MixedStreamRenderMode renderMode;
+
+  /// 是否为本地用户。
+  final bool isLocalUser;
+
+  /// 流类型，默认为主流。
+  final MixedStreamVideoType streamType;
+
+  /// 合流布局区域类型。
+  final MixedStreamLayoutRegionType regionContentType;
+
+  /// 图片合流布局区域类型对应的数据。类型为图片时传入图片 RGBA 数据，当类型为视频流时传空。
+  final Uint8List? imageWaterMark;
+
+  /// 合流布局区域数据的对应参数。当类型为视频流时传空，类型为图片时传入对应图片的参数。
+  final MixedStreamLayoutRegionImageWaterMarkConfig? imageWaterMarkConfig;
+
+  /// 空间位置。
+  final Position spatialPosition;
+
+  /// 设置某用户是否应用空间音频效果。
+  final bool applySpatialAudio;
+
+  /// @nodoc
+  const MixedStreamLayoutRegionConfig({
+    this.uid = '',
+    this.roomId = '',
+    this.locationX = 0.0,
+    this.locationY = 0.0,
+    this.widthProportion = 1.0,
+    this.heightProportion = 1.0,
+    this.zOrder = 0,
+    this.alpha = 1.0,
+    this.cornerRadius = 0.0,
+    this.mediaType = MixedStreamMediaType.audioAndVideo,
+    this.renderMode = MixedStreamRenderMode.hidden,
+    this.isLocalUser = false,
+    this.streamType = MixedStreamVideoType.main,
+    this.regionContentType = MixedStreamLayoutRegionType.videoStream,
+    this.imageWaterMark,
+    this.imageWaterMarkConfig,
+    this.spatialPosition = const Position.zero(),
+    this.applySpatialAudio = true,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'uid': uid,
+      'roomId': roomId,
+      'locationX': locationX,
+      'locationY': locationY,
+      'widthProportion': widthProportion,
+      'heightProportion': heightProportion,
+      'zOrder': zOrder,
+      'alpha': alpha,
+      'cornerRadius': cornerRadius,
+      'mediaType': mediaType.index,
+      'renderMode': renderMode.value,
+      'isLocalUser': isLocalUser,
+      'streamType': streamType.index,
+      'regionContentType': regionContentType.index,
+      if (imageWaterMark != null) 'imageWaterMark': imageWaterMark,
+      if (imageWaterMarkConfig != null)
+        'imageWaterMarkConfig': imageWaterMarkConfig!.toMap(),
+      'spatialPosition': spatialPosition.toMap(),
+      'applySpatialAudio': applySpatialAudio,
+    };
+  }
+}
+
+/// 视频流合流整体布局信息。(新)<br>
+/// 开启转推直播功能后，你可以设置参与合流的每路视频流的预设布局信息和合流背景信息等。
+class MixedStreamLayoutConfig {
+  /// 用户布局信息列表。每条流的具体布局参看 [MixedStreamLayoutRegionConfig]。<br>
+  /// 值不合法或未设置时，自动使用默认值。
+  final List<MixedStreamLayoutRegionConfig> regions;
+
+  /// 用户透传的额外数据。
+  final String userConfigExtraInfo;
+
+  /// 合流背景颜色，用十六进制颜色码（HEX）表示。例如，#FFFFFF 表示纯白，#000000 表示纯黑。默认值为 #000000。<br>
+  /// 值不合法或未设置时，自动使用默认值。
+  final String backgroundColor;
+
+  /// @nodoc
+  const MixedStreamLayoutConfig({
+    this.regions = const [],
+    this.userConfigExtraInfo = '',
+    this.backgroundColor = '#000000',
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'regions': regions.map((e) => e.toMap()).toList(growable: false),
+      'userConfigExtraInfo': userConfigExtraInfo,
+      'backgroundColor': backgroundColor,
+    };
+  }
+}
+
+/// 转推直播配置参数。(新)
+class MixedStreamConfig {
+  /// 推流 CDN 地址。仅支持 RTMP 协议，Url 必须满足正则 `/^rtmps?:\/\//`。
+  ///
+  /// 本参数不支持过程中更新。
+  final String pushURL;
+
+  /// 推流房间 ID。`roomId` 和 `uid` 长度相加不得超过 126 字节。
+  ///
+  /// 本参数不支持过程中更新。
+  final String roomId;
+
+  /// 推流用户 ID。`roomId` 和 `uid` 长度相加不得超过 126 字节。
+  ///
+  /// 本参数不支持过程中更新。
+  final String uid;
+
+  /// 合流类型。仅支持服务端合流。
+  final StreamMixingType expectedMixingType;
+
+  /// 视频合流配置参数。
+  final MixedStreamVideoConfig videoConfig;
+
+  /// 音频合流配置参数。
+  final MixedStreamAudioConfig audioConfig;
+
+  /// 转推 CDN 空间音频配置。
+  final MixedStreamSpatialConfig spatialConfig;
+
+  /// 视频流合流整体布局信息。<br>
+  /// 开启转推直播功能后，你可以设置参与合流的每路视频流的预设布局信息和合流背景信息等。
+  final MixedStreamLayoutConfig layout;
+
+  /// @nodoc
+  const MixedStreamConfig({
+    required this.pushURL,
+    required this.roomId,
+    required this.uid,
+    this.expectedMixingType = StreamMixingType.byServer,
+    this.videoConfig = const MixedStreamVideoConfig(),
+    this.audioConfig = const MixedStreamAudioConfig(),
+    this.spatialConfig = const MixedStreamSpatialConfig.disabled(),
+    this.layout = const MixedStreamLayoutConfig(),
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'pushURL': pushURL,
+      'roomId': roomId,
+      'uid': uid,
+      'expectedMixingType': expectedMixingType.index,
+      'videoConfig': videoConfig.toMap(),
+      'audioConfig': audioConfig.toMap(),
+      'spatialConfig': spatialConfig.toMap(),
+      'layout': layout.toMap(),
+    };
+  }
 }

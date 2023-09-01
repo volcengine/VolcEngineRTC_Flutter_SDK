@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
 import 'dart:async';
@@ -8,28 +8,31 @@ import 'package:async/async.dart';
 import 'bytertc_ktv_defines.dart';
 import 'bytertc_ktv_player_api.dart';
 
-/// [error]：错误码，成功时返回 0
+/// [musicInfos]：歌曲数据数组
 ///
 /// [totalSize]：数据条目总数
 ///
-/// [musics]：歌曲数据数组
+/// [errorCode]：错误码，成功时返回 0
 typedef OnMusicListResultType = void Function(
-    KTVError error, int totalSize, List<KTVMusic>? musics);
+    List<MusicInfo>? musicInfos, int totalSize, KTVErrorCode errorCode);
 
-/// [error]：错误码，成功时返回 0
-///
 /// [hotMusics]：热榜歌曲数据数组
-typedef OnHotMusicResultType = void Function(
-    KTVError error, List<KTVHotMusicInfo>? hotMusics);
-
-/// [error]：错误码，成功时返回 0
 ///
-/// [music]：歌曲数据
+/// [errorCode]：错误码，成功时返回 0
+typedef OnHotMusicResultType = void Function(
+    List<HotMusicInfo>? hotMusics, KTVErrorCode errorCode);
+
+/// [musicInfo]：歌曲数据
+///
+/// [errorCode]：错误码，成功时返回 0
 typedef OnMusicDetailResultType = void Function(
-    KTVError error, KTVMusic? music);
+    MusicInfo? musicInfo, KTVErrorCode errorCode);
+
+/// [errorCode]：错误码。非 0 为失败。
+typedef OnClearCacheResultType = void Function(KTVErrorCode errorCode);
 
 /// KTV 事件回调类
-class RTCKTVEventHandler {
+class RTCKTVManagerEventHandler {
   /// 歌曲列表回调
   OnMusicListResultType? onMusicListResult;
 
@@ -42,18 +45,23 @@ class RTCKTVEventHandler {
   /// 歌曲详细信息回调
   OnMusicDetailResultType? onMusicDetailResult;
 
-  RTCKTVEventHandler({
+  /// 清理文件缓存结果回调。
+  OnClearCacheResultType? onClearCacheResult;
+
+  /// @nodoc
+  RTCKTVManagerEventHandler({
     this.onMusicListResult,
     this.onSearchMusicResult,
     this.onHotMusicResult,
     this.onMusicDetailResult,
+    this.onClearCacheResult,
   });
 }
 
 /// KTV 管理接口类
 abstract class RTCKTVManager {
   /// 设置 KTV 回调
-  void setKTVEventHandler(RTCKTVEventHandler? eventHandler);
+  void setKTVManagerEventHandler(RTCKTVManagerEventHandler? eventHandler);
 
   /// 获取歌曲列表
   ///
@@ -61,11 +69,11 @@ abstract class RTCKTVManager {
   /// [pageSize]：每页显示歌曲的最大数量，取值范围 `[1,99]`。<br>
   /// [filters]：歌曲过滤方式。多个过滤方式可以按位或组合。
   ///
-  /// 调用接口后，你会收到 [RTCKTVEventHandler.onMusicListResult] 回调歌曲列表。
+  /// 调用接口后，你会收到 [RTCKTVManagerEventHandler.onMusicListResult] 回调歌曲列表。
   Future<void> getMusicList({
     int pageNum,
     int pageSize,
-    List<KTVMusicFilterType> filters,
+    List<MusicFilterType> filters,
   });
 
   /// 根据关键词搜索歌曲
@@ -75,12 +83,12 @@ abstract class RTCKTVManager {
   /// [pageSize]：每页显示歌曲的最大数量，取值范围 `[1,99]`。<br>
   /// [filters]：歌曲过滤方式。多个过滤方式可以按位或组合。
   ///
-  /// 调用接口后，你会收到 [RTCKTVEventHandler.onSearchMusicResult] 回调歌曲列表。
+  /// 调用接口后，你会收到 [RTCKTVManagerEventHandler.onSearchMusicResult] 回调歌曲列表。
   Future<void> searchMusic({
     required String keyWord,
     int pageNum,
     int pageSize,
-    List<KTVMusicFilterType> filters,
+    List<MusicFilterType> filters,
   });
 
   /// 根据热榜类别获取每个榜单的歌曲列表
@@ -88,17 +96,17 @@ abstract class RTCKTVManager {
   /// [hotTypes]：热榜类别。多个热榜类别可以按位或组合。<br>
   /// [filters]：歌曲过滤方式。多个过滤方式可以按位或组合。
   ///
-  /// 调用接口后，你会收到 [RTCKTVEventHandler.onHotMusicResult] 回调歌曲列表。
+  /// 调用接口后，你会收到 [RTCKTVManagerEventHandler.onHotMusicResult] 回调歌曲列表。
   Future<void> getHotMusic({
-    List<KTVMusicHotType> hotTypes,
-    List<KTVMusicFilterType> filters,
+    List<MusicHotType> hotTypes,
+    List<MusicFilterType> filters,
   });
 
   /// 获取音乐详细信息
   ///
   /// [musicId]：音乐 ID。
   ///
-  /// 调用接口后，你会收到 [RTCKTVEventHandler.onMusicDetailResult] 回调。
+  /// 调用接口后，你会收到 [RTCKTVManagerEventHandler.onMusicDetailResult] 回调。
   Future<void> getMusicDetail(String musicId);
 
   /// 下载音乐
@@ -106,8 +114,8 @@ abstract class RTCKTVManager {
   /// [musicId]：音乐 ID。<br>
   /// [onReceiveProgress]：音乐下载进度更新回调。设置后你会收到当前音乐文件的下载进度，单位 %，取值范围 [0,100]。
   ///
-  /// 方法调用成功则收到 [KTVDownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVError]。
-  CancelableOperation<KTVDownloadResult> downloadMusic(
+  /// 方法调用成功则收到 [DownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVErrorCode]。
+  CancelableOperation<DownloadResult> downloadMusic(
     String musicId, {
     void Function(int downloadProgress)? onReceiveProgress,
   });
@@ -117,18 +125,18 @@ abstract class RTCKTVManager {
   /// [musicId]：音乐 ID。<br>
   /// [lyricType]：歌词文件类型。
   ///
-  /// 方法调用成功则收到 [KTVDownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVError]。
-  CancelableOperation<KTVDownloadResult> downloadLyric(
+  /// 方法调用成功则收到 [DownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVErrorCode]。
+  CancelableOperation<DownloadResult> downloadLyric(
     String musicId, {
-    KTVDownloadLyricType lyricType,
+    DownloadLyricType lyricType,
   });
 
   /// 下载 MIDI 文件
   ///
   /// [musicId]：音乐 ID。
   ///
-  /// 方法调用成功则收到 [KTVDownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVError]。
-  CancelableOperation<KTVDownloadResult> downloadMidi(String musicId);
+  /// 方法调用成功则收到 [DownloadResult] 对象；若调用失败，则返回失败原因，具体参看 [KTVErrorCode]。
+  CancelableOperation<DownloadResult> downloadMidi(String musicId);
 
   /// 清除当前音乐缓存文件，包括音乐音频和歌词
   Future<void> clearCache();

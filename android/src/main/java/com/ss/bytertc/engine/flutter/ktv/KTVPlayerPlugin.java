@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -12,7 +12,7 @@ import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.plugin.RTCFlutterPlugin;
-import com.ss.bytertc.ktv.KTVPlayer;
+import com.ss.bytertc.ktv.IKTVPlayer;
 import com.ss.bytertc.ktv.data.AudioPlayType;
 import com.ss.bytertc.ktv.data.AudioTrackType;
 
@@ -21,10 +21,10 @@ import io.flutter.plugin.common.MethodChannel;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class KTVPlayerPlugin extends RTCFlutterPlugin {
 
-    private KTVPlayer mKTVPlayer;
+    private IKTVPlayer mKTVPlayer;
     private final KTVPlayerEventProxy mPlayerEventProxy = new KTVPlayerEventProxy();
 
-    KTVPlayerPlugin(@NonNull KTVPlayer ktvPlayer) {
+    KTVPlayerPlugin(@NonNull IKTVPlayer ktvPlayer) {
         mKTVPlayer = ktvPlayer;
         ktvPlayer.setPlayerEventHandler(mPlayerEventProxy);
     }

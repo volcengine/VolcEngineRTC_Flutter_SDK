@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MIT
 
 import '../src/base/bytertc_enum_convert.dart';
+import 'bytertc_audio_effect_player_api.dart';
 import 'bytertc_media_defines.dart';
+import 'bytertc_room_api.dart';
+import 'bytertc_video_event_handler.dart';
 
 /// 音频设备类型
 enum AudioDeviceType {
@@ -197,6 +200,7 @@ class VoiceEqualizationConfig {
   ///  频带增益（dB）。取值范围是 `[-15, 15]`
   final int gain;
 
+  /// @nodoc
   const VoiceEqualizationConfig({
     required this.frequency,
     required this.gain,
@@ -204,7 +208,7 @@ class VoiceEqualizationConfig {
 
   /// @nodoc
   Map<String, dynamic> toMap() => {
-        'frequency': frequency.value,
+        'frequency': frequency.index,
         'gain': gain,
       };
 }
@@ -229,6 +233,7 @@ class VoiceReverbConfig {
   /// 早期反射信号的延迟。取值范围 `[0.0, 200.0]`，单位为 ms。默认值为 `0.0`。
   final double preDelay;
 
+  /// @nodoc
   const VoiceReverbConfig({
     this.roomSize = 50,
     this.decayTime = 50,
@@ -296,7 +301,7 @@ enum AudioMixingError {
   /// 音量参数不合法，仅支持将音量值设置在 `[0, 400]` 范围内
   invalidVolume,
 
-  /// 播放的文件与预加载的文件不一致，请先使用 [RTCAudioMixingManager.unloadAudioMixing] 卸载文件
+  /// 播放的文件与预加载的文件不一致，请先使用 [RTCAudioEffectPlayer.unload] 卸载文件
   loadConflict,
 
   /// 当前混音类型不支持
@@ -357,6 +362,7 @@ class RTCASRConfig {
   /// 应用 ID
   String appId;
 
+  /// @nodoc
   RTCASRConfig({
     required this.uid,
     required this.accessToken,
@@ -372,7 +378,7 @@ class RTCASRConfig {
       'uid': uid,
       'accessToken': accessToken,
       'secretKey': secretKey,
-      'authorizationType': authorizationType.value,
+      'authorizationType': authorizationType.index,
       'cluster': cluster,
       'appId': appId,
     };
@@ -419,8 +425,9 @@ class AudioMixingConfig {
   /// + `true` 时开启此功能，`false` 时关闭此功能，默认为关闭。
   bool syncProgressToRecordFrame;
 
+  /// @nodoc
   AudioMixingConfig({
-    this.type = AudioMixingType.playout,
+    this.type = AudioMixingType.playoutAndPublish,
     this.playCount = 0,
     this.position = 0,
     this.callbackOnProgressInterval = 0,
@@ -430,7 +437,7 @@ class AudioMixingConfig {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'type': type.value,
+      'type': type.index,
       'playCount': playCount,
       'position': position,
       'callbackOnProgressInterval': callbackOnProgressInterval,
@@ -462,7 +469,7 @@ enum AudioReportMode {
   /// 可见用户进房并停止推流后，关闭音量回调
   disconnect,
 
-  /// 可见用户进房并停止推流后，开启音量回调，回调值重置为0
+  /// 可见用户进房并停止推流后，开启音量回调，回调值重置为 0
   reset,
 }
 
@@ -503,6 +510,7 @@ class AudioPropertiesConfig {
   /// 默认值为 `1.0`，不开启平滑效果；值越小，提示音量平滑效果越明显。如果要开启平滑效果，可以设置为 `0.3`。
   double smooth;
 
+  /// @nodoc
   AudioPropertiesConfig({
     this.interval = 100,
     this.enableSpectrum = false,
@@ -518,8 +526,8 @@ class AudioPropertiesConfig {
       'interval': interval,
       'enableSpectrum': enableSpectrum,
       'enableVad': enableVad,
-      'localMainReportMode': localMainReportMode.value,
-      'audioReportMode': audioReportMode.value,
+      'localMainReportMode': localMainReportMode.index,
+      'audioReportMode': audioReportMode.index,
       'smooth': smooth,
     };
   }
@@ -553,6 +561,7 @@ class AudioPropertiesInfo {
   /// 频谱数组
   final List<double>? spectrum;
 
+  /// @nodoc
   const AudioPropertiesInfo({
     this.linearVolume,
     this.nonlinearVolume,
@@ -579,6 +588,7 @@ class RemoteAudioPropertiesInfo {
   /// 音频属性信息
   final AudioPropertiesInfo? audioPropertiesInfo;
 
+  /// @nodoc
   const RemoteAudioPropertiesInfo({
     this.streamKey,
     this.audioPropertiesInfo,
@@ -602,6 +612,7 @@ class LocalAudioPropertiesInfo {
   /// 音频属性信息
   final AudioPropertiesInfo? audioPropertiesInfo;
 
+  /// @nodoc
   const LocalAudioPropertiesInfo({
     this.streamIndex,
     this.audioPropertiesInfo,
@@ -667,12 +678,14 @@ class Position {
   /// z 坐标
   final double z;
 
+  /// @nodoc
   const Position({
     this.x = 0,
     this.y = 0,
     this.z = 0,
   });
 
+  /// @nodoc
   const Position.zero() : this();
 
   /// @nodoc
@@ -696,6 +709,7 @@ class RTCOrientation {
   /// 朝向向量的 z 方向分量
   final double z;
 
+  /// @nodoc
   const RTCOrientation({
     this.x = 0,
     this.y = 0,
@@ -726,11 +740,13 @@ class HumanOrientation {
   /// 正上方朝向向量
   final RTCOrientation up;
 
+  /// @nodoc
   const HumanOrientation.origin()
       : forward = const RTCOrientation(x: 1, y: 0, z: 0),
         right = const RTCOrientation(x: 0, y: 1, z: 0),
         up = const RTCOrientation(x: 0, y: 0, z: 1);
 
+  /// @nodoc
   HumanOrientation({
     required this.forward,
     required this.right,
@@ -743,6 +759,29 @@ class HumanOrientation {
       'forward': forward.toMap(),
       'right': right.toMap(),
       'up': up.toMap(),
+    };
+  }
+}
+
+/// 用户在空间音频坐标系里的位置信息。
+class PositionInfo {
+  /// 用户在空间音频坐标系里的位置，需自行建立空间直角坐标系。
+  final Position position;
+
+  /// 用户在空间音频坐标系里的三维朝向信息。三个向量需要两两垂直。
+  final HumanOrientation orientation;
+
+  /// @nodoc
+  const PositionInfo({
+    this.position = const Position.zero(),
+    this.orientation = const HumanOrientation.origin(),
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'position': position.toMap(),
+      'orientation': orientation.toMap(),
     };
   }
 }
@@ -781,6 +820,7 @@ class ReceiveRange {
   /// 超出该值范围的音频将无法收听到。
   int max;
 
+  /// @nodoc
   ReceiveRange({
     this.min = 0,
     this.max = 1,
@@ -883,6 +923,7 @@ class AudioRecordingConfig {
   /// + 超高音质：7.5MB
   AudioQuality quality;
 
+  /// @nodoc
   AudioRecordingConfig({
     required this.absoluteFileName,
     this.sampleRate = AudioSampleRate.rate48000,
@@ -896,8 +937,8 @@ class AudioRecordingConfig {
         'absoluteFileName': absoluteFileName,
         'sampleRate': sampleRate.value,
         'channel': channel.value,
-        'frameSource': frameSource.value,
-        'quality': quality.value,
+        'frameSource': frameSource.index,
+        'quality': quality.index,
       };
 }
 
@@ -937,118 +978,6 @@ enum AudioRecordingErrorCode {
   other,
 }
 
-/// K 歌打分维度。
-enum MulDimSingScoringMode {
-  /// 按照音高进行评分。
-  note,
-}
-
-/// 实时评分信息。
-class SingScoringRealtimeInfo {
-  /// 当前播放进度。
-  final int currentPosition;
-
-  /// 演唱者的音高。
-  final int userPitch;
-
-  /// 标准音高。
-  final int standardPitch;
-
-  /// 歌词分句索引。
-  final int sentenceIndex;
-
-  /// 上一句歌词的评分。
-  final int sentenceScore;
-
-  /// 当前演唱的累计分数。
-  final int totalScore;
-
-  /// 当前演唱的平均分数。
-  final int averageScore;
-
-  const SingScoringRealtimeInfo({
-    required this.currentPosition,
-    required this.userPitch,
-    required this.standardPitch,
-    required this.sentenceIndex,
-    required this.sentenceScore,
-    required this.totalScore,
-    required this.averageScore,
-  });
-
-  /// @nodoc
-  factory SingScoringRealtimeInfo.fromMap(Map<dynamic, dynamic> map) {
-    return SingScoringRealtimeInfo(
-      currentPosition: map['currentPosition'],
-      userPitch: map['userPitch'],
-      standardPitch: map['standardPitch'],
-      sentenceIndex: map['sentenceIndex'],
-      sentenceScore: map['sentenceScore'],
-      totalScore: map['totalScore'],
-      averageScore: map['averageScore'],
-    );
-  }
-}
-
-/// 标准音高数据数组。
-class StandardPitchInfo {
-  /// 开始时间，单位 ms。
-  final int startTime;
-
-  /// 持续时间，单位 ms。
-  final int duration;
-
-  /// 音高。
-  final int pitch;
-
-  const StandardPitchInfo({
-    required this.startTime,
-    required this.duration,
-    required this.pitch,
-  });
-
-  /// @nodoc
-  factory StandardPitchInfo.fromMap(Map<dynamic, dynamic> map) {
-    return StandardPitchInfo(
-      startTime: map['startTime'],
-      duration: map['duration'],
-      pitch: map['pitch'],
-    );
-  }
-}
-
-/// K 歌评分配置。
-class SingScoringConfig {
-  /// 音频采样率。仅支持 44100 Hz、48000 Hz。
-  AudioSampleRate sampleRate;
-
-  /// 打分维度，详见 [MulDimSingScoringMode]。
-  MulDimSingScoringMode mode;
-
-  /// 歌词文件路径。打分功能仅支持 KRC 歌词文件。
-  String lyricsFilepath;
-
-  /// 歌曲 midi 文件路径。
-  String midiFilepath;
-
-  SingScoringConfig({
-    required this.sampleRate,
-    this.mode = MulDimSingScoringMode.note,
-    required this.lyricsFilepath,
-    required this.midiFilepath,
-  });
-
-  /// @nodoc
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'sampleRate': sampleRate.value,
-      'mode': mode.value,
-      'lyricsFilepath': lyricsFilepath,
-      'midiFilepath': midiFilepath,
-    };
-  }
-}
-
 /// 降噪模式。
 ///
 /// 降噪算法受调用 [RTCRoom.joinRoom] 时设置的房间模式影响。
@@ -1067,4 +996,61 @@ enum AnsMode {
 
   /// 启用音频降噪能力。具体的降噪算法由 RTC 智能决策。
   automatic,
+}
+
+/// 播放状态。
+enum PlayerState {
+  /// 播放未启动
+  idle,
+
+  /// 已加载
+  preloaded,
+
+  /// 已打开
+  opened,
+
+  /// 正在播放
+  playing,
+
+  /// 播放已暂停
+  paused,
+
+  /// 播放已停止
+  stopped,
+
+  /// 播放失败
+  failed,
+}
+
+/// 播放错误码
+enum PlayerError {
+  /// 正常。
+  ok,
+
+  /// 不支持此类型。
+  formatNotSupport,
+
+  /// 无效的播放路径。
+  invalidPath,
+
+  /// 未满足前序接口调用的要求，请查看具体接口文档。
+  invalidState,
+
+  /// 设置播放位置出错。
+  invalidPosition,
+
+  /// 音量参数不合法。
+  invalidVolume,
+
+  /// 音调参数设置不合法。
+  invalidPitch,
+
+  /// 音轨参数设置不合法。
+  invalidAudioTrackIndex,
+
+  /// 播放速度参数设置不合法。
+  invalidPlaybackSpeed,
+
+  /// 音效 ID 异常。还未加载或播放文件，就调用其他 API。
+  invalidEffectId,
 }

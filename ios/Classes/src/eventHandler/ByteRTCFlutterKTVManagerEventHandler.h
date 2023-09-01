@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#import <VolcEngineRTC/objc/rtc/ByteRTCRangeAudio.h>
+#import <VolcEngineRTC/objc/rtc/ByteRTCKTVManager.h>
 #import "ByteRTCFlutterStreamHandler.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface ByteRTCFlutterRangeAudioObserver : ByteRTCFlutterEventHandler <ByteRTCRangeAudioObserver>
+@interface ByteRTCFlutterKTVManagerEventHandler : ByteRTCFlutterEventHandler <ByteRTCKTVManagerDelegate>
 
 @end
 

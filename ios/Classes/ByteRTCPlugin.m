@@ -9,6 +9,7 @@
 #import "ByteRTCFlutterVideoPlugin.h"
 #import "ByteRTCFlutterVideoEventHandler.h"
 #import "ByteRTCVideoManager+Extension.h"
+#import "ByteRTCFlutterMapCategory.h"
 
 @interface ByteRTCPlugin ()
 
@@ -82,6 +83,11 @@
 
 - (void)getSDKVersion:(NSDictionary *)arguments result:(FlutterResult)result {
     result([ByteRTCVideo getSDKVersion]);
+}
+
+- (void)setLogConfig:(NSDictionary *)arguments result:(FlutterResult)result {
+    int res = [ByteRTCVideo setLogConfig:[ByteRTCLogConfig bf_fromMap:arguments[@"logConfig"]]];
+    result(@(res));
 }
 
 - (void)getErrorDescription:(NSDictionary *)arguments result:(FlutterResult)result {

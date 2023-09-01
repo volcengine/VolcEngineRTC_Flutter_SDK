@@ -1,7 +1,9 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
 import 'dart:ui';
@@ -12,12 +14,14 @@ import 'package:flutter/services.dart';
 
 import '../api/bytertc_asr_engine_event_handler.dart';
 import '../api/bytertc_audio_defines.dart';
+import '../api/bytertc_audio_effect_player_api.dart';
 import '../api/bytertc_audio_mixing_api.dart';
+import '../api/bytertc_cdn_stream_observer.dart';
 import '../api/bytertc_face_detection_observer.dart';
 import '../api/bytertc_ktv_manager_api.dart';
 import '../api/bytertc_live_transcoding_observer.dart';
 import '../api/bytertc_media_defines.dart';
-import '../api/bytertc_push_single_stream_to_cdn_observer.dart';
+import '../api/bytertc_media_player_api.dart';
 import '../api/bytertc_rts_defines.dart';
 import '../api/bytertc_sing_scoring_manager_api.dart';
 import '../api/bytertc_video_api.dart';
@@ -27,11 +31,13 @@ import '../api/bytertc_video_event_handler.dart';
 import 'base/bytertc_enum_convert.dart';
 import 'base/bytertc_event_channel.dart';
 import 'bytertc_asr_engine_impl.dart';
+import 'bytertc_audio_effect_player_impl.dart';
 import 'bytertc_audio_mixing_impl.dart';
+import 'bytertc_cdn_stream_observer_impl.dart';
 import 'bytertc_face_detection_impl.dart';
 import 'bytertc_ktv_manager_impl.dart';
 import 'bytertc_live_transcoding_impl.dart';
-import 'bytertc_push_single_stream_to_cdn_impl.dart';
+import 'bytertc_media_player_impl.dart';
 import 'bytertc_room_impl.dart';
 import 'bytertc_sing_scoring_manager_impl.dart';
 import 'bytertc_take_snapshot_observer_impl.dart';
@@ -47,7 +53,8 @@ class RTCVideoImpl implements RTCVideo {
 
   static RTCVideoImpl? get instance => _instance;
 
-  final MethodChannel _channel = MethodChannel('com.bytedance.ve_rtc_video');
+  final MethodChannel _channel =
+      const MethodChannel('com.bytedance.ve_rtc_video');
 
   late final RTCEventChannel _eventChannel;
   RTCVideoEventHandler? _eventHandler;
@@ -55,11 +62,14 @@ class RTCVideoImpl implements RTCVideo {
   RTCEventChannel? _liveTranscodingChannel;
   RTCLiveTranscodingObserver? _liveTranscodingObserver;
 
+  RTCEventChannel? _mixedStreamChannel;
+  RTCMixedStreamObserver? _mixedStreamObserver;
+
   RTCEventChannel? _pushSingleStreamToCDNChannel;
   RTCPushSingleStreamToCDNObserver? _pushSingleStreamToCDNObserver;
 
   RTCEventChannel? _takeSnapshotResultChannel;
-  TakeSnapshotResultObserver _takeSnapshotResultObserver =
+  final TakeSnapshotResultObserver _takeSnapshotResultObserver =
       TakeSnapshotResultObserver();
 
   RTCEventChannel? _asrChannel;
@@ -70,8 +80,10 @@ class RTCVideoImpl implements RTCVideo {
 
   RTCVideoEffectImpl? _videoEffectImpl;
   RTCAudioMixingManagerImpl? _audioMixingManagerImpl;
+  RTCAudioEffectPlayerImpl? _audioEffectPlayerImpl;
   RTCSingScoringManagerImpl? _singScoringManagerImpl;
   RTCKTVManagerImpl? _ktvManagerImpl;
+  final Map<int, RTCMediaPlayerImpl> _mediaPlayerMap = HashMap();
 
   RTCVideoImpl._() {
     _eventChannel = RTCEventChannel('com.bytedance.ve_rtc_video_event');
@@ -91,6 +103,15 @@ class RTCVideoImpl implements RTCVideo {
         _liveTranscodingChannel
             ?.listen((String methodName, Map<dynamic, dynamic> dic) {
           _liveTranscodingObserver?.process(methodName, dic);
+        });
+  }
+
+  void _listenMixedStreamEvent() {
+    _mixedStreamChannel ??= RTCEventChannel('com.bytedance.ve_rtc_mix_stream');
+    _mixedStreamChannel?.subscription ??
+        _mixedStreamChannel
+            ?.listen((String methodName, Map<dynamic, dynamic> dic) {
+          _mixedStreamObserver?.process(methodName, dic);
         });
   }
 
@@ -139,22 +160,29 @@ class RTCVideoImpl implements RTCVideo {
     _asrChannel?.cancel();
     _faceDetectionChannel?.cancel();
     _liveTranscodingChannel?.cancel();
+    _mixedStreamChannel?.cancel();
     _pushSingleStreamToCDNChannel?.cancel();
     _takeSnapshotResultChannel?.cancel();
     _videoEffectImpl?.destroy();
     _singScoringManagerImpl?.destroy();
     _ktvManagerImpl?.destroy();
+    _audioEffectPlayerImpl?.destroy();
+    _mediaPlayerMap.forEach((key, value) {
+      value.destroy();
+    });
+    _mediaPlayerMap.clear();
     _eventHandler = null;
     _asrEventHandler = null;
     _faceDetectionObserver = null;
     _liveTranscodingObserver = null;
+    _mixedStreamObserver = null;
     _pushSingleStreamToCDNObserver = null;
     _takeSnapshotResultChannel = null;
     _instance = null;
   }
 
   Future<T?> invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) {
-    return _invokeMethod(method, arguments);
+    return _invokeMethod<T>(method, arguments);
   }
 
   static Future<RTCVideoImpl?> createRTCVideo(RTCVideoContext context) async {
@@ -173,6 +201,11 @@ class RTCVideoImpl implements RTCVideo {
 
   static Future<String?> getSDKVersion() {
     return _staticChannel.invokeMethod<String>('getSDKVersion');
+  }
+
+  static Future<int?> setLogConfig(RTCLogConfig logConfig) {
+    return _staticChannel
+        .invokeMethod<int>('setLogConfig', {'logConfig': logConfig.toMap()});
   }
 
   static Future<String?> getErrorDescription(int code) {
@@ -197,42 +230,42 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> startAudioCapture() {
-    return _invokeMethod('startAudioCapture');
+  Future<int?> startAudioCapture() {
+    return _invokeMethod<int>('startAudioCapture');
   }
 
   @override
-  Future<void> stopAudioCapture() {
-    return _invokeMethod('stopAudioCapture');
+  Future<int?> stopAudioCapture() {
+    return _invokeMethod<int>('stopAudioCapture');
   }
 
   @override
-  Future<void> setAudioScenario(AudioScenario audioScenario) {
-    return _invokeMethod(
-        'setAudioScenario', {'audioScenario': audioScenario.value});
+  Future<int?> setAudioScenario(AudioScenario audioScenario) {
+    return _invokeMethod<int>(
+        'setAudioScenario', {'audioScenario': audioScenario.index});
   }
 
   @override
-  Future<void> setAudioProfile(AudioProfileType audioProfile) {
-    return _invokeMethod<void>(
-        'setAudioProfile', {'audioProfile': audioProfile.value});
+  Future<int?> setAudioProfile(AudioProfileType audioProfile) {
+    return _invokeMethod<int>(
+        'setAudioProfile', {'audioProfile': audioProfile.index});
   }
 
   @override
-  Future<void> setAnsMode(AnsMode ansMode) {
-    return _invokeMethod<void>('setAnsMode', {'ansMode': ansMode.value});
+  Future<int?> setAnsMode(AnsMode ansMode) {
+    return _invokeMethod<int>('setAnsMode', {'ansMode': ansMode.index});
   }
 
   @override
   Future<int?> setVoiceChangerType(VoiceChangerType voiceChanger) {
     return _invokeMethod<int>(
-        'setVoiceChangerType', {'voiceChanger': voiceChanger.value});
+        'setVoiceChangerType', {'voiceChanger': voiceChanger.index});
   }
 
   @override
   Future<int?> setVoiceReverbType(VoiceReverbType voiceReverb) {
     return _invokeMethod<int>(
-        'setVoiceReverbType', {'voiceReverb': voiceReverb.value});
+        'setVoiceReverbType', {'voiceReverb': voiceReverb.index});
   }
 
   @override
@@ -250,28 +283,28 @@ class RTCVideoImpl implements RTCVideo {
       _invokeMethod<int>('enableLocalVoiceReverb', {'enable': enable});
 
   @override
-  Future<void> setCaptureVolume(
+  Future<int?> setCaptureVolume(
       {StreamIndex index = StreamIndex.main, required int volume}) {
-    return _invokeMethod<void>(
-        'setCaptureVolume', {'index': index.value, 'volume': volume});
+    return _invokeMethod<int>(
+        'setCaptureVolume', {'index': index.index, 'volume': volume});
   }
 
   @override
-  Future<void> setPlaybackVolume(int volume) {
-    return _invokeMethod<void>('setPlaybackVolume', {'volume': volume});
+  Future<int?> setPlaybackVolume(int volume) {
+    return _invokeMethod<int>('setPlaybackVolume', {'volume': volume});
   }
 
   @override
-  Future<void> enableAudioPropertiesReport(AudioPropertiesConfig config) {
-    return _invokeMethod<void>('enableAudioPropertiesReport', {
+  Future<int?> enableAudioPropertiesReport(AudioPropertiesConfig config) {
+    return _invokeMethod<int>('enableAudioPropertiesReport', {
       'config': config.toMap(),
     });
   }
 
   @override
-  Future<void> setRemoteAudioPlaybackVolume(
+  Future<int?> setRemoteAudioPlaybackVolume(
       {required String roomId, required String uid, required int volume}) {
-    return _invokeMethod<void>('setRemoteAudioPlaybackVolume', {
+    return _invokeMethod<int>('setRemoteAudioPlaybackVolume', {
       'roomId': roomId,
       'uid': uid,
       'volume': volume,
@@ -279,46 +312,46 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> setEarMonitorMode(EarMonitorMode mode) {
-    return _invokeMethod<void>('setEarMonitorMode', {'mode': mode.value});
+  Future<int?> setEarMonitorMode(EarMonitorMode mode) {
+    return _invokeMethod<int>('setEarMonitorMode', {'mode': mode.index});
   }
 
   @override
-  Future<void> setEarMonitorVolume(int volume) {
-    return _invokeMethod<void>('setEarMonitorVolume', {'volume': volume});
+  Future<int?> setEarMonitorVolume(int volume) {
+    return _invokeMethod<int>('setEarMonitorVolume', {'volume': volume});
   }
 
   @override
-  Future<void> setBluetoothMode(BluetoothMode mode) {
+  Future<int?> setBluetoothMode(BluetoothMode mode) {
     if (Platform.isIOS) {
       // Only Support on iOS
-      return _invokeMethod<void>('setBluetoothMode', {
-        'mode': mode.value,
+      return _invokeMethod<int>('setBluetoothMode', {
+        'mode': mode.index,
       });
     } else {
-      return Future.value();
+      return Future.value(-1);
     }
   }
 
   @override
-  Future<void> setLocalVoicePitch(int pitch) {
-    return _invokeMethod<void>('setLocalVoicePitch', {'pitch': pitch});
+  Future<int?> setLocalVoicePitch(int pitch) {
+    return _invokeMethod<int>('setLocalVoicePitch', {'pitch': pitch});
   }
 
   @override
-  Future<void> enableVocalInstrumentBalance(bool enable) {
-    return _invokeMethod<void>(
+  Future<int?> enableVocalInstrumentBalance(bool enable) {
+    return _invokeMethod<int>(
         'enableVocalInstrumentBalance', {'enable': enable});
   }
 
   @override
-  Future<void> enablePlaybackDucking(bool enable) {
-    return _invokeMethod<void>('enablePlaybackDucking', {'enable': enable});
+  Future<int?> enablePlaybackDucking(bool enable) {
+    return _invokeMethod<int>('enablePlaybackDucking', {'enable': enable});
   }
 
   @override
-  Future<void> enableSimulcastMode(bool enable) {
-    return _invokeMethod<void>('enableSimulcastMode', {'enable': enable});
+  Future<int?> enableSimulcastMode(bool enable) {
+    return _invokeMethod<int>('enableSimulcastMode', {'enable': enable});
   }
 
   @override
@@ -354,7 +387,7 @@ class RTCVideoImpl implements RTCVideo {
   @override
   Future<int?> removeLocalVideo([StreamIndex streamType = StreamIndex.main]) {
     return _invokeMethod<int>('removeLocalVideo', {
-      'streamType': streamType.value,
+      'streamType': streamType.index,
     });
   }
 
@@ -366,44 +399,44 @@ class RTCVideoImpl implements RTCVideo {
     return _invokeMethod<int>('removeRemoteVideo', {
       'roomId': roomId,
       'uid': uid,
-      'streamType': streamType.value,
+      'streamType': streamType.index,
     });
   }
 
   @override
-  Future<void> startVideoCapture() {
-    return _invokeMethod<void>('startVideoCapture');
+  Future<int?> startVideoCapture() {
+    return _invokeMethod<int>('startVideoCapture');
   }
 
   @override
-  Future<void> stopVideoCapture() {
-    return _invokeMethod<void>('stopVideoCapture');
+  Future<int?> stopVideoCapture() {
+    return _invokeMethod<int>('stopVideoCapture');
   }
 
   @override
-  Future<void> setLocalVideoMirrorType(MirrorType mirrorType) {
-    return _invokeMethod<void>('setLocalVideoMirrorType', {
+  Future<int?> setLocalVideoMirrorType(MirrorType mirrorType) {
+    return _invokeMethod<int>('setLocalVideoMirrorType', {
       'mirrorType': mirrorType.value,
     });
   }
 
   @override
-  Future<void> setVideoRotationMode(VideoRotationMode rotationMode) {
-    return _invokeMethod<void>('setVideoRotationMode', {
-      'rotationMode': rotationMode.value,
+  Future<int?> setVideoRotationMode(VideoRotationMode rotationMode) {
+    return _invokeMethod<int>('setVideoRotationMode', {
+      'rotationMode': rotationMode.index,
     });
   }
 
   @override
-  Future<void> setVideoOrientation(VideoOrientation orientation) {
+  Future<int?> setVideoOrientation(VideoOrientation orientation) {
     return _invokeMethod<int>('setVideoOrientation', {
-      'orientation': orientation.value,
+      'orientation': orientation.index,
     });
   }
 
   @override
-  Future<void> switchCamera(CameraId cameraId) {
-    return _invokeMethod<void>('switchCamera', {'cameraId': cameraId.value});
+  Future<int?> switchCamera(CameraId cameraId) {
+    return _invokeMethod<int>('switchCamera', {'cameraId': cameraId.index});
   }
 
   @override
@@ -423,8 +456,8 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> setVideoEffectAlgoModelPath(String modelPath) {
-    return _invokeMethod('setVideoEffectAlgoModelPath', {
+  Future<int?> setVideoEffectAlgoModelPath(String modelPath) {
+    return _invokeMethod<int>('setVideoEffectAlgoModelPath', {
       'modelPath': modelPath,
     });
   }
@@ -459,17 +492,10 @@ class RTCVideoImpl implements RTCVideo {
   @override
   Future<int?> setBackgroundSticker(
       {String? modelPath, VirtualBackgroundSource? source}) {
-    Map<String, dynamic>? dic;
-    if (modelPath != null || source != null) {
-      dic = Map();
-      if (modelPath != null) {
-        dic['modelPath'] = modelPath;
-      }
-      if (source != null) {
-        dic['source'] = source.toMap();
-      }
-    }
-    return _invokeMethod<int>('setBackgroundSticker', dic);
+    return _invokeMethod<int>('setBackgroundSticker', {
+      if (modelPath != null) 'modelPath': modelPath,
+      if (source != null) 'source': source.toMap(),
+    });
   }
 
   @override
@@ -481,7 +507,7 @@ class RTCVideoImpl implements RTCVideo {
   Future<int?> setBeautyIntensity(
       {required EffectBeautyMode beautyMode, required double intensity}) {
     return _invokeMethod<int>('setBeautyIntensity',
-        {'beautyMode': beautyMode.value, 'intensity': intensity});
+        {'beautyMode': beautyMode.index, 'intensity': intensity});
   }
 
   @override
@@ -524,7 +550,7 @@ class RTCVideoImpl implements RTCVideo {
   @override
   Future<int?> setCameraTorch(TorchState torchState) {
     return _invokeMethod<int>('setCameraTorch', {
-      'torchState': torchState.value,
+      'torchState': torchState.index,
     });
   }
 
@@ -562,50 +588,64 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
+  Future<int?> enableCameraAutoExposureFaceMode(bool enable) {
+    return _invokeMethod<int>('enableCameraAutoExposureFaceMode', {
+      'enable': enable,
+    });
+  }
+
+  @override
+  Future<int?> setCameraAdaptiveMinimumFrameRate(int framerate) {
+    return _invokeMethod<int>('setCameraAdaptiveMinimumFrameRate', {
+      'framerate': framerate,
+    });
+  }
+
+  @override
   Future<int?> sendSEIMessage(
       {StreamIndex streamIndex = StreamIndex.main,
       required Uint8List message,
       required int repeatCount,
       SEICountPerFrame mode = SEICountPerFrame.single}) {
     return _invokeMethod<int>('sendSEIMessage', {
-      'streamIndex': streamIndex.value,
+      'streamIndex': streamIndex.index,
       'message': message,
       'repeatCount': repeatCount,
-      'mode': mode.value,
+      'mode': mode.index,
     });
   }
 
   @override
-  Future<void> setVideoDigitalZoomConfig(
+  Future<int?> setVideoDigitalZoomConfig(
       {required ZoomConfigType type, double size = 0.0}) {
-    return _invokeMethod<void>('setVideoDigitalZoomConfig', {
-      'type': type.value,
+    return _invokeMethod<int>('setVideoDigitalZoomConfig', {
+      'type': type.index,
       'size': size,
     });
   }
 
   @override
-  Future<void> setVideoDigitalZoomControl(ZoomDirectionType direction) {
-    return _invokeMethod<void>('setVideoDigitalZoomControl', {
-      'direction': direction.value,
+  Future<int?> setVideoDigitalZoomControl(ZoomDirectionType direction) {
+    return _invokeMethod<int>('setVideoDigitalZoomControl', {
+      'direction': direction.index,
     });
   }
 
   @override
-  Future<void> startVideoDigitalZoomControl(ZoomDirectionType direction) {
-    return _invokeMethod<void>('startVideoDigitalZoomControl', {
-      'direction': direction.value,
+  Future<int?> startVideoDigitalZoomControl(ZoomDirectionType direction) {
+    return _invokeMethod<int>('startVideoDigitalZoomControl', {
+      'direction': direction.index,
     });
   }
 
   @override
-  Future<void> stopVideoDigitalZoomControl() {
-    return _invokeMethod<void>('stopVideoDigitalZoomControl');
+  Future<int?> stopVideoDigitalZoomControl() {
+    return _invokeMethod<int>('stopVideoDigitalZoomControl');
   }
 
   @override
-  Future<void> setAudioRoute(AudioRoute audioRoute) {
-    return _invokeMethod<void>('setAudioRoute', {
+  Future<int?> setAudioRoute(AudioRoute audioRoute) {
+    return _invokeMethod<int>('setAudioRoute', {
       'audioRoute': audioRoute.value,
     });
   }
@@ -625,55 +665,77 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> enableExternalSoundCard(bool enable) {
-    return _invokeMethod<void>('enableExternalSoundCard', {
+  Future<int?> enableExternalSoundCard(bool enable) {
+    return _invokeMethod<int>('enableExternalSoundCard', {
       'enable': enable,
     });
   }
 
   @override
-  Future<void> startLiveTranscoding(
+  Future<int?> startLiveTranscoding(
       {required String taskId,
       required LiveTranscoding transcoding,
       required RTCLiveTranscodingObserver observer}) {
     _liveTranscodingObserver = observer;
     _listenLiveTranscodingEvent();
-    return _invokeMethod<void>('startLiveTranscoding', {
+    return _invokeMethod<int>('startLiveTranscoding', {
       'taskId': taskId,
       'transcoding': transcoding.toMap(),
     });
   }
 
   @override
-  Future<void> stopLiveTranscoding(String taskId) async {
-    await _invokeMethod<void>('stopLiveTranscoding', {
+  Future<int?> stopLiveTranscoding(String taskId) {
+    return _invokeMethod<int>('stopLiveTranscoding', {
       'taskId': taskId,
     });
   }
 
   @override
-  Future<void> updateLiveTranscoding({
+  Future<int?> updateLiveTranscoding({
     required String taskId,
     required LiveTranscoding transcoding,
   }) {
-    return _invokeMethod<void>('updateLiveTranscoding',
+    return _invokeMethod<int>('updateLiveTranscoding',
         {'taskId': taskId, 'transcoding': transcoding.toMap()});
   }
 
   @override
-  Future<void> startPushSingleStreamToCDN(
+  Future<int?> startPushMixedStreamToCDN(
+      {required String taskId,
+      required MixedStreamConfig mixedConfig,
+      RTCMixedStreamObserver? observer}) {
+    _mixedStreamObserver = observer;
+    _listenMixedStreamEvent();
+    return _invokeMethod<int>('startPushMixedStreamToCDN', {
+      'taskId': taskId,
+      'mixedConfig': mixedConfig.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> updatePushMixedStreamToCDN(
+      {required String taskId, required MixedStreamConfig mixedConfig}) {
+    return _invokeMethod<int>('updatePushMixedStreamToCDN', {
+      'taskId': taskId,
+      'mixedConfig': mixedConfig.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> startPushSingleStreamToCDN(
       {required String taskId,
       required PushSingleStreamParam param,
       required RTCPushSingleStreamToCDNObserver observer}) {
     _pushSingleStreamToCDNObserver = observer;
     _listenPushSingleStreamToCDNEvent();
-    return _invokeMethod<void>('startPushSingleStreamToCDN',
+    return _invokeMethod<int>('startPushSingleStreamToCDN',
         {'taskId': taskId, 'param': param.toMap()});
   }
 
   @override
-  Future<void> stopPushStreamToCDN(String taskId) async {
-    await _invokeMethod<void>('stopPushStreamToCDN', {'taskId': taskId});
+  Future<int?> stopPushStreamToCDN(String taskId) {
+    return _invokeMethod<int>('stopPushStreamToCDN', {'taskId': taskId});
   }
 
   @override
@@ -742,24 +804,24 @@ class RTCVideoImpl implements RTCVideo {
 
   @override
   Future<int?> feedback(
-      {required List<ProblemFeedback> types, required String problemDesc}) {
+      {required List<ProblemFeedbackOption> types, ProblemFeedbackInfo? info}) {
     return _invokeMethod<int>('feedback', {
       'types': types.map((e) => e.value).toList(),
-      'problemDesc': problemDesc,
+      if (info != null) 'info': info.toMap(),
     });
   }
 
   @override
-  Future<void> setPublishFallbackOption(PublishFallbackOption option) {
-    return _invokeMethod<void>('setPublishFallbackOption', {
-      'option': option.value,
+  Future<int?> setPublishFallbackOption(PublishFallbackOption option) {
+    return _invokeMethod<int>('setPublishFallbackOption', {
+      'option': option.index,
     });
   }
 
   @override
-  Future<void> setSubscribeFallbackOption(SubscribeFallbackOption option) {
-    return _invokeMethod<void>('setSubscribeFallbackOption', {
-      'option': option.value,
+  Future<int?> setSubscribeFallbackOption(SubscribeFallbackOption option) {
+    return _invokeMethod<int>('setSubscribeFallbackOption', {
+      'option': option.index,
     });
   }
 
@@ -776,9 +838,9 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> setEncryptInfo(
+  Future<int?> setEncryptInfo(
       {required EncryptType aesType, required String key}) {
-    return _invokeMethod<void>('setEncryptInfo', {
+    return _invokeMethod<int>('setEncryptInfo', {
       'aesType': aesType.index,
       'key': key,
     });
@@ -796,58 +858,56 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> startScreenCapture(ScreenMediaType type) {
-    return _invokeMethod<void>('startScreenCapture', {
-      'type': type.value,
+  Future<int?> startScreenCapture(ScreenMediaType type) {
+    return _invokeMethod<int>('startScreenCapture', {
+      'type': type.index,
     });
   }
 
   @override
-  Future<void> updateScreenCapture(ScreenMediaType type) {
-    return _invokeMethod<void>('updateScreenCapture', {
-      'type': type.value,
+  Future<int?> updateScreenCapture(ScreenMediaType type) {
+    return _invokeMethod<int>('updateScreenCapture', {
+      'type': type.index,
     });
   }
 
   @override
-  Future<void> stopScreenCapture() {
-    return _invokeMethod<void>('stopScreenCapture');
+  Future<int?> stopScreenCapture() {
+    return _invokeMethod<int>('stopScreenCapture');
   }
 
   /// Only iOS
   @override
-  Future<void> sendScreenCaptureExtensionMessage(Uint8List message) {
+  Future<int?> sendScreenCaptureExtensionMessage(Uint8List message) {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
-      return Future<void>.value(null);
+      return Future<int?>.value(-1);
     }
-    return _invokeMethod<void>('sendScreenCaptureExtensionMessage', {
+    return _invokeMethod<int>('sendScreenCaptureExtensionMessage', {
       'message': message,
     });
   }
 
   @override
-  Future<void> setRuntimeParameters(Map<String, dynamic> params) {
-    return _invokeMethod<void>('setRuntimeParameters', {
+  Future<int?> setRuntimeParameters(Map<String, dynamic> params) {
+    return _invokeMethod<int>('setRuntimeParameters', {
       'params': params,
     });
   }
 
   @override
-  Future<void> startASR(
+  Future<int?> startASR(
       {required RTCASRConfig asrConfig,
       required RTCASREngineEventHandler handler}) {
     _asrEventHandler = handler;
     _listenAsrEvent();
-    return _invokeMethod<void>('startASR', {
+    return _invokeMethod<int>('startASR', {
       'asrConfig': asrConfig.toMap(),
     });
   }
 
   @override
-  Future<void> stopASR() async {
-    await _invokeMethod<void>('stopASR');
-    _asrChannel?.cancel();
-    _asrEventHandler = null;
+  Future<int?> stopASR() {
+    return _invokeMethod<int>('stopASR');
   }
 
   @override
@@ -856,16 +916,16 @@ class RTCVideoImpl implements RTCVideo {
       required RecordingConfig config,
       required RecordingType recordingType}) {
     return _invokeMethod<int>('startFileRecording', {
-      'streamIndex': streamIndex.value,
+      'streamIndex': streamIndex.index,
       'config': config.toMap(),
-      'recordingType': recordingType.value,
+      'recordingType': recordingType.index,
     });
   }
 
   @override
-  Future<void> stopFileRecording([StreamIndex streamIndex = StreamIndex.main]) {
-    return _invokeMethod<void>('stopFileRecording', {
-      'streamIndex': streamIndex.value,
+  Future<int?> stopFileRecording([StreamIndex streamIndex = StreamIndex.main]) {
+    return _invokeMethod<int>('stopFileRecording', {
+      'streamIndex': streamIndex.index,
     });
   }
 
@@ -884,6 +944,29 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
+  FutureOr<RTCAudioEffectPlayer?> getAudioEffectPlayer() {
+    if (_audioEffectPlayerImpl != null) return _audioEffectPlayerImpl;
+    return _invokeMethod<bool>('getAudioEffectPlayer').then((value) {
+      if (value != true) return null;
+      return _audioEffectPlayerImpl ??= RTCAudioEffectPlayerImpl();
+    });
+  }
+
+  @override
+  FutureOr<RTCMediaPlayer?> getMediaPlayer(int playerId) {
+    RTCMediaPlayerImpl? player = _mediaPlayerMap[playerId];
+    if (player != null) return player;
+    return _invokeMethod<bool>('getMediaPlayer', {
+      'playerId': playerId,
+    }).then((value) {
+      if (value != true) return null;
+      RTCMediaPlayerImpl player = RTCMediaPlayerImpl(playerId);
+      _mediaPlayerMap[playerId] = player;
+      return player;
+    });
+  }
+
+  @override
   Future<int?> login({required String token, required String uid}) {
     return _invokeMethod<int>('login', {
       'token': token,
@@ -892,29 +975,29 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> logout() {
-    return _invokeMethod<void>('logout');
+  Future<int?> logout() {
+    return _invokeMethod<int>('logout');
   }
 
   @override
-  Future<void> updateLoginToken(String token) {
-    return _invokeMethod<void>('updateLoginToken', {
+  Future<int?> updateLoginToken(String token) {
+    return _invokeMethod<int>('updateLoginToken', {
       'token': token,
     });
   }
 
   @override
-  Future<void> setServerParams(
+  Future<int?> setServerParams(
       {required String signature, required String url}) {
-    return _invokeMethod<void>('setServerParams', {
+    return _invokeMethod<int>('setServerParams', {
       'signature': signature,
       'url': url,
     });
   }
 
   @override
-  Future<void> getPeerOnlineStatus(String peerUid) {
-    return _invokeMethod<void>('getPeerOnlineStatus', {
+  Future<int?> getPeerOnlineStatus(String peerUid) {
+    return _invokeMethod<int>('getPeerOnlineStatus', {
       'peerUid': peerUid,
     });
   }
@@ -927,7 +1010,7 @@ class RTCVideoImpl implements RTCVideo {
     return _invokeMethod<int>('sendUserMessageOutsideRoom', {
       'uid': uid,
       'message': message,
-      'config': config.value,
+      'config': config.index,
     });
   }
 
@@ -939,7 +1022,7 @@ class RTCVideoImpl implements RTCVideo {
     return _invokeMethod<int>('sendUserBinaryMessageOutsideRoom', {
       'uid': uid,
       'message': message,
-      'config': config.value,
+      'config': config.index,
     });
   }
 
@@ -958,7 +1041,7 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<NetworkDetectionStartReturn> startNetworkDetection(
+  Future<int?> startNetworkDetection(
       {required bool isTestUplink,
       required int expectedUplinkBitrate,
       required bool isTestDownlink,
@@ -968,21 +1051,18 @@ class RTCVideoImpl implements RTCVideo {
       'expectedUplinkBitrate': expectedUplinkBitrate,
       'isTestDownlink': isTestDownlink,
       'expectedDownlinkBitrate': expectedDownlinkBitrate,
-    }).then((value) {
-      return value?.networkDetectionStartReturn ??
-          NetworkDetectionStartReturn.notSupport;
     });
   }
 
   @override
-  Future<void> stopNetworkDetection() {
+  Future<int?> stopNetworkDetection() {
     return _invokeMethod<int>('stopNetworkDetection');
   }
 
   @override
-  Future<void> setScreenAudioStreamIndex(StreamIndex index) {
-    return _invokeMethod<void>('setScreenAudioStreamIndex', {
-      'streamIndex': index.value,
+  Future<int?> setScreenAudioStreamIndex(StreamIndex index) {
+    return _invokeMethod<int>('setScreenAudioStreamIndex', {
+      'streamIndex': index.index,
     });
   }
 
@@ -996,8 +1076,8 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> muteAudioPlayback(bool muteState) {
-    return _invokeMethod<void>('muteAudioPlayback', {
+  Future<int?> muteAudioPlayback(bool muteState) {
+    return _invokeMethod<int>('muteAudioPlayback', {
       'muteState': muteState ? 1 : 0,
     });
   }
@@ -1017,22 +1097,22 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> setVideoWatermark(
+  Future<int?> setVideoWatermark(
       {StreamIndex streamIndex = StreamIndex.main,
       required String imagePath,
       required WatermarkConfig watermarkConfig}) {
-    return _invokeMethod<void>('setVideoWatermark', {
-      'streamIndex': streamIndex.value,
+    return _invokeMethod<int>('setVideoWatermark', {
+      'streamIndex': streamIndex.index,
       'imagePath': imagePath,
       'watermarkConfig': watermarkConfig.toMap(),
     });
   }
 
   @override
-  Future<void> clearVideoWatermark(
+  Future<int?> clearVideoWatermark(
       [StreamIndex streamIndex = StreamIndex.main]) {
-    return _invokeMethod<void>('clearVideoWatermark', {
-      'streamIndex': streamIndex.value,
+    return _invokeMethod<int>('clearVideoWatermark', {
+      'streamIndex': streamIndex.index,
     });
   }
 
@@ -1051,7 +1131,7 @@ class RTCVideoImpl implements RTCVideo {
     });
 
     _invokeMethod<int>('takeLocalSnapshot', {
-      'streamIndex': streamIndex.value,
+      'streamIndex': streamIndex.index,
       'filePath': filePath,
     }).then((value) {
       if (value != null) {
@@ -1061,10 +1141,10 @@ class RTCVideoImpl implements RTCVideo {
         _taskId = value;
         _takeSnapshotResultObserver.putLocal(value, completer);
       } else {
-        completer.completeError(TakeSnapshotResultObserver.ERROR_NO_TASK_ID);
+        completer.completeError(TakeSnapshotResultObserver.errorNoTaskId);
       }
     }, onError: (error) {
-      completer.completeError(TakeSnapshotResultObserver.ERROR_EXCEPTION);
+      completer.completeError(TakeSnapshotResultObserver.errorException);
     });
 
     return completer.operation;
@@ -1095,30 +1175,34 @@ class RTCVideoImpl implements RTCVideo {
         _taskId = value;
         _takeSnapshotResultObserver.putRemote(value, completer);
       } else {
-        completer.completeError(TakeSnapshotResultObserver.ERROR_NO_TASK_ID);
+        completer.completeError(TakeSnapshotResultObserver.errorNoTaskId);
       }
     }, onError: (error) {
-      completer.completeError(TakeSnapshotResultObserver.ERROR_EXCEPTION);
+      completer.completeError(TakeSnapshotResultObserver.errorException);
     });
 
     return completer.operation;
   }
 
   @override
-  Future<void> startCloudProxy(List<CloudProxyInfo> cloudProxiesInfo) {
-    return _invokeMethod<void>('startCloudProxy', {
+  Future<int?> startCloudProxy(List<CloudProxyInfo> cloudProxiesInfo) {
+    return _invokeMethod<int>('startCloudProxy', {
       'cloudProxiesInfo': cloudProxiesInfo.map((e) => e.toMap()).toList(),
     });
   }
 
   @override
-  Future<void> stopCloudProxy() {
-    return _invokeMethod<void>('stopCloudProxy');
+  Future<int?> stopCloudProxy() {
+    return _invokeMethod<int>('stopCloudProxy');
   }
 
   @override
-  RTCSingScoringManager get singScoringManager {
-    return _singScoringManagerImpl ??= RTCSingScoringManagerImpl();
+  FutureOr<RTCSingScoringManager?> getSingScoringManager() {
+    if (_singScoringManagerImpl != null) return _singScoringManagerImpl;
+    return _invokeMethod<bool>('getSingScoringManager').then((value) {
+      if (value != true) return null;
+      return _singScoringManagerImpl ??= RTCSingScoringManagerImpl();
+    });
   }
 
   @override
@@ -1140,13 +1224,13 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
-  Future<void> setAudioAlignmentProperty({
+  Future<int?> setAudioAlignmentProperty({
     required RemoteStreamKey streamKey,
     required AudioAlignmentMode mode,
   }) {
-    return _invokeMethod('setAudioAlignmentProperty', {
+    return _invokeMethod<int>('setAudioAlignmentProperty', {
       'streamKey': streamKey.toMap(),
-      'mode': mode.value,
+      'mode': mode.index,
     });
   }
 
@@ -1176,5 +1260,21 @@ class RTCVideoImpl implements RTCVideo {
   @override
   Future<int?> stopHardwareEchoDetection() {
     return _invokeMethod<int>('stopHardwareEchoDetection');
+  }
+
+  @override
+  Future<int?> setCellularEnhancement(MediaTypeEnhancementConfig config) {
+    return _invokeMethod<int>('setCellularEnhancement', {
+      'config': config.toMap(),
+    });
+  }
+
+  @override
+  Future<int?> setLocalProxy(List<LocalProxyConfiguration>? configurations) {
+    return _invokeMethod<int>('setLocalProxy', {
+      if (configurations != null)
+        'configurations':
+            configurations.map((e) => e.toMap()).toList(growable: false),
+    });
   }
 }

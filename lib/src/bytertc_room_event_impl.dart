@@ -1,11 +1,24 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import '../api/bytertc_event_define.dart';
 import '../api/bytertc_room_event_handler.dart';
 import 'base/bytertc_event_serialize.dart';
 
 class RTCRoomEventValue {
+  RTCRoomEventValue({
+    OnRoomStatsType? onRoomStats,
+    OnLocalStreamStatsType? onLocalStreamStats,
+    OnRemoteStreamStatsType? onRemoteStreamStats,
+    OnNetworkQualityType? onNetworkQuality,
+  }) {
+    this.onRoomStats = onRoomStats;
+    this.onLocalStreamStats = onLocalStreamStats;
+    this.onRemoteStreamStats = onRemoteStreamStats;
+    this.onNetworkQuality = onNetworkQuality;
+  }
+
   void Function(Map<String, dynamic>)? _valueObserver;
 
   set valueObserver(void Function(Map<String, dynamic>)? valueObserver) {
@@ -153,6 +166,20 @@ extension RTCRoomEventProcessor on RTCRoomEventHandler {
         final data = OnRoomMessageSendResultData.fromMap(dic);
         onRoomMessageSendResult?.call(data.msgid, data.error);
         break;
+      case 'onSetRoomExtraInfoResult':
+        final data = OnSetRoomExtraInfoResultData.fromMap(dic);
+        onSetRoomExtraInfoResult?.call(data.taskId, data.error);
+        break;
+      case 'onRoomExtraInfoUpdate':
+        final data = OnRoomExtraInfoUpdateData.fromMap(dic);
+        onRoomExtraInfoUpdate?.call(
+            data.key, data.value, data.lastUpdateUserId, data.lastUpdateTimeMs);
+        break;
+      case 'onUserVisibilityChanged':
+        final data = OnUserVisibilityChangedData.fromMap(dic);
+        onUserVisibilityChanged?.call(
+            data.currentUserVisibility, data.errorCode);
+        break;
       case 'onVideoStreamBanned':
         final data = OnVideoStreamBannedData.fromMap(dic);
         onVideoStreamBanned?.call(data.uid, data.banned);
@@ -172,6 +199,15 @@ extension RTCRoomEventProcessor on RTCRoomEventHandler {
       case 'onNetworkQuality':
         final data = OnNetworkQualityData.fromMap(dic);
         onNetworkQuality?.call(data.localQuality, data.remoteQualities);
+        break;
+      case 'onSubtitleStateChanged':
+        final data = OnSubtitleStateChangedData.fromMap(dic);
+        onSubtitleStateChanged?.call(
+            data.state, data.errorCode, data.errorMessage);
+        break;
+      case 'onSubtitleMessageReceived':
+        final data = OnSubtitleMessageReceivedData.fromMap(dic);
+        onSubtitleMessageReceived?.call(data.subtitles);
         break;
       default:
         break;

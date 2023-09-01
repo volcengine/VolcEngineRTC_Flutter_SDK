@@ -1,12 +1,14 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'dart:typed_data';
 
 import '../../api/bytertc_audio_defines.dart';
 import '../../api/bytertc_ktv_defines.dart';
 import '../../api/bytertc_media_defines.dart';
 import '../../api/bytertc_rts_defines.dart';
+import '../../api/bytertc_sing_scoring_manager_api.dart';
 import '../../api/bytertc_video_defines.dart';
 import 'bytertc_enum_convert.dart';
 
@@ -83,7 +85,7 @@ class OnLeaveRoomData {
 
   factory OnLeaveRoomData.fromMap(Map<dynamic, dynamic> map) {
     if (map['stats'] == null) {
-      return OnLeaveRoomData(rtcRoomStats: RTCRoomStats());
+      return const OnLeaveRoomData(rtcRoomStats: RTCRoomStats());
     }
     return OnLeaveRoomData(rtcRoomStats: RTCRoomStats.fromMap(map['stats']));
   }
@@ -321,11 +323,10 @@ class OnRemoteVideoSizeChangedData {
   }
 }
 
-/// liveTranscodingObserver
 class OnStreamMixingEventData {
   final StreamMixingEvent eventType;
   final String taskId;
-  final TranscoderErrorCode error;
+  final StreamMixingErrorCode error;
   final StreamMixingType mixType;
 
   const OnStreamMixingEventData(
@@ -1033,19 +1034,19 @@ class OnPlayPublicStreamResultData {
   }
 }
 
-class OnPublicStreamSEIMessageReceivedData {
+class OnPublicStreamDataMessageReceivedData {
   final String publicStreamId;
   final Uint8List message;
-  final SEIMessageSourceType sourceType;
+  final DataMessageSourceType sourceType;
 
-  const OnPublicStreamSEIMessageReceivedData(
+  const OnPublicStreamDataMessageReceivedData(
       {required this.publicStreamId,
       required this.message,
       required this.sourceType});
 
-  factory OnPublicStreamSEIMessageReceivedData.fromMap(
+  factory OnPublicStreamDataMessageReceivedData.fromMap(
       Map<dynamic, dynamic> map) {
-    return OnPublicStreamSEIMessageReceivedData(
+    return OnPublicStreamDataMessageReceivedData(
         publicStreamId: map['publicStreamId'],
         message: map['message'],
         sourceType: (map['sourceType'] as int).seiMessageSourceType);
@@ -1156,19 +1157,19 @@ class OnPlayProgressData {
   }
 }
 
-class OnPlayStateChangeData {
+class OnPlayStateChangedData {
   final String musicId;
-  final KTVPlayState playState;
-  final KTVPlayerError error;
+  final PlayState playState;
+  final KTVPlayerErrorCode error;
 
-  const OnPlayStateChangeData({
+  const OnPlayStateChangedData({
     required this.musicId,
     required this.playState,
     required this.error,
   });
 
-  factory OnPlayStateChangeData.fromMap(Map<dynamic, dynamic> map) {
-    return OnPlayStateChangeData(
+  factory OnPlayStateChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnPlayStateChangedData(
       musicId: map['musicId'],
       playState: (map['playState'] as int?).ktvPlayState,
       error: (map['error'] as int?).ktvPlayerError,
@@ -1177,9 +1178,9 @@ class OnPlayStateChangeData {
 }
 
 class OnMusicListResultData {
-  final KTVError error;
+  final KTVErrorCode error;
   final int totalSize;
-  final List<KTVMusic>? musics;
+  final List<MusicInfo>? musics;
 
   const OnMusicListResultData({
     required this.error,
@@ -1191,16 +1192,16 @@ class OnMusicListResultData {
     return OnMusicListResultData(
       error: (map['error'] as int?).ktvError,
       totalSize: map['totalSize'],
-      musics: (map['musics'] as List?)
-          ?.map((e) => KTVMusic.fromMap(e))
+      musics: (map['musicInfos'] as List?)
+          ?.map((e) => MusicInfo.fromMap(e))
           .toList(growable: false),
     );
   }
 }
 
 class OnHotMusicResultData {
-  final KTVError error;
-  final List<KTVHotMusicInfo>? hotMusics;
+  final KTVErrorCode error;
+  final List<HotMusicInfo>? hotMusics;
 
   const OnHotMusicResultData({
     required this.error,
@@ -1211,15 +1212,15 @@ class OnHotMusicResultData {
     return OnHotMusicResultData(
       error: (map['error'] as int?).ktvError,
       hotMusics: (map['hotMusics'] as List?)
-          ?.map((e) => KTVHotMusicInfo.fromMap(e))
+          ?.map((e) => HotMusicInfo.fromMap(e))
           .toList(growable: false),
     );
   }
 }
 
 class OnMusicDetailResultData {
-  final KTVError error;
-  final KTVMusic? music;
+  final KTVErrorCode error;
+  final MusicInfo? music;
 
   const OnMusicDetailResultData({
     required this.error,
@@ -1227,10 +1228,10 @@ class OnMusicDetailResultData {
   });
 
   factory OnMusicDetailResultData.fromMap(Map<dynamic, dynamic> map) {
-    KTVMusic? music;
-    Map<dynamic, dynamic>? m = map['music'];
+    MusicInfo? music;
+    Map<dynamic, dynamic>? m = map['musicInfo'];
     if (m != null) {
-      music = KTVMusic.fromMap(m);
+      music = MusicInfo.fromMap(m);
     }
     return OnMusicDetailResultData(
       error: (map['error'] as int?).ktvError,
@@ -1241,7 +1242,7 @@ class OnMusicDetailResultData {
 
 class OnDownloadSuccessData {
   final int downloadId;
-  final KTVDownloadResult result;
+  final DownloadResult result;
 
   const OnDownloadSuccessData({
     required this.downloadId,
@@ -1251,22 +1252,22 @@ class OnDownloadSuccessData {
   factory OnDownloadSuccessData.fromMap(Map<dynamic, dynamic> map) {
     return OnDownloadSuccessData(
       downloadId: map['downloadId'],
-      result: KTVDownloadResult.fromMap(map['result']),
+      result: DownloadResult.fromMap(map['result']),
     );
   }
 }
 
-class OnDownloadFailData {
+class OnDownloadFailedData {
   final int downloadId;
-  final KTVError error;
+  final KTVErrorCode error;
 
-  const OnDownloadFailData({
+  const OnDownloadFailedData({
     required this.downloadId,
     required this.error,
   });
 
-  factory OnDownloadFailData.fromMap(Map<dynamic, dynamic> map) {
-    return OnDownloadFailData(
+  factory OnDownloadFailedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnDownloadFailedData(
       downloadId: map['downloadId'],
       error: (map['error'] as int?).ktvError,
     );
@@ -1286,6 +1287,20 @@ class OnDownloadMusicProgressData {
     return OnDownloadMusicProgressData(
       downloadId: map['downloadId'],
       downloadProgress: map['downloadProgress'],
+    );
+  }
+}
+
+class OnClearCacheResultData {
+  final KTVErrorCode error;
+
+  const OnClearCacheResultData({
+    required this.error,
+  });
+
+  factory OnClearCacheResultData.fromMap(Map<dynamic, dynamic> map) {
+    return OnClearCacheResultData(
+      error: (map['error'] as int?).ktvError,
     );
   }
 }
@@ -1313,5 +1328,193 @@ class OnHardwareEchoDetectionResultData {
   factory OnHardwareEchoDetectionResultData.fromMap(Map<dynamic, dynamic> map) {
     return OnHardwareEchoDetectionResultData(
         result: (map['result'] as int?).hardwareEchoDetectionResult);
+  }
+}
+
+class OnExtensionAccessErrorData {
+  final String extensionName;
+  final String msg;
+
+  const OnExtensionAccessErrorData({
+    required this.extensionName,
+    required this.msg,
+  });
+
+  factory OnExtensionAccessErrorData.fromMap(Map<dynamic, dynamic> map) {
+    return OnExtensionAccessErrorData(
+      extensionName: map['extensionName'],
+      msg: map['msg'],
+    );
+  }
+}
+
+class OnLocalProxyStateChangedData {
+  final LocalProxyType localProxyType;
+  final LocalProxyState localProxyState;
+  final LocalProxyError localProxyError;
+
+  const OnLocalProxyStateChangedData({
+    required this.localProxyType,
+    required this.localProxyState,
+    required this.localProxyError,
+  });
+
+  factory OnLocalProxyStateChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnLocalProxyStateChangedData(
+      localProxyType: (map['localProxyType'] as int?).localProxyType,
+      localProxyState: (map['localProxyState'] as int?).localProxyState,
+      localProxyError: (map['localProxyError'] as int?).localProxyError,
+    );
+  }
+}
+
+class OnSetRoomExtraInfoResultData {
+  final int taskId;
+  final SetRoomExtraInfoResult error;
+
+  const OnSetRoomExtraInfoResultData({
+    required this.taskId,
+    required this.error,
+  });
+
+  factory OnSetRoomExtraInfoResultData.fromMap(Map<dynamic, dynamic> map) {
+    return OnSetRoomExtraInfoResultData(
+      taskId: map['taskId'],
+      error: (map['error'] as int?).setRoomExtraInfoResult,
+    );
+  }
+}
+
+class OnRoomExtraInfoUpdateData {
+  final String key;
+  final String value;
+  final String lastUpdateUserId;
+  final int lastUpdateTimeMs;
+
+  const OnRoomExtraInfoUpdateData({
+    required this.key,
+    required this.value,
+    required this.lastUpdateUserId,
+    required this.lastUpdateTimeMs,
+  });
+
+  factory OnRoomExtraInfoUpdateData.fromMap(Map<dynamic, dynamic> map) {
+    return OnRoomExtraInfoUpdateData(
+      key: map['key'],
+      value: map['value'],
+      lastUpdateUserId: map['lastUpdateUserId'],
+      lastUpdateTimeMs: map['lastUpdateTimeMs'],
+    );
+  }
+}
+
+class OnSubtitleStateChangedData {
+  final SubtitleState state;
+  final SubtitleErrorCode errorCode;
+  final String errorMessage;
+
+  const OnSubtitleStateChangedData({
+    required this.state,
+    required this.errorCode,
+    required this.errorMessage,
+  });
+
+  factory OnSubtitleStateChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnSubtitleStateChangedData(
+      state: (map['state'] as int?).subtitleState,
+      errorCode: (map['errorCode'] as int?).subtitleErrorCode,
+      errorMessage: map['errorMessage'],
+    );
+  }
+}
+
+class OnSubtitleMessageReceivedData {
+  final List<SubtitleMessage> subtitles;
+
+  const OnSubtitleMessageReceivedData({
+    required this.subtitles,
+  });
+
+  factory OnSubtitleMessageReceivedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnSubtitleMessageReceivedData(
+      subtitles: (map['subtitles'] as List)
+          .map((e) => SubtitleMessage.fromMap(e))
+          .toList(growable: false),
+    );
+  }
+}
+
+class OnAudioEffectPlayerStateChangedData {
+  final int effectId;
+  final PlayerState state;
+  final PlayerError error;
+
+  const OnAudioEffectPlayerStateChangedData({
+    required this.effectId,
+    required this.state,
+    required this.error,
+  });
+
+  factory OnAudioEffectPlayerStateChangedData.fromMap(
+      Map<dynamic, dynamic> map) {
+    return OnAudioEffectPlayerStateChangedData(
+      effectId: map['effectId'],
+      state: (map['state'] as int?).playerState,
+      error: (map['error'] as int?).playerError,
+    );
+  }
+}
+
+class OnMediaPlayerStateChangedData {
+  final int playerId;
+  final PlayerState state;
+  final PlayerError error;
+
+  const OnMediaPlayerStateChangedData({
+    required this.playerId,
+    required this.state,
+    required this.error,
+  });
+
+  factory OnMediaPlayerStateChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnMediaPlayerStateChangedData(
+      playerId: map['playerId'],
+      state: (map['state'] as int?).playerState,
+      error: (map['error'] as int?).playerError,
+    );
+  }
+}
+
+class OnMediaPlayerPlayingProgressData {
+  final int playerId;
+  final int progress;
+
+  const OnMediaPlayerPlayingProgressData({
+    required this.playerId,
+    required this.progress,
+  });
+
+  factory OnMediaPlayerPlayingProgressData.fromMap(Map<dynamic, dynamic> map) {
+    return OnMediaPlayerPlayingProgressData(
+      playerId: map['playerId'],
+      progress: map['progress'],
+    );
+  }
+}
+
+class OnUserVisibilityChangedData {
+  final bool currentUserVisibility;
+  final UserVisibilityChangeError errorCode;
+
+  const OnUserVisibilityChangedData({
+    required this.currentUserVisibility,
+    required this.errorCode,
+  });
+
+  factory OnUserVisibilityChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnUserVisibilityChangedData(
+      currentUserVisibility: map['currentUserVisibility'],
+      errorCode: (map['errorCode'] as int?).userVisibilityChangeError,
+    );
   }
 }

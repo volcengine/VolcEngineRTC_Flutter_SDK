@@ -1,8 +1,140 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+import '../src/base/bytertc_enum_convert.dart';
 import 'bytertc_audio_defines.dart';
-import 'bytertc_sing_scoring_event_handler.dart';
+import 'bytertc_media_player_api.dart';
+
+/// K 歌打分维度。
+enum MulDimSingScoringMode {
+  /// 按照音高进行评分。
+  note,
+}
+
+/// 实时评分信息。
+class SingScoringRealtimeInfo {
+  /// 当前播放进度。
+  final int currentPosition;
+
+  /// 演唱者的音高。
+  final int userPitch;
+
+  /// 标准音高。
+  final int standardPitch;
+
+  /// 歌词分句索引。
+  final int sentenceIndex;
+
+  /// 上一句歌词的评分。
+  final int sentenceScore;
+
+  /// 当前演唱的累计分数。
+  final int totalScore;
+
+  /// 当前演唱的平均分数。
+  final int averageScore;
+
+  /// @nodoc
+  const SingScoringRealtimeInfo({
+    required this.currentPosition,
+    required this.userPitch,
+    required this.standardPitch,
+    required this.sentenceIndex,
+    required this.sentenceScore,
+    required this.totalScore,
+    required this.averageScore,
+  });
+
+  /// @nodoc
+  factory SingScoringRealtimeInfo.fromMap(Map<dynamic, dynamic> map) {
+    return SingScoringRealtimeInfo(
+      currentPosition: map['currentPosition'],
+      userPitch: map['userPitch'],
+      standardPitch: map['standardPitch'],
+      sentenceIndex: map['sentenceIndex'],
+      sentenceScore: map['sentenceScore'],
+      totalScore: map['totalScore'],
+      averageScore: map['averageScore'],
+    );
+  }
+}
+
+/// 标准音高数据数组。
+class StandardPitchInfo {
+  /// 开始时间，单位 ms。
+  final int startTime;
+
+  /// 持续时间，单位 ms。
+  final int duration;
+
+  /// 音高。
+  final int pitch;
+
+  /// @nodoc
+  const StandardPitchInfo({
+    required this.startTime,
+    required this.duration,
+    required this.pitch,
+  });
+
+  /// @nodoc
+  factory StandardPitchInfo.fromMap(Map<dynamic, dynamic> map) {
+    return StandardPitchInfo(
+      startTime: map['startTime'],
+      duration: map['duration'],
+      pitch: map['pitch'],
+    );
+  }
+}
+
+/// K 歌评分配置。
+class SingScoringConfig {
+  /// 音频采样率。仅支持 44100 Hz、48000 Hz。
+  AudioSampleRate sampleRate;
+
+  /// 打分维度，详见 [MulDimSingScoringMode]。
+  MulDimSingScoringMode mode;
+
+  /// 歌词文件路径。打分功能仅支持 KRC 歌词文件。
+  String lyricsFilepath;
+
+  /// 歌曲 midi 文件路径。
+  String midiFilepath;
+
+  /// @nodoc
+  SingScoringConfig({
+    required this.sampleRate,
+    this.mode = MulDimSingScoringMode.note,
+    required this.lyricsFilepath,
+    required this.midiFilepath,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'sampleRate': sampleRate.value,
+      'mode': mode.index,
+      'lyricsFilepath': lyricsFilepath,
+      'midiFilepath': midiFilepath,
+    };
+  }
+}
+
+/// [info]：实时评分信息。详见 [SingScoringRealtimeInfo]。
+typedef OnCurrentScoringInfoType = void Function(SingScoringRealtimeInfo? info);
+
+/// K 歌评分事件回调类。
+class RTCSingScoringEventHandler {
+  /// 实时评分信息回调。
+  ///
+  /// 调用 [RTCSingScoringManager.startSingScoring] 后，会收到该回调。
+  OnCurrentScoringInfoType? onCurrentScoringInfo;
+
+  /// @nodoc
+  RTCSingScoringEventHandler({
+    this.onCurrentScoringInfo,
+  });
+}
 
 /// K 歌评分管理接口。
 abstract class RTCSingScoringManager {
@@ -62,7 +194,7 @@ abstract class RTCSingScoringManager {
   /// 注意：
   /// + 在调用 [RTCSingScoringManager.initSingScoring] 初始化 K 歌评分功能后调用该接口。
   /// + 调用该接口后，将会根据设置的回调时间间隔，收到评分结果 [RTCSingScoringEventHandler.onCurrentScoringInfo] 回调。
-  /// + 如果调用 [RTCAudioMixingManager.startAudioMixing] 接口播放音频文件，请在收到 [RTCVideoEventHandler.onAudioMixingStateChanged](playing) 之后调用此接口。
+  /// + 如果调用 [RTCMediaPlayer.start] 接口播放音频文件，请在收到 [RTCMediaPlayerEventHandler.onMediaPlayerStateChanged] (playing) 之后调用此接口。
   Future<int?> startSingScoring({
     int position,
     int scoringInfoInterval,
@@ -71,8 +203,8 @@ abstract class RTCSingScoringManager {
   /// 停止 K 歌评分。
   ///
   /// 返回值：
-  /// + 0：成功。
-  /// + <0：失败。
+  /// + `0`：成功。
+  /// + `<0`：失败。
   Future<int?> stopSingScoring();
 
   /// 获取上一句的演唱评分。
@@ -80,8 +212,8 @@ abstract class RTCSingScoringManager {
   /// 调用 [RTCSingScoringManager.startSingScoring] 开始评分后可以调用该接口。
   ///
   /// 返回值：
-  /// + <0：获取评分失败。
-  /// + >=0：上一句歌词的演唱评分。
+  /// + `<0`：获取评分失败。
+  /// + `>=0`：上一句歌词的演唱评分。
   Future<int?> getLastSentenceScore();
 
   /// 获取当前演唱总分。
@@ -96,7 +228,7 @@ abstract class RTCSingScoringManager {
   /// 获取当前演唱歌曲的平均分。
   ///
   /// 返回值：
-  /// + <0：获取平均分失败。
-  /// + >=0：当前演唱平均分。
+  /// + `<0`：获取平均分失败。
+  /// + `>=0`：当前演唱平均分。
   Future<int?> getAverageScore();
 }

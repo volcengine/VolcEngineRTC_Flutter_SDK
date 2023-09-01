@@ -1,6 +1,7 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/services.dart';
 
 import '../api/bytertc_ktv_defines.dart';
@@ -11,7 +12,7 @@ import 'bytertc_ktv_event_impl.dart';
 
 class RTCKTVPlayerImpl implements RTCKTVPlayer {
   final MethodChannel _channel =
-      MethodChannel('com.bytedance.ve_rtc_ktv_player');
+      const MethodChannel('com.bytedance.ve_rtc_ktv_player');
   final RTCEventChannel _eventChannel =
       RTCEventChannel('com.bytedance.ve_rtc_ktv_player_event');
 
@@ -45,12 +46,11 @@ class RTCKTVPlayerImpl implements RTCKTVPlayer {
 
   @override
   Future<void> playMusic(String musicId,
-      {required KTVAudioTrackType trackType,
-      required KTVAudioPlayType playType}) {
+      {required AudioTrackType trackType, required AudioPlayType playType}) {
     return _invokeMethod('playMusic', {
       'musicId': musicId,
       'trackType': trackType.value,
-      'playType': playType.value,
+      'playType': playType.index,
     });
   }
 

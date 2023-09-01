@@ -52,7 +52,7 @@
     return dict.copy;
 }
 
-+ (NSDictionary *)ktvMusicToMap:(ByteRTCKTVMusic *)music {
++ (NSDictionary *)ktvMusicToMap:(ByteRTCMusicInfo *)music {
     return @{
         @"musicId": music.musicId ?: @"",
         @"musicName": music.musicName ?: @"",
@@ -69,7 +69,7 @@
     };
 }
 
-+ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCKTVHotMusicInfo *)hotMusicInfo {
++ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCHotMusicInfo *)hotMusicInfo {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"hotType"] = @(hotMusicInfo.hotType);
     if (hotMusicInfo.hotName != nil) {
@@ -77,16 +77,16 @@
     }
     if (hotMusicInfo.musics != nil && hotMusicInfo.musics.count != 0) {
         NSMutableArray *musics = [NSMutableArray array];
-        [hotMusicInfo.musics enumerateObjectsUsingBlock:^(ByteRTCKTVMusic *obj, NSUInteger idx, BOOL *stop) {
+        [hotMusicInfo.musics enumerateObjectsUsingBlock:^(ByteRTCMusicInfo *obj, NSUInteger idx, BOOL *stop) {
             [musics addObject:[self ktvMusicToMap:obj]];
         }];
-        dict[@"musics"] = musics;
+        dict[@"musicInfos"] = musics;
     }
     return dict.copy;
 }
 
 
-+ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCKTVDownloadResult *)downloadResult {
++ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCDownloadResult *)downloadResult {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"musicId"] = downloadResult.musicId ?: @"";
     dict[@"fileType"] = @(downloadResult.fileType);
@@ -306,6 +306,7 @@
     region.type = [dict[@"type"] integerValue];
     region.cornerRadius = [dict[@"cornerRadius"] doubleValue];
     region.spatialPosition = [Position bf_fromMap:dict[@"spatialPosition"]];
+    region.applySpatialAudio = [dict[@"applySpatialAudio"] boolValue];
     FlutterStandardTypedData *data = dict[@"data"];
     if (data != nil) {
         region.data = data.data;
@@ -410,6 +411,128 @@
 
 @end
 
+@implementation ByteRTCMixedStreamLayoutRegionImageWaterMarkConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMixedStreamLayoutRegionImageWaterMarkConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMixedStreamLayoutRegionImageWaterMarkConfig * param = [[ByteRTCMixedStreamLayoutRegionImageWaterMarkConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return param;
+    }
+    param.imageWidth = [dict[@"imageWidth"] integerValue];
+    param.imageHeight = [dict[@"imageHeight"] integerValue];
+    return param;
+}
+
+@end
+
+@implementation ByteRTCMixedStreamLayoutRegionConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMixedStreamLayoutRegionConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMixedStreamLayoutRegionConfig * region = [[ByteRTCMixedStreamLayoutRegionConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return region;
+    }
+    region.userID = dict[@"uid"];
+    region.roomID = dict[@"roomId"];
+    region.locationX = [dict[@"locationX"] doubleValue];
+    region.locationY = [dict[@"locationY"] doubleValue];
+    region.widthProportion = [dict[@"widthProportion"] doubleValue];
+    region.heightProportion = [dict[@"heightProportion"] doubleValue];
+    region.zOrder = [dict[@"zOrder"] integerValue];
+    region.isLocalUser = [dict[@"isLocalUser"] boolValue];
+    region.streamType = [dict[@"streamType"] integerValue];
+    region.alpha = [dict[@"alpha"] doubleValue];
+    region.cornerRadius = [dict[@"cornerRadius"] doubleValue];
+    region.mediaType = [dict[@"mediaType"] integerValue];
+    region.renderMode = [dict[@"renderMode"] unsignedIntegerValue];
+    region.regionContentType = [dict[@"regionContentType"] integerValue];
+    region.spatialPosition = [Position bf_fromMap:dict[@"spatialPosition"]];
+    region.applySpatialAudio = [dict[@"applySpatialAudio"] boolValue];
+    FlutterStandardTypedData *imageWaterMark = dict[@"imageWaterMark"];
+    if (imageWaterMark != nil) {
+        region.imageWaterMark = imageWaterMark.data;
+    }
+    NSDictionary *imageWaterMarkConfig = dict[@"imageWaterMarkConfig"];
+    if (imageWaterMarkConfig != nil) {
+        region.imageWaterMarkConfig = [ByteRTCMixedStreamLayoutRegionImageWaterMarkConfig bf_fromMap:imageWaterMarkConfig];
+    }
+    return region;
+}
+
+@end
+
+@implementation ByteRTCMixedStreamSpatialAudioConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMixedStreamSpatialAudioConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMixedStreamSpatialAudioConfig *config = [ByteRTCMixedStreamSpatialAudioConfig new];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.audienceSpatialOrientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
+    config.audienceSpatialPosition = [Position bf_fromMap:dict[@"position"]];
+    config.enableSpatialRender = [dict[@"enableSpatialRender"] boolValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCMixedStreamConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMixedStreamConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMixedStreamConfig *obj = [ByteRTCMixedStreamConfig defaultMixedStreamConfig];
+    obj.expectedMixingType = ByteRTCMixedStreamByServer;
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return obj;
+    }
+    
+    ByteRTCMixedStreamAudioConfig * audio = obj.audioConfig;
+    NSDictionary* audioDict = dict[@"audioConfig"];
+    if ([audioDict isKindOfClass:[NSDictionary class]]) {
+        audio.audioCodec = [audioDict[@"audioCodec"] integerValue];
+        audio.sampleRate =  [audioDict[@"sampleRate"] integerValue];
+        audio.channels = [audioDict[@"channels"] integerValue];
+        audio.bitrate = [audioDict[@"bitrate"] integerValue];
+        audio.audioProfile = [audioDict[@"audioProfile"] integerValue];
+    }
+    
+    ByteRTCMixedStreamVideoConfig* video = obj.videoConfig;
+    NSDictionary *videoDict = dict[@"videoConfig"];
+    if ([videoDict isKindOfClass:[NSDictionary class]]) {
+        video.videoCodec = [videoDict[@"videoCodec"]integerValue];
+        video.height = [videoDict[@"height"]integerValue];
+        video.width = [videoDict[@"width"]integerValue];
+        video.fps = [videoDict[@"fps"] integerValue];
+        video.gop = [videoDict[@"gop"] integerValue];
+        video.bitrate = [videoDict[@"bitrate"] integerValue];
+        video.enableBFrame = [videoDict[@"enableBFrame"] boolValue];
+    }
+    
+    ByteRTCMixedStreamLayoutConfig * layout = obj.layoutConfig;
+    NSDictionary *layoutDict = dict[@"layout"];
+    if ([layoutDict isKindOfClass:[NSDictionary class]]) {
+        layout.backgroundColor = layoutDict[@"backgroundColor"];
+        layout.userConfigExtraInfo = layoutDict[@"userConfigExtraInfo"];
+        NSArray *regionList = layoutDict[@"regions"];
+        if ([regionList isKindOfClass:[NSArray class]]) {
+            NSMutableArray * regions = [[NSMutableArray alloc] init];
+            [regionList enumerateObjectsUsingBlock:^(NSDictionary *regionDict, NSUInteger idx, BOOL * _Nonnull stop) {
+                ByteRTCMixedStreamLayoutRegionConfig * region = [ByteRTCMixedStreamLayoutRegionConfig bf_fromMap:regionDict];
+                [regions addObject:region];
+            }];
+            [layout setRegions:regions];
+        }
+    }
+    
+    obj.pushURL = dict[@"pushURL"];
+    obj.roomID = dict[@"roomId"];
+    obj.userID = dict[@"uid"];
+    obj.expectedMixingType = [dict[@"expectedMixingType"] integerValue];
+    obj.spatialAudioConfig = [ByteRTCMixedStreamSpatialAudioConfig bf_fromMap:dict[@"spatialConfig"]];
+    return obj;
+}
+
+@end
+
 @implementation ByteRTCRoomStats (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap {
@@ -431,8 +554,8 @@
     dict[@"rtt"] = @(self.rtt);
     dict[@"txJitter"] = @(self.txJitter);
     dict[@"rxJitter"] = @(self.rxJitter);
-    dict[@"txCellularKBitrate"] = @(self.tx_cellular_kbitrate);
-    dict[@"rxCellularKBitrate"] = @(self.rx_cellular_kbitrate);
+    dict[@"txCellularKBitrate"] = @(self.txCellularKBitrate);
+    dict[@"rxCellularKBitrate"] = @(self.rxCellularKBitrate);
     return dict.copy;
 }
 
@@ -510,6 +633,20 @@
     ori.right = [Orientation bf_fromMap:dict[@"right"]];
     ori.up = [Orientation bf_fromMap:dict[@"up"]];
     return ori;
+}
+
+@end
+
+@implementation ByteRTCPositionInfo (ByteRTCFlutterMapCategory)
+
++ (ByteRTCPositionInfo *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCPositionInfo *info = [[ByteRTCPositionInfo alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return info;
+    }
+    info.position = [Position bf_fromMap:dict[@"position"]];
+    info.orientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
+    return info;
 }
 
 @end
@@ -1076,6 +1213,141 @@
     dict[@"totalScore"] = @(self.totalScore);
     dict[@"averageScore"] = @(self.averageScore);
     return dict.copy;
+}
+
+@end
+
+@implementation ByteRTCProblemFeedbackInfo (ByteRTCFlutterMapCategory)
+
++ (ByteRTCProblemFeedbackInfo *)bf_fromMap:(NSDictionary *)dict {
+    if (dict == nil || ![dict isKindOfClass:[NSDictionary class]]) {
+        return nil;
+    }
+    
+    ByteRTCProblemFeedbackInfo *info = [[ByteRTCProblemFeedbackInfo alloc] init];
+    info.problemDesc = dict[@"problemDesc"];
+    NSArray *roomDic = dict[@"roomInfo"];
+    if (roomDic != nil && roomDic.count != 0) {
+        NSMutableArray<ByteRTCProblemFeedbackRoomInfo *> *roomInfos = [NSMutableArray array];
+        [roomDic enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            ByteRTCProblemFeedbackRoomInfo *roomInfo = [[ByteRTCProblemFeedbackRoomInfo alloc] init];
+            roomInfo.roomId = obj[@"roomId"];
+            roomInfo.userId = obj[@"uid"];
+            [roomInfos addObject:roomInfo];
+        }];
+        info.roomInfo = roomInfos.copy;
+    }
+    return info;
+}
+
+@end
+
+@implementation ByteRTCMediaTypeEnhancementConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMediaTypeEnhancementConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMediaTypeEnhancementConfig *config = [[ByteRTCMediaTypeEnhancementConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.enhanceSignaling = [dict[@"enhanceSignaling"] boolValue];
+    config.enhanceAudio = [dict[@"enhanceAudio"]  boolValue];
+    config.enhanceVideo = [dict[@"enhanceVideo"] boolValue];
+    config.enhanceScreenAudio = [dict[@"enhanceScreenAudio"] boolValue];
+    config.enhanceScreenVideo = [dict[@"enhanceScreenVideo"] boolValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCLocalProxyInfo (ByteRTCFlutterMapCategory)
+
++ (ByteRTCLocalProxyInfo *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCLocalProxyInfo *info = [[ByteRTCLocalProxyInfo alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return info;
+    }
+    info.localProxyType = [dict[@"localProxyType"] unsignedIntegerValue];
+    info.localProxyIp = dict[@"localProxyIp"];
+    info.localProxyPort = [dict[@"localProxyPort"] intValue];
+    info.localProxyUsername = dict[@"localProxyUsername"];
+    info.localProxyPassword = dict[@"localProxyPassword"];
+    return info;
+}
+
+@end
+
+@implementation ByteRTCSubtitleConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCSubtitleConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCSubtitleConfig *config = [[ByteRTCSubtitleConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.mode = [dict[@"mode"] integerValue];
+    config.targetLanguage = dict[@"targetLanguage"];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCSubtitleMessage (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"uid"] = self.userId;
+    dict[@"text"] = self.text;
+    dict[@"sequence"] = @(self.sequence);
+    dict[@"definite"] = @(self.definite);
+    return dict.copy;
+}
+
+@end
+
+@implementation ByteRTCLogConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCLogConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCLogConfig *config = [[ByteRTCLogConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.logPath = dict[@"logPath"];
+    config.logLevel = [dict[@"logLevel"] unsignedIntegerValue];
+    config.logFileSize = [dict[@"logFileSize"] intValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCAudioEffectPlayerConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCAudioEffectPlayerConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCAudioEffectPlayerConfig *config = [[ByteRTCAudioEffectPlayerConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.type = [dict[@"type"] integerValue];
+    config.pitch = [dict[@"pitch"] integerValue];
+    config.playCount = [dict[@"playCount"] integerValue];
+    config.startPos = [dict[@"startPos"] integerValue];
+    return config;
+}
+
+@end
+
+@implementation ByteRTCMediaPlayerConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMediaPlayerConfig *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCMediaPlayerConfig *config = [[ByteRTCMediaPlayerConfig alloc] init];
+    if (![dict isKindOfClass:[NSDictionary class]]) {
+        return config;
+    }
+    config.type = [dict[@"type"] integerValue];
+    config.playCount = [dict[@"playCount"] integerValue];
+    config.startPos = [dict[@"startPos"] integerValue];
+    config.callbackOnProgressInterval = [dict[@"callbackOnProgressInterval"] integerValue];
+    config.syncProgressToRecordFrame = [dict[@"syncProgressToRecordFrame"] boolValue];
+    config.autoPlay = [dict[@"autoPlay"] boolValue];
+    return config;
 }
 
 @end

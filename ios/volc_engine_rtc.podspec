@@ -11,15 +11,15 @@ Pod::Spec.new do |s|
   s.version          = project.version
   s.summary          = 'A new flutter plugin project.'
   s.description      = project.description
-  s.homepage         = 'https://github.com/volcengine/VolcEngineRTC'
+  s.homepage         = project.homepage
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'bytertc' => 'bytertc@bytedance.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/*.h'
   s.dependency 'Flutter'
-  s.dependency 'VolcEngineRTC', '3.51.101'
-  s.platform = :ios, '9.0'
+  s.dependency 'VolcEngineRTC/Core', '3.54.0.557200'
+  s.ios.deployment_target = '11.0'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386', 'ENABLE_BITCODE' => 'NO'}

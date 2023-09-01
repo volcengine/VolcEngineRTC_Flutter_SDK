@@ -1,6 +1,7 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 
@@ -11,20 +12,20 @@ import 'base/bytertc_enum_convert.dart';
 /// 视频截图结果回调
 class TakeSnapshotResultObserver {
   /// 调用异常
-  static const int ERROR_EXCEPTION = -100;
+  static const int errorException = -100;
 
   /// 未返回 TASK ID
-  static const int ERROR_NO_TASK_ID = -101;
+  static const int errorNoTaskId = -101;
 
   /// 文件写入失败
-  static const int ERROR_WRITE_FILE_FAILED = -102;
+  static const int errorWriteFileFailed = -102;
 
   /// 图片格式错误
-  static const int ERROR_IMAGE_FORMAT = -103;
+  static const int errorImageFormat = -103;
 
-  Map<int, CancelableCompleter<LocalSnapshot>> _localCompleters = Map();
+  final Map<int, CancelableCompleter<LocalSnapshot>> _localCompleters = {};
 
-  Map<int, CancelableCompleter<RemoteSnapshot>> _remoteCompleters = Map();
+  final Map<int, CancelableCompleter<RemoteSnapshot>> _remoteCompleters = {};
 
   void removeLocal(int taskId) => _localCompleters.remove(taskId);
 

@@ -1,8 +1,12 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
 import '../src/base/bytertc_enum_convert.dart';
+import 'bytertc_room_api.dart';
+import 'bytertc_room_event_handler.dart';
 import 'bytertc_rts_defines.dart';
+import 'bytertc_video_api.dart';
+import 'bytertc_video_event_handler.dart';
 
 /// 方法调用结果。
 enum ReturnStatus {
@@ -36,6 +40,12 @@ enum ReturnStatus {
   /// 失败，屏幕流不支持。
   screenNotSupport,
 
+  /// 失败，不支持该操作。
+  notSupport,
+
+  /// 失败，资源已占用。
+  resourceOverflow,
+
   /// 失败，没有音频帧。
   audioNoFrame,
 
@@ -67,7 +77,9 @@ enum ReturnStatus {
   nativeInValid,
 }
 
+/// @nodoc
 extension RTCTypeReturnStatus on int? {
+  /// @nodoc
   ReturnStatus get returnStatus {
     switch (this) {
       case 0:
@@ -90,6 +102,10 @@ extension RTCTypeReturnStatus on int? {
         return ReturnStatus.roomIdInUse;
       case -9:
         return ReturnStatus.screenNotSupport;
+      case -10:
+        return ReturnStatus.notSupport;
+      case -11:
+        return ReturnStatus.resourceOverflow;
       case -101:
         return ReturnStatus.audioNoFrame;
       case -102:
@@ -144,6 +160,8 @@ enum StreamRemoveReason {
 enum RoomProfile {
   /// 通信模式（默认）
   communication,
+
+  /// @nodoc
   @Deprecated(
       'Deprecated since v3.45.1 and will be deleted in v3.52.1, use interactivePodcast instead')
   liveBroadCasting,
@@ -232,7 +250,7 @@ enum RoomProfile {
 }
 
 /// SEI 信息来源
-enum SEIMessageSourceType {
+enum DataMessageSourceType {
   /// 用户自定义(默认值)
   def,
 
@@ -342,6 +360,9 @@ enum ErrorCode {
   /// 用户被封禁。
   joinRoomUserForbidden,
 
+  /// license 计费方法没有加载成功。可能是因为 license 相关插件未正确集成。
+  joinRoomLicenseFunctionNotFound,
+
   /// 订阅音视频流失败，订阅音视频流总数超过上限
   ///
   /// 游戏场景下为了保证音视频通话的性能和质量，服务器会限制用户订阅的音视频流的总数。<br>
@@ -362,12 +383,14 @@ enum ErrorCode {
   ///
   /// RTC 系统会限制单个房间内发布的总流数，总流数包括视频流、音频流和屏幕流。<br>
   /// 如果房间内发布流数已达上限时，本地用户再向房间中发布流时会失败，同时会收到此错误通知。
+  @Deprecated('Deprecated since v3.54.1, use overStreamPublishLimit instead')
   overScreenPublishLimit,
 
   /// 发布视频流总数超过上限
   ///
   /// RTC 系统会限制单个房间内发布的视频流数。<br>
   /// 如果房间内发布视频流数已达上限时，本地用户再向房间中发布视频流时会失败，同时会收到此错误通知。
+  @Deprecated('Deprecated since v3.54.1, use overStreamPublishLimit instead')
   overVideoPublishLimit,
 
   /// 音视频同步失败
@@ -510,6 +533,18 @@ enum WarningCode {
 
   /// 适用于iOS，指定的内部渲染画布句柄无效
   invalidCanvasHandle,
+
+  /// [音频技术](https://www.volcengine.com/docs/6489/71986) SDK 鉴权失效。联系技术支持人员。
+  invalidSamiAppKeyOrToken,
+
+  /// [音频技术](https://www.volcengine.com/docs/6489/71986) 资源加载失败。传入正确的 DAT 路径，或联系技术支持人员。
+  invalidSamiResourcePath,
+
+  /// [音频技术](https://www.volcengine.com/docs/6489/71986) 库加载失败。使用正确的库，或联系技术支持人员。
+  loadSamiLibraryFailed,
+
+  /// [音频技术](https://www.volcengine.com/docs/6489/71986) 不支持此音效。联系技术支持人员。
+  invalidSamiEffectType,
 }
 
 /// 性能相关的告警原因
@@ -988,45 +1023,119 @@ enum MediaDeviceWarning {
 }
 
 /// 音视频质量反馈问题类型
-enum ProblemFeedback {
+enum ProblemFeedbackOption {
   /// 没有问题
   none,
 
   /// 其他问题
-  otherMsg,
-
-  /// 声音不清晰
-  audioNotClear,
-
-  /// 视频不清晰
-  videoNotClear,
-
-  /// 音视频不同步
-  sync,
-
-  /// 音频卡顿
-  audioLagging,
-
-  /// 视频卡顿
-  videoDelay,
+  otherMessage,
 
   /// 连接失败
-  disconnect,
-
-  /// 无声音
-  noAudio,
-
-  /// 无画面
-  noVideo,
-
-  /// 声音过小
-  audioStrength,
-
-  /// 回声噪音
-  echo,
+  disconnected,
 
   /// 耳返延迟大
   earBackDelay,
+
+  /// 本端有杂音
+  localNoise,
+
+  /// 本端声音卡顿
+  localAudioLagging,
+
+  /// 本端无声音
+  localNoAudio,
+
+  /// 本端声音大/小
+  localAudioStrength,
+
+  /// 本端有回声
+  localEcho,
+
+  /// 本端视频模糊
+  localVideoFuzzy,
+
+  /// 本端音视频不同步
+  localNotSync,
+
+  /// 本端视频卡顿
+  localVideoLagging,
+
+  /// 本端无画面
+  localNoVideo,
+
+  /// 远端有杂音
+  remoteNoise,
+
+  /// 远端声音卡顿
+  remoteAudioLagging,
+
+  /// 远端无声音
+  remoteNoAudio,
+
+  /// 远端声音大/小
+  remoteAudioStrength,
+
+  /// 远端有回声
+  remoteEcho,
+
+  /// 远端视频模糊
+  remoteVideoFuzzy,
+
+  /// 远端音视频不同步
+  remoteNotSync,
+
+  /// 远端视频卡顿
+  remoteVideoLagging,
+
+  /// 远端无画面
+  remoteNoVideo,
+}
+
+/// 通话质量反馈中的房间信息
+class ProblemFeedbackRoomInfo {
+  /// 房间 ID
+  final String roomId;
+
+  /// 用户 ID
+  final String uid;
+
+  /// @nodoc
+  ProblemFeedbackRoomInfo({
+    required this.roomId,
+    required this.uid,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'roomId': roomId,
+      'uid': uid,
+    };
+  }
+}
+
+/// 通话质量反馈信息
+class ProblemFeedbackInfo {
+  /// 文字描述
+  String problemDesc;
+
+  /// 房间信息
+  List<ProblemFeedbackRoomInfo>? roomInfo;
+
+  /// @nodoc
+  ProblemFeedbackInfo({
+    required this.problemDesc,
+    this.roomInfo,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'problemDesc': problemDesc,
+      if (roomInfo != null)
+        'roomInfo': roomInfo!.map((e) => e.toMap()).toList(growable: false),
+    };
+  }
 }
 
 /// 首帧发送状态
@@ -1267,19 +1376,22 @@ enum PublicStreamErrorCode {
   success,
 
   /// 公共流的参数异常，请修改参数后重试
-  paramError,
+  pushParamError,
 
   /// 服务端状态异常，将自动重试
-  statusError,
+  pushStateError,
 
   /// 内部错误，不可恢复，请重试。
-  internalError,
+  pushInternalError,
 
   /// 推流失败，将自动重试，用户不需要处理
   pushError,
 
   /// 推流失败，10 s 后会重试，重试 3 次后停止重试
-  timeOut,
+  pushTimeOut,
+
+  /// 订阅失败，发布端未开始发布流。
+  pullNoPushStream,
 }
 
 /// 蓝牙传输协议
@@ -1345,6 +1457,7 @@ class EchoTestConfig {
   /// + `> 100`: 开启信息提示，并将信息提示间隔设置为此值。
   int audioReportInterval;
 
+  /// @nodoc
   EchoTestConfig({
     required this.uid,
     required this.roomId,
@@ -1372,23 +1485,26 @@ class UserInfo {
   /// 用户 ID
   ///
   /// 该字符串符合正则表达式：`[a-zA-Z0-9_@\-\.]{1,128}`。
+  ///
+  /// 你需要自行设置或管理 uid，并保证同一房间内每个 uid 的唯一性。
   final String uid;
 
   /// 用户传递的额外信息
   ///
   /// 最大长度为 200 字节，会在 [RTCRoomEventHandler.onUserJoined] 中回调给远端用户。
-  final String metaData;
+  final String extraInfo;
 
+  /// @nodoc
   const UserInfo({
     required this.uid,
-    this.metaData = '',
+    this.extraInfo = '',
   });
 
   /// @nodoc
   factory UserInfo.fromMap(Map<dynamic, dynamic> map) {
     return UserInfo(
       uid: map['uid'],
-      metaData: map['metaData'],
+      extraInfo: map['metaData'],
     );
   }
 
@@ -1396,7 +1512,7 @@ class UserInfo {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'uid': uid,
-      'metaData': metaData,
+      'metaData': extraInfo,
     };
   }
 }
@@ -1460,6 +1576,7 @@ class RTCRoomStats {
   /// 蜂窝路径接收码率 (kbps)，为获取该数据时的瞬时值
   final int? rxCellularKBitrate;
 
+  /// @nodoc
   const RTCRoomStats({
     this.duration,
     this.txBytes,
@@ -1572,6 +1689,7 @@ class LocalVideoStats {
   /// 你可以知道当前统计数据来自主流还是屏幕流。
   final bool? isScreen;
 
+  /// @nodoc
   const LocalVideoStats({
     this.sentKBitrate,
     this.inputFrameRate,
@@ -1679,6 +1797,7 @@ class RemoteVideoStats {
   /// 对应多种分辨率的流的下标
   final int? videoIndex;
 
+  /// @nodoc
   const RemoteVideoStats({
     this.width,
     this.height,
@@ -1755,6 +1874,7 @@ class LocalAudioStats {
   /// 此次统计周期内的音频发送采样率信息，单位为 Hz。
   final int? sentSampleRate;
 
+  /// @nodoc
   const LocalAudioStats({
     this.audioLossRate,
     this.sentKBitrate,
@@ -1862,6 +1982,7 @@ class RemoteAudioStats {
   ///音频下行网络抖动，单位为 ms
   final int? jitter;
 
+  /// @nodoc
   const RemoteAudioStats({
     this.audioLossRate,
     this.receivedKBitrate,
@@ -1925,6 +2046,7 @@ class LocalStreamStats {
   /// 你可以知道当前统计数据来自主流还是屏幕流。
   final bool? isScreen;
 
+  /// @nodoc
   const LocalStreamStats({
     this.audioStats,
     this.videoStats,
@@ -1961,6 +2083,7 @@ class RemoteStreamStats {
   /// 你可以知道当前统计数据来自主流还是屏幕流。
   final bool? isScreen;
 
+  /// @nodoc
   const RemoteStreamStats({
     this.uid,
     this.audioStats,
@@ -1990,6 +2113,7 @@ class RemoteStreamKey {
   /// 流属性，包括主流、屏幕流。
   final StreamIndex streamIndex;
 
+  /// @nodoc
   const RemoteStreamKey({
     required this.roomId,
     required this.uid,
@@ -2005,10 +2129,11 @@ class RemoteStreamKey {
     );
   }
 
+  /// @nodoc
   Map<String, dynamic> toMap() => {
         'roomId': roomId,
         'uid': uid,
-        'streamIndex': streamIndex.value,
+        'streamIndex': streamIndex.index,
       };
 }
 
@@ -2022,6 +2147,7 @@ class RecordingConfig {
   /// 录制存储文件格式
   RecordingFileType recordingFileType;
 
+  /// @nodoc
   RecordingConfig({
     required this.dirPath,
     this.recordingFileType = RecordingFileType.mp4,
@@ -2031,7 +2157,7 @@ class RecordingConfig {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'dirPath': dirPath,
-      'recordingFileType': recordingFileType.value,
+      'recordingFileType': recordingFileType.index,
     };
   }
 }
@@ -2044,6 +2170,7 @@ class RecordingProgress {
   /// 当前录制文件的大小 (byte)
   final int? fileSize;
 
+  /// @nodoc
   const RecordingProgress({
     this.duration,
     this.fileSize,
@@ -2076,6 +2203,7 @@ class RecordingInfo {
   /// 纯音频录制请忽略该字段。
   final int? height;
 
+  /// @nodoc
   const RecordingInfo({
     this.filePath,
     this.videoCodecType,
@@ -2105,6 +2233,7 @@ class StreamSyncInfoConfig {
   /// 媒体流信息同步的流类型
   SyncInfoStreamType streamType;
 
+  /// @nodoc
   StreamSyncInfoConfig({
     this.streamIndex = StreamIndex.main,
     this.repeatCount = 0,
@@ -2114,9 +2243,9 @@ class StreamSyncInfoConfig {
   /// @nodoc
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'streamIndex': streamIndex.value,
+      'streamIndex': streamIndex.index,
       'repeatCount': repeatCount,
-      'streamType': streamType.value,
+      'streamType': streamType.index,
     };
   }
 }
@@ -2131,6 +2260,7 @@ class ForwardStreamInfo {
   /// 如果 Token 无效，转发失败。
   String token;
 
+  /// @nodoc
   ForwardStreamInfo({
     required this.roomId,
     required this.token,
@@ -2158,6 +2288,7 @@ class ForwardStreamStateInfo {
   /// 媒体流跨房间转发过程中的错误码
   final ForwardStreamError? error;
 
+  /// @nodoc
   const ForwardStreamStateInfo({
     this.roomId,
     this.state,
@@ -2184,6 +2315,7 @@ class ForwardStreamEventInfo {
   /// 跨房间转发媒体流过程中该目标房间发生的事件
   final ForwardStreamEvent? event;
 
+  /// @nodoc
   const ForwardStreamEventInfo({
     this.roomId,
     this.event,
@@ -2222,6 +2354,7 @@ class NetworkQualityStats {
   /// 下行网络质量分，范围 `[0,5]`，分数越高网络质量越差
   final NetworkQuality? rxQuality;
 
+  /// @nodoc
   const NetworkQualityStats({
     this.uid,
     this.fractionLost,
@@ -2249,6 +2382,7 @@ class NetworkTimeInfo {
   /// 网络时间，单位：ms
   final int timestamp;
 
+  /// @nodoc
   const NetworkTimeInfo({
     required this.timestamp,
   });
@@ -2281,26 +2415,6 @@ enum NetworkDetectionStopReason {
   innerErr,
 }
 
-/// 开启通话前网络探测的结果
-enum NetworkDetectionStartReturn {
-  /// 成功开启网络探测
-  success,
-
-  /// 开始探测失败
-  ///
-  /// 参数错误，上下行网络探测均为 `false`，或期望带宽超过了范围 `[100,10000]`
-  paramError,
-
-  /// 开始探测失败，本地已经开始推拉流
-  streaming,
-
-  /// 已经开始探测，无需重复开启
-  started,
-
-  /// 不支持该功能
-  notSupport,
-}
-
 /// 通话前探测的网络类型
 enum NetworkDetectionLinkType {
   /// 上行网络
@@ -2325,4 +2439,170 @@ enum HardwareEchoDetectionResult {
   ///
   /// 可通过 UI 提示建议用户使用耳机设备入会。
   poor,
+}
+
+/// 音频选路优先级设置。
+enum AudioSelectionPriority {
+  /// 正常，参加音频选路。
+  normal,
+
+  /// 高优先级，跳过音频选路。
+  high,
+}
+
+/// 设置房间附加消息结果。
+enum SetRoomExtraInfoResult {
+  /// 设置房间附加信息成功。
+  success,
+
+  /// 设置失败，尚未加入房间。
+  notJoinRoom,
+
+  /// 设置失败，key 指针为空。
+  keyIsNull,
+
+  /// 设置失败，value 指针为空
+  valueIsNull,
+
+  /// 设置失败，未知错误
+  unknown,
+
+  /// 设置失败，key 长度为 0。
+  keyIsEmpty,
+
+  /// 调用 [RTCRoom.setRoomExtraInfo] 过于频繁，建议不超过 10 次/秒。
+  tooOften,
+
+  /// 设置失败，用户已调用 [RTCRoom.setUserVisibility] 将自身设为隐身状态。
+  silentUser,
+
+  /// 设置失败，Key 长度超过 10 字节。
+  keyTooLong,
+
+  /// 设置失败，value 长度超过 128 字节
+  valueTooLong,
+
+  /// 设置失败，服务器错误。
+  serverError,
+}
+
+/// 字幕任务状态。
+enum SubtitleState {
+  /// 开启字幕。
+  started,
+
+  /// 关闭字幕。
+  stopped,
+
+  /// 字幕任务出现错误。
+  error,
+}
+
+/// 字幕模式。
+enum SubtitleMode {
+  /// 识别模式。在此模式下，房间内用户语音会被转为文字。
+  recognition,
+
+  /// 翻译模式。在此模式下，房间内用户语音会先被转为文字，再被翻译为目标语言。
+  translation,
+}
+
+/// 字幕任务错误码。
+enum SubtitleErrorCode {
+  /// 客户端无法识别云端媒体处理发送的错误码。
+  unknown,
+
+  /// 字幕已开启。
+  success,
+
+  /// 云端媒体处理内部出现错误，请联系技术支持。
+  postProcessError,
+
+  /// 第三方服务连接失败，请联系技术支持。
+  asrConnectionError,
+
+  /// 第三方服务内部出现错误，请联系技术支持。
+  asrServiceError,
+
+  /// 未进房导致调用 [RTCRoom.startSubtitle] 失败。请加入房间后再调用此方法。
+  beforeJoinRoom,
+
+  /// 字幕已开启，无需重复调用 [RTCRoom.startSubtitle]。
+  alreadyOn,
+
+  /// 所选目标语言目前暂不支持。
+  unsupportedLanguage,
+
+  /// 云端媒体处理超时未响应，请联系技术支持。
+  postProcessTimeout,
+}
+
+/// 字幕配置信息。
+class SubtitleConfig {
+  /// 字幕模式。
+  ///
+  /// 可以根据需要选择识别和翻译两种模式。开启识别模式，会将识别后的用户语音转化成文字；开启翻译模式，会在语音识别后进行翻译。
+  SubtitleMode mode;
+
+  /// 目标翻译语言。可点击 [语言支持](https://www.volcengine.com/docs/4640/35107#%F0%9F%93%A2%E5%AE%9E%E6%97%B6%E8%AF%AD%E9%9F%B3%E7%BF%BB%E8%AF%91) 查看翻译服务最新支持的语种信息。
+  String targetLanguage;
+
+  /// @nodoc
+  SubtitleConfig({
+    this.mode = SubtitleMode.recognition,
+    this.targetLanguage = '',
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'mode': mode.index,
+      'targetLanguage': targetLanguage,
+    };
+  }
+}
+
+/// 字幕具体内容。
+class SubtitleMessage {
+  /// 说话者的用户 ID。
+  final String uid;
+
+  /// 语音识别或翻译后的文本, 采用 UTF-8 编码。
+  final String text;
+
+  /// 语音识别或翻译后形成的文本的序列号，同一发言人的完整发言和不完整发言会按递增顺序单独分别编号。
+  final int sequence;
+
+  /// 语音识别出的文本是否为一段完整的一句话。 True：是；False：否。
+  final bool definite;
+
+  /// @nodoc
+  const SubtitleMessage({
+    required this.uid,
+    required this.text,
+    required this.sequence,
+    required this.definite,
+  });
+
+  /// @nodoc
+  factory SubtitleMessage.fromMap(Map<dynamic, dynamic> map) {
+    return SubtitleMessage(
+      uid: map['uid'],
+      text: map['text'],
+      sequence: map['sequence'],
+      definite: map['definite'],
+    );
+  }
+}
+
+/// 用户可见性状态改变错误码。
+enum UserVisibilityChangeError {
+  /// 成功。
+  ok,
+
+  /// 未知错误。
+  unknown,
+
+  /// 房间内可见用户达到上限。
+  tooManyVisibleUser,
 }

@@ -1,6 +1,7 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import '../api/bytertc_ktv_manager_api.dart';
 import '../api/bytertc_ktv_player_api.dart';
 import 'base/bytertc_event_serialize.dart';
@@ -12,9 +13,9 @@ extension RTCKTVPlayerEventProcessor on RTCKTVPlayerEventHandler {
         final data = OnPlayProgressData.fromMap(dic);
         onPlayProgress?.call(data.musicId, data.progress);
         break;
-      case 'onPlayStateChange':
-        final data = OnPlayStateChangeData.fromMap(dic);
-        onPlayStateChange?.call(data.musicId, data.playState, data.error);
+      case 'onPlayStateChanged':
+        final data = OnPlayStateChangedData.fromMap(dic);
+        onPlayStateChanged?.call(data.musicId, data.playState, data.error);
         break;
       default:
         break;
@@ -22,24 +23,28 @@ extension RTCKTVPlayerEventProcessor on RTCKTVPlayerEventHandler {
   }
 }
 
-extension RTCKTVEventProcessor on RTCKTVEventHandler {
+extension RTCKTVManagerEventProcessor on RTCKTVManagerEventHandler {
   void process(String methodName, Map<dynamic, dynamic> dic) {
     switch (methodName) {
       case 'onMusicListResult':
         final data = OnMusicListResultData.fromMap(dic);
-        onMusicListResult?.call(data.error, data.totalSize, data.musics);
+        onMusicListResult?.call(data.musics, data.totalSize, data.error);
         break;
       case 'onSearchMusicResult':
         final data = OnMusicListResultData.fromMap(dic);
-        onSearchMusicResult?.call(data.error, data.totalSize, data.musics);
+        onSearchMusicResult?.call(data.musics, data.totalSize, data.error);
         break;
       case 'onHotMusicResult':
         final data = OnHotMusicResultData.fromMap(dic);
-        onHotMusicResult?.call(data.error, data.hotMusics);
+        onHotMusicResult?.call(data.hotMusics, data.error);
         break;
       case 'onMusicDetailResult':
         final data = OnMusicDetailResultData.fromMap(dic);
-        onMusicDetailResult?.call(data.error, data.music);
+        onMusicDetailResult?.call(data.music, data.error);
+        break;
+      case 'onClearCacheResult':
+        final data = OnClearCacheResultData.fromMap(dic);
+        onClearCacheResult?.call(data.error);
         break;
       default:
         break;

@@ -11,23 +11,25 @@
 #import "ByteRTCFlutterAudioMixingPlugin.h"
 #import "ByteRTCFlutterASREventHandler.h"
 #import "ByteRTCFlutterLiveTranscodingObserver.h"
-#import "ByteRTCFlutterPushSingleStreamToCDNObserver.h"
+#import "ByteRTCFlutterCDNStreamObserver.h"
 #import "ByteRTCVideoSnapshotEventObserver.h"
 #import "ByteRTCFlutterVideoEffectPlugin.h"
 #import "ByteRTCFlutterSingScoringPlugin.h"
 #import "ByteRTCFlutterKTVManagerPlugin.h"
+#import "ByteRTCFlutterAudioEffectPlayerPlugin.h"
+#import "ByteRTCFlutterrMediaPlayerPlugin.h"
 
 @interface ByteRTCFlutterVideoPlugin ()
 
 @property (nonatomic, strong) ByteRTCVideo *rtcVideo;
-@property (nonatomic, strong) NSMutableArray<ByteRTCFlutterPlugin *> *flutterPlugins;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, ByteRTCFlutterPlugin *> *flutterPlugins;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber*, ByteRTCFlutterRoomPlugin*> *roomPlugins;
 @property (nonatomic, strong) ByteRTCFlutterASREventHandler *asrEventHandler;
 @property (nonatomic, strong) ByteRTCFlutterFaceDetectionHandler *faceDetectionHandler;
 @property (nonatomic, strong) ByteRTCFlutterLiveTranscodingObserver *liveTranscodingObserver;
+@property (nonatomic, strong) ByteRTCFlutterMixedStreamObserver *mixedStreamObserver;
 @property (nonatomic, strong) ByteRTCFlutterPushSingleStreamToCDNObserver *pushSingleStreamToCDNObserver;
 @property (nonatomic, strong) ByteRTCVideoSnapshotEventObserver *snapshotEventObserver;
-@property (nonatomic, strong, nullable) ByteRTCFlutterKTVManagerPlugin *ktvManager;
 
 @end
 
@@ -37,16 +39,16 @@
     self = [super init];
     if (self) {
         self.rtcVideo = rtcVideo;
-        self.flutterPlugins = [NSMutableArray array];
+        self.flutterPlugins = [NSMutableDictionary dictionary];
         self.roomPlugins = [NSMutableDictionary dictionary];
         
-        [self.flutterPlugins addObject:[[ByteRTCFlutterAudioMixingPlugin alloc] initWithRTCVideo:rtcVideo]];
-        [self.flutterPlugins addObject:[[ByteRTCFlutterVideoEffectPlugin alloc] initWithRTCVideo:rtcVideo]];
-        [self.flutterPlugins addObject:[[ByteRTCFlutterSingScoringPlugin alloc] initWithRTCVideo:rtcVideo]];
+        [self.flutterPlugins setValue:[[ByteRTCFlutterAudioMixingPlugin alloc] initWithRTCVideo:rtcVideo] forKey:@"AudioMixing"];
+        [self.flutterPlugins setValue:[[ByteRTCFlutterVideoEffectPlugin alloc] initWithRTCVideo:rtcVideo] forKey:@"VideoEffect"];
         
         self.asrEventHandler = [[ByteRTCFlutterASREventHandler alloc] init];
         self.faceDetectionHandler = [[ByteRTCFlutterFaceDetectionHandler alloc] init];
         self.liveTranscodingObserver = [[ByteRTCFlutterLiveTranscodingObserver alloc] init];
+        self.mixedStreamObserver = [[ByteRTCFlutterMixedStreamObserver alloc] init];
         self.pushSingleStreamToCDNObserver = [[ByteRTCFlutterPushSingleStreamToCDNObserver alloc] init];
         self.snapshotEventObserver = [[ByteRTCVideoSnapshotEventObserver alloc] init];
     }
@@ -56,7 +58,7 @@
 - (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     [super registerWithRegistrar:registrar];
     
-    [self.flutterPlugins enumerateObjectsUsingBlock:^(ByteRTCFlutterPlugin *obj, NSUInteger idx, BOOL *stop) {
+    [self.flutterPlugins enumerateKeysAndObjectsUsingBlock:^(NSString *key, ByteRTCFlutterPlugin *obj, BOOL *stop) {
         [obj registerWithRegistrar:registrar];
     }];
     
@@ -69,6 +71,8 @@
                                             binaryMessenger:[self.registrar messenger]];
     [self.liveTranscodingObserver registerEventChannelWithName:@"com.bytedance.ve_rtc_live_transcoding"
                                                binaryMessenger:[self.registrar messenger]];
+    [self.mixedStreamObserver registerEventChannelWithName:@"com.bytedance.ve_rtc_mix_stream"
+                                           binaryMessenger:[self.registrar messenger]];
     [self.pushSingleStreamToCDNObserver registerEventChannelWithName:@"com.bytedance.ve_rtc_push_single_stream_to_cdn"
                                                      binaryMessenger:[self.registrar messenger]];
     [self.snapshotEventObserver registerEventChannelWithName:@"com.bytedance.ve_rtc_snapshot_result"
@@ -77,7 +81,7 @@
 
 - (void)destroy {
     [super destroy];
-    [self.flutterPlugins enumerateObjectsUsingBlock:^(ByteRTCFlutterPlugin *obj, NSUInteger idx, BOOL *stop) {
+    [self.flutterPlugins enumerateKeysAndObjectsUsingBlock:^(NSString *key, ByteRTCFlutterPlugin *obj, BOOL *stop) {
         [obj destroy];
     }];
     [self.roomPlugins enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, ByteRTCFlutterRoomPlugin *obj, BOOL *stop) {
@@ -87,6 +91,7 @@
     [self.asrEventHandler destroy];
     [self.faceDetectionHandler destroy];
     [self.liveTranscodingObserver destroy];
+    [self.mixedStreamObserver destroy];
     [self.pushSingleStreamToCDNObserver destroy];
     [self.snapshotEventObserver destroy];
 }
@@ -120,31 +125,31 @@
 #pragma mark Core Audio Methods
 
 - (void)startAudioCapture:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo startAudioCapture];
-    result(nil);
+    int res = [self.rtcVideo startAudioCapture];
+    result(@(res));
 }
 
 - (void)stopAudioCapture:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopAudioCapture];
-    result(nil);
+    int res = [self.rtcVideo stopAudioCapture];
+    result(@(res));
 }
 
 - (void)setAudioScenario:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAudioScenarioType type = [arguments[@"audioScenario"] integerValue];
-    [self.rtcVideo setAudioScenario:type];
-    result(nil);
+    int res = [self.rtcVideo setAudioScenario:type];
+    result(@(res));
 }
 
 - (void)setAudioProfile:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAudioProfileType type = [arguments[@"audioProfile"] integerValue];
-    [self.rtcVideo setAudioProfile:type];
-    result(nil);
+    int res = [self.rtcVideo setAudioProfile:type];
+    result(@(res));
 }
 
 - (void)setAnsMode:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAnsMode ansMode = [arguments[@"ansMode"] integerValue];
-    [self.rtcVideo setAnsMode:ansMode];
-    result(nil);
+    int res = [self.rtcVideo setAnsMode:ansMode];
+    result(@(res));
 }
 
 - (void)setVoiceChangerType:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -180,72 +185,72 @@
 - (void)setCaptureVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCStreamIndex index = [arguments[@"index"] integerValue];
     int volume = [arguments[@"volume"] intValue];
-    [self.rtcVideo setCaptureVolume:index volume:volume];
-    result(nil);
+    int res = [self.rtcVideo setCaptureVolume:index volume:volume];
+    result(@(res));
 }
 
 - (void)setPlaybackVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     NSInteger volume = [arguments[@"volume"] integerValue];
-    [self.rtcVideo setPlaybackVolume:volume];
-    result(nil);
+    int res = [self.rtcVideo setPlaybackVolume:volume];
+    result(@(res));
 }
 
 - (void)enableAudioPropertiesReport:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAudioPropertiesConfig *config = [ByteRTCAudioPropertiesConfig bf_fromMap:arguments[@"config"]];
-    [self.rtcVideo enableAudioPropertiesReport:config];
-    result(nil);
+    int res = [self.rtcVideo enableAudioPropertiesReport:config];
+    result(@(res));
 }
 
 - (void)setRemoteAudioPlaybackVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *roomId = arguments[@"roomId"];
     NSString *uid = arguments[@"uid"];
     int volume = [arguments[@"volume"] intValue];
-    [self.rtcVideo setRemoteAudioPlaybackVolume:roomId remoteUid:uid playVolume:volume];
-    result(nil);
+    int res = [self.rtcVideo setRemoteAudioPlaybackVolume:roomId remoteUid:uid playVolume:volume];
+    result(@(res));
 }
 
 - (void)setEarMonitorMode:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCEarMonitorMode mode = [arguments[@"mode"] integerValue];
-    [self.rtcVideo setEarMonitorMode:mode];
-    result(nil);
+    int res = [self.rtcVideo setEarMonitorMode:mode];
+    result(@(res));
 }
 
 - (void)setEarMonitorVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     NSInteger volume = [arguments[@"volume"] integerValue];
-    [self.rtcVideo setEarMonitorVolume:volume];
-    result(nil);
+    int res = [self.rtcVideo setEarMonitorVolume:volume];
+    result(@(res));
 }
 
 - (void)setBluetoothMode:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCBluetoothMode mode = [arguments[@"mode"] integerValue];
-    [self.rtcVideo setBluetoothMode:mode];
-    result(nil);
+    int res = [self.rtcVideo setBluetoothMode:mode];
+    result(@(res));
 }
 
 - (void)setLocalVoicePitch:(NSDictionary *)arguments result:(FlutterResult)result {
     NSInteger pitch = [arguments[@"pitch"] integerValue];
-    [self.rtcVideo setLocalVoicePitch:pitch];
-    result(nil);
+    int res = [self.rtcVideo setLocalVoicePitch:pitch];
+    result(@(res));
 }
 
 - (void)enableVocalInstrumentBalance:(NSDictionary *)arguments result:(FlutterResult)result {
     BOOL enable = [arguments[@"enable"] boolValue];
-    [self.rtcVideo enableVocalInstrumentBalance:enable];
-    result(nil);
+    int res = [self.rtcVideo enableVocalInstrumentBalance:enable];
+    result(@(res));
 }
 
 - (void)enablePlaybackDucking:(NSDictionary *)arguments result:(FlutterResult)result {
     BOOL enable = [arguments[@"enable"] boolValue];
-    [self.rtcVideo enablePlaybackDucking:enable];
-    result(nil);
+    int res = [self.rtcVideo enablePlaybackDucking:enable];
+    result(@(res));
 }
 
 #pragma mark Core Video Methods
 
 - (void)enableSimulcastMode:(NSDictionary *)arguments result:(FlutterResult)result {
     BOOL enable = [arguments[@"enable"] boolValue];
-    [self.rtcVideo enableSimulcastMode:enable];
-    result(nil);
+    int res = [self.rtcVideo enableSimulcastMode:enable];
+    result(@(res));
 }
 
 - (void)setMaxVideoEncoderConfig:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -290,43 +295,43 @@
     streamKey.roomId = arguments[@"roomId"];
     streamKey.userId = arguments[@"uid"];
     streamKey.streamIndex = [arguments[@"streamType"] integerValue];
-    [self.rtcVideo setRemoteVideoCanvas:streamKey
-                             withCanvas:canvas];
-    result(nil);
+    int res = [self.rtcVideo setRemoteVideoCanvas:streamKey
+                                       withCanvas:canvas];
+    result(@(res));
 }
 
 - (void)startVideoCapture:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo startVideoCapture];
-    result(nil);
+    int res = [self.rtcVideo startVideoCapture];
+    result(@(res));
 }
 
 - (void)stopVideoCapture:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopVideoCapture];
-    result(nil);
+    int res = [self.rtcVideo stopVideoCapture];
+    result(@(res));
 }
 
 - (void)setLocalVideoMirrorType:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMirrorType mirrorType = [arguments[@"mirrorType"] integerValue];
-    [self.rtcVideo setLocalVideoMirrorType:mirrorType];
-    result(nil);
+    int res = [self.rtcVideo setLocalVideoMirrorType:mirrorType];
+    result(@(res));
 }
 
 - (void)setVideoRotationMode:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCVideoRotationMode rotationMode = [arguments[@"rotationMode"] integerValue];
-    [self.rtcVideo setVideoRotationMode:rotationMode];
-    result(nil);
+    int res = [self.rtcVideo setVideoRotationMode:rotationMode];
+    result(@(res));
 }
 
 - (void)setVideoOrientation:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCVideoOrientation orientation = [arguments[@"orientation"] integerValue];
-    [self.rtcVideo setVideoOrientation:orientation];
-    result(nil);
+    int res = [self.rtcVideo setVideoOrientation:orientation];
+    result(@(res));
 }
 
 - (void)switchCamera:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCCameraID cameraId = [arguments[@"cameraId"] integerValue];
-    [self.rtcVideo switchCamera:cameraId];
-    result(nil);
+    int res = [self.rtcVideo switchCamera:cameraId];
+    result(@(res));
 }
 
 - (void)checkVideoEffectLicense:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -466,6 +471,18 @@
     result(@(res));
 }
 
+- (void)enableCameraAutoExposureFaceMode:(NSDictionary *)arguments result:(FlutterResult)result {
+    bool enable = [arguments[@"enable"] boolValue];
+    int res = [self.rtcVideo enableCameraAutoExposureFaceMode:enable];
+    result(@(res));
+}
+
+- (void)setCameraAdaptiveMinimumFrameRate:(NSDictionary *)arguments result:(FlutterResult)result {
+    int framerate = [arguments[@"framerate"] intValue];
+    int res = [self.rtcVideo setCameraAdaptiveMinimumFrameRate:framerate];
+    result(@(res));
+}
+
 #pragma mark - MediaMetadataData InnerVideoSource
 
 - (void)sendSEIMessage:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -486,33 +503,33 @@
 - (void)setVideoDigitalZoomConfig:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCZoomConfigType type = [arguments[@"type"] integerValue];
     float size = [arguments[@"size"] floatValue];
-    [self.rtcVideo setVideoDigitalZoomConfig:type size:size];
-    result(nil);
+    int res = [self.rtcVideo setVideoDigitalZoomConfig:type size:size];
+    result(@(res));
 }
 
 - (void)setVideoDigitalZoomControl:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCZoomDirectionType direction = [arguments[@"direction"] integerValue];
-    [self.rtcVideo setVideoDigitalZoomControl:direction];
-    result(nil);
+    int res = [self.rtcVideo setVideoDigitalZoomControl:direction];
+    result(@(res));
 }
 
 - (void)startVideoDigitalZoomControl:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCZoomDirectionType direction = [arguments[@"direction"] integerValue];
-    [self.rtcVideo startVideoDigitalZoomControl:direction];
-    result(nil);
+    int res = [self.rtcVideo startVideoDigitalZoomControl:direction];
+    result(@(res));
 }
 
 - (void)stopVideoDigitalZoomControl:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopVideoDigitalZoomControl];
-    result(nil);
+    int res = [self.rtcVideo stopVideoDigitalZoomControl];
+    result(@(res));
 }
 
 #pragma mark Audio Routing Controller
 
 - (void)setAudioRoute:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAudioRoute audioRoute = [arguments[@"audioRoute"] integerValue];
-    [self.rtcVideo setAudioRoute:audioRoute];
-    result(nil);
+    int res = [self.rtcVideo setAudioRoute:audioRoute];
+    result(@(res));
 }
 
 - (void)setDefaultAudioRoute:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -528,44 +545,59 @@
 
 - (void)enableExternalSoundCard:(NSDictionary *)arguments result:(FlutterResult)result {
     BOOL enable = [arguments[@"enable"] boolValue];
-    [self.rtcVideo enableExternalSoundCard:enable];
-    result(nil);
+    int res = [self.rtcVideo enableExternalSoundCard:enable];
+    result(@(res));
 }
 
-#pragma mark Combined to Push
+#pragma mark Push mixed or signle stream to CDN
 
 - (void)startLiveTranscoding:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *taskId = arguments[@"taskId"];
     NSDictionary *transcodingDict = arguments[@"transcoding"];
-    [self.rtcVideo startLiveTranscoding:taskId
-                            transcoding:[ByteRTCLiveTranscoding bf_fromMap:transcodingDict]
-                               observer:self.liveTranscodingObserver];
-    result(nil);
+    int res = [self.rtcVideo startLiveTranscoding:taskId
+                                      transcoding:[ByteRTCLiveTranscoding bf_fromMap:transcodingDict]
+                                         observer:self.liveTranscodingObserver];
+    result(@(res));
 }
 
 - (void)stopLiveTranscoding:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *taskId = arguments[@"taskId"];
-    [self.rtcVideo stopLiveTranscoding:taskId];
-    result(nil);
+    int res = [self.rtcVideo stopLiveTranscoding:taskId];
+    result(@(res));
 }
 
 - (void)updateLiveTranscoding:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *taskId = arguments[@"taskId"];
     NSDictionary *transcodingDict = arguments[@"transcoding"];
-    [self.rtcVideo updateLiveTranscoding:taskId
-                             transcoding:[ByteRTCLiveTranscoding bf_fromMap:transcodingDict]];
-    result(nil);
+    int res = [self.rtcVideo updateLiveTranscoding:taskId
+                                       transcoding:[ByteRTCLiveTranscoding bf_fromMap:transcodingDict]];
+    result(@(res));
 }
 
-#pragma mark oush single streaming
+- (void)startPushMixedStreamToCDN:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *taskId = arguments[@"taskId"];
+    NSDictionary *config = arguments[@"mixedConfig"];
+    int res = [self.rtcVideo startPushMixedStreamToCDN:taskId
+                                           mixedConfig:[ByteRTCMixedStreamConfig bf_fromMap:config]
+                                              observer:self.mixedStreamObserver];
+    result(@(res));
+}
+
+- (void)updatePushMixedStreamToCDN:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *taskId = arguments[@"taskId"];
+    NSDictionary *config = arguments[@"mixedConfig"];
+    int res = [self.rtcVideo updatePushMixedStreamToCDN:taskId
+                                            mixedConfig:[ByteRTCMixedStreamConfig bf_fromMap:config]];
+    result(@(res));
+}
 
 - (void)startPushSingleStreamToCDN:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *taskId = arguments[@"taskId"];
     ByteRTCPushSingleStreamParam *param = [ByteRTCPushSingleStreamParam bf_fromMap:arguments[@"param"]];
-    [self.rtcVideo startPushSingleStreamToCDN:taskId
-                                 singleStream:param
-                                     observer:self.pushSingleStreamToCDNObserver];
-    result(nil);
+    int res = [self.rtcVideo startPushSingleStreamToCDN:taskId
+                                           singleStream:param
+                                               observer:self.pushSingleStreamToCDNObserver];
+    result(@(res));
 }
 
 - (void)stopPushStreamToCDN:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -633,13 +665,12 @@
 
 - (void)feedback:(NSDictionary *)arguments result:(FlutterResult)result {
     NSArray *types = arguments[@"types"];
-    NSString *problemDesc = arguments[@"problemDesc"];
-    NSMutableArray<ByteRTCProblemOption *> *options = [NSMutableArray array];
+    __block ByteRTCProblemFeedbackOption option = ByteRTCProblemFeedbackOptionNone;
     [types enumerateObjectsUsingBlock:^(NSNumber *obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        ByteRTCProblemOption *option = [[ByteRTCProblemOption alloc] initWithOption:obj.integerValue];
-        [options addObject:option];
+        option |= [obj unsignedLongLongValue];
     }];
-    int res = [self.rtcVideo feedback:options desc:problemDesc];
+    ByteRTCProblemFeedbackInfo *info = [ByteRTCProblemFeedbackInfo bf_fromMap:arguments[@"info"]];
+    int res = [self.rtcVideo feedback:option info:info];
     result(@(res));
 }
 
@@ -647,14 +678,14 @@
 
 - (void)setPublishFallbackOption:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCPublishFallbackOption option = [arguments[@"option"] integerValue];
-    [self.rtcVideo setPublishFallbackOption:option];
-    result(nil);
+    int res = [self.rtcVideo setPublishFallbackOption:option];
+    result(@(res));
 }
 
 - (void)setSubscribeFallbackOption:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCSubscribeFallbackOption option = [arguments[@"option"] integerValue];
-    [self.rtcVideo setSubscribeFallbackOption:option];
-    result(nil);
+    int res = [self.rtcVideo setSubscribeFallbackOption:option];
+    result(@(res));
 }
 
 - (void)setRemoteUserPriority:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -670,52 +701,52 @@
 - (void)setEncryptInfo:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCEncryptType aesType = [arguments[@"aesType"] integerValue];
     NSString *key = arguments[@"key"];
-    [self.rtcVideo setEncryptInfo:aesType key:key];
-    result(nil);
+    int res = [self.rtcVideo setEncryptInfo:aesType key:key];
+    result(@(res));
 }
 
 #pragma mark - ScreenCapture
 
 - (void)startScreenCapture:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCScreenMediaType type = [arguments[@"type"] integerValue];
-    [self.rtcVideo startScreenCapture:type bundleId:[ByteRTCVideoManager shared].bundleId];
-    result(nil);
+    int res = [self.rtcVideo startScreenCapture:type bundleId:[ByteRTCVideoManager shared].bundleId];
+    result(@(res));
 }
 
 - (void)updateScreenCapture:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCScreenMediaType type = [arguments[@"type"] integerValue];
-    [self.rtcVideo updateScreenCapture:type];
-    result(nil);
+    int res = [self.rtcVideo updateScreenCapture:type];
+    result(@(res));
 }
 
 - (void)stopScreenCapture:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopScreenCapture];
-    result(nil);
+    int res = [self.rtcVideo stopScreenCapture];
+    result(@(res));
 }
 
 - (void)sendScreenCaptureExtensionMessage:(NSDictionary *)arguments result:(FlutterResult)result {
     FlutterStandardTypedData *message = arguments[@"message"];
-    [self.rtcVideo sendScreenCaptureExtensionMessage:message.data];
-    result(nil);
+    int res = [self.rtcVideo sendScreenCaptureExtensionMessage:message.data];
+    result(@(res));
 }
 
 - (void)setRuntimeParameters:(NSDictionary *)arguments result:(FlutterResult)result {
     NSDictionary *params = arguments[@"params"];
-    [self.rtcVideo setRuntimeParameters:params];
-    result(nil);
+    int res = [self.rtcVideo setRuntimeParameters:params];
+    result(@(res));
 }
 
 #pragma mark - ASR
 
 - (void)startASR:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCASRConfig *asrConfig = [ByteRTCASRConfig bf_fromMap:arguments[@"asrConfig"]];
-    [self.rtcVideo startASR:asrConfig handler:self.asrEventHandler];
-    result(nil);
+    int res = [self.rtcVideo startASR:asrConfig handler:self.asrEventHandler];
+    result(@(res));
 }
 
 - (void)stopASR:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopASR];
-    result(nil);
+    int res = [self.rtcVideo stopASR];
+    result(@(res));
 }
 
 #pragma mark - FileRecording
@@ -732,8 +763,8 @@
 
 - (void)stopFileRecording:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCStreamIndex streamIndex = [arguments[@"streamIndex"] integerValue];
-    [self.rtcVideo stopFileRecording:streamIndex];
-    result(nil);
+    int res = [self.rtcVideo stopFileRecording:streamIndex];
+    result(@(res));
 }
 
 - (void)startAudioRecording:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -747,6 +778,39 @@
     result(@(res));
 }
 
+- (void)getAudioEffectPlayer:(NSDictionary *)arguments result:(FlutterResult)result {
+    if (self.flutterPlugins[@"AudioEffectPlayer"] != nil) {
+        result(@(YES));
+        return;
+    }
+    ByteRTCAudioEffectPlayer *player = [self.rtcVideo getAudioEffectPlayer];
+    BOOL res = !!player;
+    if (res) {
+        ByteRTCFlutterAudioEffectPlayerPlugin *plugin = [[ByteRTCFlutterAudioEffectPlayerPlugin alloc] initWithRTCAudioEffectPlayer:player];
+        [plugin registerWithRegistrar:self.registrar];
+        [self.flutterPlugins setValue:plugin forKey:@"AudioEffectPlayer"];
+    }
+    result(@(res));
+}
+
+- (void)getMediaPlayer:(NSDictionary *)arguments result:(FlutterResult)result {
+    int playerId = [arguments[@"playerId"] intValue];
+    NSString *key = [NSString stringWithFormat:@"MediaPlayer%d", playerId];
+    if (self.flutterPlugins[key] != nil) {
+        result(@(YES));
+        return;
+    }
+    ByteRTCMediaPlayer *player = [self.rtcVideo getMediaPlayer:playerId];
+    BOOL res = !!player;
+    if (res) {
+        ByteRTCFlutterrMediaPlayerPlugin *plugin = [[ByteRTCFlutterrMediaPlayerPlugin alloc] initWithRTCMediaPlayer:player
+                                                                                                           playerId:playerId];
+        [plugin registerWithRegistrar:self.registrar];
+        [self.flutterPlugins setValue:plugin forKey:key];
+    }
+    result(@(res));
+}
+
 #pragma mark - Rtm
 
 - (void)login:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -757,27 +821,27 @@
 }
 
 - (void)logout:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo logout];
-    result(nil);
+    int res = [self.rtcVideo logout];
+    result(@(res));
 }
 
 - (void)updateLoginToken:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *token = arguments[@"token"];
-    [self.rtcVideo updateLoginToken:token];
-    result(nil);
+    int res = [self.rtcVideo updateLoginToken:token];
+    result(@(res));
 }
 
 - (void)setServerParams:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *signature = arguments[@"signature"];
     NSString *url = arguments[@"url"];
-    [self.rtcVideo setServerParams:signature url:url];
-    result(nil);
+    int res = [self.rtcVideo setServerParams:signature url:url];
+    result(@(res));
 }
 
 - (void)getPeerOnlineStatus:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *peerUserId = arguments[@"peerUid"];
-    [self.rtcVideo getPeerOnlineStatus:peerUserId];
-    result(nil);
+    int res = [self.rtcVideo getPeerOnlineStatus:peerUserId];
+    result(@(res));
 }
 
 - (void)sendUserMessageOutsideRoom:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -817,24 +881,24 @@
     int expectedUplinkBitrate = [arguments[@"expectedUplinkBitrate"] intValue];
     bool isTestDownlink = [arguments[@"isTestDownlink"] boolValue];
     int expectedDownlinkBitrate = [arguments[@"expectedDownlinkBitrate"] intValue];
-    NSInteger res = [self.rtcVideo startNetworkDetection:isTestUplink
-                                         uplinkBandwidth:expectedUplinkBitrate
-                                                downlink:isTestDownlink
-                                       downlinkBandwidth:expectedDownlinkBitrate];
+    int res = [self.rtcVideo startNetworkDetection:isTestUplink
+                                   uplinkBandwidth:expectedUplinkBitrate
+                                          downlink:isTestDownlink
+                                 downlinkBandwidth:expectedDownlinkBitrate];
     result(@(res));
 }
 
 - (void)stopNetworkDetection:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopNetworkDetection];
-    result(nil);
+    int res = [self.rtcVideo stopNetworkDetection];
+    result(@(res));
 }
 
 #pragma mark  ScreenAudio
 
 - (void)setScreenAudioStreamIndex:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCStreamIndex streamIndex = [arguments[@"streamIndex"] integerValue];
-    [self.rtcVideo setScreenAudioStreamIndex:streamIndex];
-    result(nil);
+    int res = [self.rtcVideo setScreenAudioStreamIndex:streamIndex];
+    result(@(res));
 }
 
 #pragma mark StreamSyncInfo
@@ -848,8 +912,8 @@
 
 - (void)muteAudioPlayback:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMuteState muteState = [arguments[@"muteState"] integerValue];
-    [self.rtcVideo muteAudioPlayback:muteState];
-    result(nil);
+    int res = [self.rtcVideo muteAudioPlayback:muteState];
+    result(@(res));
 }
 
 - (void)startEchoTest:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -869,14 +933,14 @@
     ByteRTCStreamIndex streamIndex = [arguments[@"streamIndex"] integerValue];
     NSString *imagePath = arguments[@"imagePath"];
     ByteRTCVideoWatermarkConfig *config = [ByteRTCVideoWatermarkConfig bf_fromMap:arguments[@"watermarkConfig"]];
-    [self.rtcVideo setVideoWatermark:streamIndex withImagePath:imagePath withRtcWatermarkConfig:config];
-    result(nil);
+    int res = [self.rtcVideo setVideoWatermark:streamIndex withImagePath:imagePath withRtcWatermarkConfig:config];
+    result(@(res));
 }
 
 - (void)clearVideoWatermark:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCStreamIndex streamIndex = [arguments[@"streamIndex"] integerValue];
-    [self.rtcVideo clearVideoWatermark:streamIndex];
-    result(nil);
+    int res = [self.rtcVideo clearVideoWatermark:streamIndex];
+    result(@(res));
 }
 
 - (void)takeLocalSnapshot:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -902,13 +966,28 @@
         ByteRTCCloudProxyInfo *info = [ByteRTCCloudProxyInfo bf_fromMap:obj];
         [cloudProxiesInfo addObject:info];
     }];
-    [self.rtcVideo startCloudProxy:cloudProxiesInfo];
-    result(nil);
+    int res = [self.rtcVideo startCloudProxy:cloudProxiesInfo];
+    result(@(res));
 }
 
 - (void)stopCloudProxy:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.rtcVideo stopCloudProxy];
-    result(nil);
+    int res = [self.rtcVideo stopCloudProxy];
+    result(@(res));
+}
+
+- (void)getSingScoringManager:(NSDictionary *)arguments result:(FlutterResult)result {
+    if (self.flutterPlugins[@"SingScoring"] != nil) {
+        result(@(YES));
+        return;
+    }
+    ByteRTCSingScoringManager *manager = [self.rtcVideo getSingScoringManager];
+    BOOL res = !!manager;
+    if (res) {
+        ByteRTCFlutterSingScoringPlugin *plugin = [[ByteRTCFlutterSingScoringPlugin alloc] initWithRTCSingScoringManager:manager];
+        [plugin registerWithRegistrar:self.registrar];
+        [self.flutterPlugins setValue:plugin forKey:@"SingScoring"];
+    }
+    result(@(res));
 }
 
 - (void)setDummyCaptureImagePath:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -929,8 +1008,8 @@
 - (void)setAudioAlignmentProperty:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCRemoteStreamKey *streamKey = [ByteRTCRemoteStreamKey bf_fromMap: arguments[@"streamKey"]];
     ByteRTCAudioAlignmentMode mode = [arguments[@"mode"] integerValue];
-    [self.rtcVideo setAudioAlignmentProperty:streamKey withMode:mode];
-    result(nil);
+    int res = [self.rtcVideo setAudioAlignmentProperty:streamKey withMode:mode];
+    result(@(res));
 }
 
 - (void)invokeExperimentalAPI:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -941,16 +1020,16 @@
 
 #pragma mark - KTV
 - (void)getKTVManager:(NSDictionary *)arguments result:(FlutterResult)result {
-    if (self.ktvManager != nil) {
+    if (self.flutterPlugins[@"KTVManager"] != nil) {
         result(@(YES));
         return;
     }
     ByteRTCKTVManager *ktvManager = [self.rtcVideo getKTVManager];
     BOOL res = !!ktvManager;
     if (res) {
-        self.ktvManager = [[ByteRTCFlutterKTVManagerPlugin alloc] initWithRTCKTVManager:ktvManager];
-        [self.ktvManager registerWithRegistrar:self.registrar];
-        [self.flutterPlugins addObject:self.ktvManager];
+        ByteRTCFlutterKTVManagerPlugin *plugin = [[ByteRTCFlutterKTVManagerPlugin alloc] initWithRTCKTVManager:ktvManager];
+        [plugin registerWithRegistrar:self.registrar];
+        [self.flutterPlugins setValue:plugin forKey:@"KTVManager"];
     }
     result(@(res));
 }
@@ -963,6 +1042,22 @@
 
 - (void)stopHardwareEchoDetection:(NSDictionary *)arguments result:(FlutterResult)result {
     int res = [self.rtcVideo stopHardwareEchoDetection];
+    result(@(res));
+}
+
+- (void)setCellularEnhancement:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCMediaTypeEnhancementConfig *config = [ByteRTCMediaTypeEnhancementConfig bf_fromMap:arguments[@"config"]];
+    int res = [self.rtcVideo setCellularEnhancement:config];
+    result(@(res));
+}
+
+- (void)setLocalProxy:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSArray *configs = arguments[@"configurations"];
+    NSMutableArray<ByteRTCLocalProxyInfo *> *configurations = [NSMutableArray array];
+    [configs enumerateObjectsUsingBlock:^(NSDictionary *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [configurations addObject:[ByteRTCLocalProxyInfo bf_fromMap:obj]];
+    }];
+    int res = [self.rtcVideo setLocalProxy:configurations];
     result(@(res));
 }
 

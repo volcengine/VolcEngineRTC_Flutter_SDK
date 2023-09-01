@@ -203,6 +203,29 @@
     [self emitEvent:dict methodName:@"onRoomMessageSendResult"];
 }
 
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onSetRoomExtraInfoResult:(NSInteger)taskId error:(ByteRTCSetRoomExtraInfoResult)error {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"taskId"] = @(taskId);
+    dict[@"error"] = @(error);
+    [self emitEvent:dict methodName:@"onSetRoomExtraInfoResult"];
+}
+
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onRoomExtraInfoUpdate:(NSString *)key value:(NSString *)value lastUpdateUserId:(NSString *)lastUpdateUserId lastUpdateTimeMs:(NSInteger)lastUpdateTimeMs {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"key"] = key;
+    dict[@"value"] = value;
+    dict[@"lastUpdateUserId"] = lastUpdateUserId;
+    dict[@"lastUpdateTimeMs"] = @(lastUpdateTimeMs);
+    [self emitEvent:dict methodName:@"onRoomExtraInfoUpdate"];
+}
+
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onUserVisibilityChanged:(BOOL)currentUserVisibility errorCode:(ByteRTCUserVisibilityChangeError)errorCode {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"currentUserVisibility"] = @(currentUserVisibility);
+    dict[@"errorCode"] = @(errorCode);
+    [self emitEvent:dict methodName:@"onUserVisibilityChanged"];
+}
+
 - (void)rtcRoom:(ByteRTCRoom *)rtcRoom onVideoStreamBanned:(NSString *)uid isBanned:(BOOL)banned {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"uid"] = uid;
@@ -251,6 +274,24 @@
     dict[@"localQuality"] = [ByteRTCFlutterEventfactory networkQualityStatsToMap:localQuality];
     dict[@"remoteQualities"] = qualityDics.copy;
     [self emitEvent:dict methodName:@"onNetworkQuality"];
+}
+
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onSubtitleStateChanged:(ByteRTCSubtitleState)state errorCode:(ByteRTCSubtitleErrorCode)errorCode errorMessage:(NSString *)errorMessage {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"state"] = @(state);
+    dict[@"errorCode"] = @(errorCode);
+    dict[@"errorMessage"] = errorMessage;
+    [self emitEvent:dict methodName:@"onSubtitleStateChanged"];
+}
+
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onSubtitleMessageReceived:(NSArray<ByteRTCSubtitleMessage *> *)subtitles {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    NSMutableArray *subtitleDics = [NSMutableArray array];
+    for (ByteRTCSubtitleMessage *subtitle in subtitles) {
+        [subtitleDics addObject:[subtitle bf_toMap]];
+    }
+    dict[@"subtitles"] = subtitleDics.copy;
+    [self emitEvent:dict methodName:@"onSubtitleMessageReceived"];
 }
 
 @end

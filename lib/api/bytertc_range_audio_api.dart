@@ -34,8 +34,6 @@ abstract class RTCRangeAudio {
 
   /// 设置范围语音的音量衰减模式
   ///
-  /// 衰减模式更改后，[RTCRangeAudioObserver.onRangeAudioInfo] 回调将根据最后设置的衰减模式进行计算并返回音量衰减数值。
-  ///
   /// [type] 音量衰减模式，默认为线性衰减。
   ///
   /// [coefficient] 指数衰减模式下的音量衰减系数，默认值为 1。

@@ -16,12 +16,12 @@
 
 - (void)onStreamMixingEvent:(ByteRTCStreamMixingEvent)event
                      taskId:(NSString *)taskId
-                      error:(ByteRtcTranscoderErrorCode)Code
+                      error:(ByteRtcTranscoderErrorCode)errorCode
                     mixType:(ByteRTCStreamMixingType)mixType {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"eventType"] = @(event);
     dict[@"taskId"] = taskId;
-    dict[@"error"] = @(Code);
+    dict[@"error"] = @(errorCode);
     dict[@"mixType"] = @(mixType);
     [self emitEvent:dict methodName:@"onStreamMixingEvent"];
 }

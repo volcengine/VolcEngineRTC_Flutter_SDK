@@ -15,11 +15,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSDictionary *)networkQualityStatsToMap:(ByteRTCNetworkQualityStats *)stats;
 
-+ (NSDictionary *)ktvMusicToMap:(ByteRTCKTVMusic *)music;
++ (NSDictionary *)ktvMusicToMap:(ByteRTCMusicInfo *)music;
 
-+ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCKTVHotMusicInfo *)hotMusicInfo;
++ (NSDictionary *)ktvHotMusicInfoToMap:(ByteRTCHotMusicInfo *)hotMusicInfo;
 
-+ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCKTVDownloadResult *)downloadResult;
++ (NSDictionary *)ktvDownloadResultToMap:(ByteRTCDownloadResult *)downloadResult;
 
 @end
 
@@ -102,6 +102,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+@interface ByteRTCMixedStreamConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMixedStreamConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
 @interface ByteRTCRoomStats (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap;
@@ -135,6 +141,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface HumanOrientation (ByteRTCFlutterMapCategory)
 
 + (HumanOrientation *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCPositionInfo (ByteRTCFlutterMapCategory)
+
++ (ByteRTCPositionInfo *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
@@ -361,4 +373,51 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
+@interface ByteRTCProblemFeedbackInfo (ByteRTCFlutterMapCategory)
+
++ (nullable ByteRTCProblemFeedbackInfo *)bf_fromMap:(NSDictionary * _Nullable)dict;
+
+@end
+
+@interface ByteRTCMediaTypeEnhancementConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMediaTypeEnhancementConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCLocalProxyInfo (ByteRTCFlutterMapCategory)
+
++ (ByteRTCLocalProxyInfo *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCSubtitleConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCSubtitleConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCSubtitleMessage (ByteRTCFlutterMapCategory)
+
+- (NSDictionary *)bf_toMap;
+
+@end
+
+@interface ByteRTCLogConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCLogConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCAudioEffectPlayerConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCAudioEffectPlayerConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCMediaPlayerConfig (ByteRTCFlutterMapCategory)
+
++ (ByteRTCMediaPlayerConfig *)bf_fromMap:(NSDictionary *)dict;
+
+@end
 NS_ASSUME_NONNULL_END

@@ -75,4 +75,28 @@
     result(@(res));
 }
 
+- (void)updateSelfPosition:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCPositionInfo *positionInfo = [ByteRTCPositionInfo bf_fromMap:arguments[@"positionInfo"]];
+    int res = [self.spatialAudio updateSelfPosition:positionInfo];
+    result(@(res));
+}
+
+- (void)updateRemotePosition:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *uid = arguments[@"uid"];
+    ByteRTCPositionInfo *positionInfo = [ByteRTCPositionInfo bf_fromMap:arguments[@"positionInfo"]];
+    int res = [self.spatialAudio updateRemotePosition:uid positionInfo:positionInfo];
+    result(@(res));
+}
+
+- (void)removeRemotePosition:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *uid = arguments[@"uid"];
+    int res = [self.spatialAudio removeRemotePosition:uid];
+    result(@(res));
+}
+
+- (void)removeAllRemotePosition:(NSDictionary *)arguments result:(FlutterResult)result {
+    int res = [self.spatialAudio removeAllRemotePosition];
+    result(@(res));
+}
+
 @end

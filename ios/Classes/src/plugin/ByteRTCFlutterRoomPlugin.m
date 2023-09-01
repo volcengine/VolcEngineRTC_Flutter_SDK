@@ -92,19 +92,19 @@
 
 - (void)setUserVisibility:(NSDictionary *)arguments result:(FlutterResult)result {
     BOOL enable = [arguments[@"enable"] boolValue];
-    [self.room setUserVisibility:enable];
-    result(nil);
+    int res = [self.room setUserVisibility:enable];
+    result(@(res));
 }
 
 - (void)setMultiDeviceAVSync:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *audioUserId = arguments[@"audioUid"];
-    [self.room setMultiDeviceAVSync:audioUserId];
-    result(nil);
+    int res = [self.room setMultiDeviceAVSync:audioUserId];
+    result(@(res));
 }
 
 - (void)leaveRoom:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.room leaveRoom];
-    result(nil);
+    int res = [self.room leaveRoom];
+    result(@(res));
 }
 
 - (void)updateToken:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -123,26 +123,26 @@
 
 - (void)publishStream:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
-    [self.room publishStream:type];
-    result(nil);
+    int res = [self.room publishStream:type];
+    result(@(res));
 }
 
 - (void)unpublishStream:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
-    [self.room unpublishStream:type];
-    result(nil);
+    int res = [self.room unpublishStream:type];
+    result(@(res));
 }
 
 - (void)publishScreen:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
-    [self.room publishScreen:type];
-    result(nil);
+    int res = [self.room publishScreen:type];
+    result(@(res));
 }
 
 - (void)unpublishScreen:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCMediaStreamType type = [arguments[@"type"] integerValue];
-    [self.room unpublishScreen:type];
-    result(nil);
+    int res = [self.room unpublishScreen:type];
+    result(@(res));
 }
 
 - (void)subscribeStream:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -191,14 +191,14 @@
 
 - (void)pauseAllSubscribedStream:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCPauseResumControlMediaType mediaType = [arguments[@"mediaType"] integerValue];
-    [self.room pauseAllSubscribedStream:mediaType];
-    result(nil);
+    int res = [self.room pauseAllSubscribedStream:mediaType];
+    result(@(res));
 }
 
 - (void)resumeAllSubscribedStream:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCPauseResumControlMediaType mediaType = [arguments[@"mediaType"] integerValue];
-    [self.room resumeAllSubscribedStream:mediaType];
-    result(nil);
+    int res = [self.room resumeAllSubscribedStream:mediaType];
+    result(@(res));
 }
 
 - (void)sendUserMessage:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -252,24 +252,48 @@
 }
 
 - (void)stopForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.room stopForwardStreamToRooms];
-    result(nil);
+    int res = [self.room stopForwardStreamToRooms];
+    result(@(res));
 }
 
 - (void)pauseForwardStreamToAllRooms:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.room pauseForwardStreamToAllRooms];
-    result(nil);
+    int res = [self.room pauseForwardStreamToAllRooms];
+    result(@(res));
 }
 
 - (void)resumeForwardStreamToAllRooms:(NSDictionary *)arguments result:(FlutterResult)result {
-    [self.room resumeForwardStreamToAllRooms];
-    result(nil);
+    int res = [self.room resumeForwardStreamToAllRooms];
+    result(@(res));
 }
 
 - (void)setRemoteRoomAudioPlaybackVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     NSInteger volume = [arguments[@"volume"] integerValue];
-    [self.room setRemoteRoomAudioPlaybackVolume:volume];
-    result(nil);
+    int res = [self.room setRemoteRoomAudioPlaybackVolume:volume];
+    result(@(res));
+}
+
+- (void)setAudioSelectionConfig:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCAudioSelectionPriority audioSelectionPriority = [arguments[@"audioSelectionPriority"] integerValue];
+    int res = [self.room setAudioSelectionConfig:audioSelectionPriority];
+    result(@(res));
+}
+
+- (void)setRoomExtraInfo:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *key = arguments[@"key"];
+    NSString *value = arguments[@"value"];
+    NSInteger res = [self.room setRoomExtraInfo:key value:value];
+    result(@(res));
+}
+
+- (void)startSubtitle:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCSubtitleConfig *subtitleConfig = [ByteRTCSubtitleConfig bf_fromMap:arguments[@"subtitleConfig"]];
+    int res = [self.room startSubtitle:subtitleConfig];
+    result(@(res));
+}
+
+- (void)stopSubtitle:(NSDictionary *)arguments result:(FlutterResult)result {
+    int res = [self.room stopSubtitle];
+    result(@(res));
 }
 
 @end

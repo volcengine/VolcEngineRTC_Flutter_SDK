@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'package:flutter/services.dart';
 
 import '../api/bytertc_audio_defines.dart';
 import '../api/bytertc_audio_mixing_api.dart';
-import 'base/bytertc_enum_convert.dart';
 
 class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   final MethodChannel _methodChannel =
@@ -76,7 +76,7 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
       required int volume,
       required AudioMixingType type}) {
     return _invokeMethod<void>('setAudioMixingVolume',
-        {'mixId': mixId, 'volume': volume, 'type': type.value});
+        {'mixId': mixId, 'volume': volume, 'type': type.index});
   }
 
   @override
@@ -110,7 +110,7 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
       {required int mixId, required AudioMixingDualMonoMode mode}) {
     return _invokeMethod<void>('setAudioMixingDualMonoMode', {
       'mixId': mixId,
-      'mode': mode.value,
+      'mode': mode.index,
     });
   }
 
@@ -172,7 +172,7 @@ class RTCAudioMixingManagerImpl implements RTCAudioMixingManager {
   }) {
     return _invokeMethod<void>('setAllAudioMixingVolume', {
       'volume': volume,
-      'type': type.value,
+      'type': type.index,
     });
   }
 }

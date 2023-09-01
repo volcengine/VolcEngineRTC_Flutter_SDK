@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -10,6 +10,7 @@ import androidx.annotation.RestrictTo;
 
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
 import com.ss.bytertc.ktv.IKTVPlayerEventHandler;
+import com.ss.bytertc.ktv.data.KTVPlayerErrorCode;
 import com.ss.bytertc.ktv.data.PlayState;
 
 import java.util.HashMap;
@@ -37,11 +38,11 @@ public class KTVPlayerEventProxy extends IKTVPlayerEventHandler {
     }
 
     @Override
-    public void onPlayStateChange(int errorCode, @NonNull String musicId, @NonNull PlayState playState) {
+    public void onPlayStateChanged(@NonNull String musicId, @NonNull PlayState playState, KTVPlayerErrorCode errorCode) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("musicId", musicId);
         map.put("playState", playState.value());
-        map.put("error", errorCode);
-        emitter.emit("onPlayStateChange", map);
+        map.put("error", errorCode.value());
+        emitter.emit("onPlayStateChanged", map);
     }
 }

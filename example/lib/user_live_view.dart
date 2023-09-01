@@ -19,16 +19,20 @@ class _UserLiveViewState extends State<UserLiveView> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       /// 根据 [RTCViewContext] 创建视频渲染视图 [RTCSurfaceView]
       Expanded(
-          child: RTCSurfaceView(
-              key: ValueKey(widget.viewContext.uid),
-              context: widget.viewContext)),
+        child: RTCSurfaceView(
+          key: ValueKey(widget.viewContext.uid),
+          context: widget.viewContext,
+        ),
+      ),
       SizedBox(
-          height: 30,
-          child: Center(
-              child: Text(widget.viewContext.uid,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis)))
+        height: 30,
+        child: Center(
+          child: Text(widget.viewContext.uid,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+        ),
+      ),
     ]);
   }
 }

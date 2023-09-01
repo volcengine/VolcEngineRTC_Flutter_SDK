@@ -7,7 +7,6 @@ package com.ss.bytertc.engine.flutter.room;
 
 import androidx.annotation.RestrictTo;
 
-import com.ss.bytertc.engine.RTCStream;
 import com.ss.bytertc.engine.SubscribeConfig;
 import com.ss.bytertc.engine.UserInfo;
 import com.ss.bytertc.engine.data.AVSyncState;
@@ -22,7 +21,12 @@ import com.ss.bytertc.engine.type.MediaStreamType;
 import com.ss.bytertc.engine.type.NetworkQualityStats;
 import com.ss.bytertc.engine.type.RTCRoomStats;
 import com.ss.bytertc.engine.type.RemoteStreamStats;
+import com.ss.bytertc.engine.type.SetRoomExtraInfoResult;
 import com.ss.bytertc.engine.type.StreamRemoveReason;
+import com.ss.bytertc.engine.type.SubtitleErrorCode;
+import com.ss.bytertc.engine.type.SubtitleMessage;
+import com.ss.bytertc.engine.type.SubtitleState;
+import com.ss.bytertc.engine.type.UserVisibilityChangeError;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -310,27 +314,45 @@ public class RTCRoomEventProxy extends IRTCRoomEventHandler {
     }
 
     @Override
-    @Deprecated
-    public void onRoomWarning(int warn) {
-
+    public void onSetRoomExtraInfoResult(long taskId, SetRoomExtraInfoResult error) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("taskId", taskId);
+        map.put("error", error.value());
+        emitter.emit("onSetRoomExtraInfoResult", map);
     }
 
     @Override
-    @Deprecated
-    public void onRoomError(int err) {
-
+    public void onRoomExtraInfoUpdate(String key, String value, String lastUpdateUserId, long lastUpdateTimeMs) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("key", key);
+        map.put("value",value);
+        map.put("lastUpdateUserId",lastUpdateUserId);
+        map.put("lastUpdateTimeMs",lastUpdateTimeMs);
+        emitter.emit("onRoomExtraInfoUpdate", map);
     }
 
     @Override
-    @Deprecated
-    public void onStreamRemove(RTCStream stream, StreamRemoveReason reason) {
-
+    public void onUserVisibilityChanged(boolean currentUserVisibility, UserVisibilityChangeError errorCode) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("currentUserVisibility", currentUserVisibility);
+        map.put("errorCode", errorCode.value());
+        emitter.emit("onUserVisibilityChanged", map);
     }
 
     @Override
-    @Deprecated
-    public void onStreamAdd(RTCStream stream) {
+    public void onSubtitleStateChanged(SubtitleState state, SubtitleErrorCode errorCode, String errorMessage) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("state", state.value());
+        map.put("errorCode", errorCode.value());
+        map.put("errorMessage",errorMessage);
+        emitter.emit("onSubtitleStateChanged", map);
+    }
 
+    @Override
+    public void onSubtitleMessageReceived(SubtitleMessage[] subtitles) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("subtitles", RTCMap.from(subtitles));
+        emitter.emit("onSubtitleMessageReceived", map);
     }
 
     void setSwitch(RTCTypeBox box) {

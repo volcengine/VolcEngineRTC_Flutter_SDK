@@ -7,6 +7,7 @@ import 'package:volc_engine_rtc_example/room_page.dart';
 import 'package:volc_engine_rtc/volc_engine_rtc.dart';
 
 import 'constants.dart';
+import 'localizations.dart';
 
 /// VolcEngineRTC 音视频通话入口页面
 ///
@@ -32,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   final FocusNode _roomIDFocusNode = FocusNode();
   final FocusNode _userIDFocusNode = FocusNode();
 
-  String _version = "VolcEngineRTC v";
+  String _version = Localizator.version;
 
   @override
   void initState() {
@@ -42,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
     /// 获取当前SDK的版本号
     RTCVideo.getSDKVersion().then((value) {
       setState(() {
-        _version = "VolcEngineRTC v${value ?? ""}";
+        _version = Localizator.version + (value ?? "");
       });
     });
   }
@@ -63,16 +64,16 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   focusNode: _roomIDFocusNode,
                   controller: _roomIdTextController,
-                  decoration: const InputDecoration(labelText: "请输入房间名"),
+                  decoration: InputDecoration(labelText: Localizator.roomIDDec),
                 ),
                 TextField(
                   focusNode: _userIDFocusNode,
                   controller: _userIDTextController,
-                  decoration: const InputDecoration(labelText: "请输入用户名"),
+                  decoration: InputDecoration(labelText: Localizator.userIDDec),
                 ),
                 ElevatedButton(
-                  child: const Text(
-                    "加入房间",
+                  child: Text(
+                    Localizator.joinRoom,
                     textAlign: TextAlign.center,
                   ),
                   onPressed: () {
@@ -102,19 +103,19 @@ class _LoginPageState extends State<LoginPage> {
     String roomId = _roomIdTextController.text;
     String userId = _userIDTextController.text;
     if (roomId.isEmpty) {
-      _showAlert('房间号不能为空');
+      _showAlert(Localizator.emptyRoomIdTip);
       return;
     }
     if (userId.isEmpty) {
-      _showAlert('用户名不能为空');
+      _showAlert(Localizator.emptyUserIdTip);
       return;
     }
     if (_checkValidity(roomId) == false) {
-      _showAlert('房间号格式错误');
+      _showAlert(Localizator.illegalRoomIdTip);
       return;
     }
     if (_checkValidity(userId) == false) {
-      _showAlert('用户名格式错误');
+      _showAlert(Localizator.illegalUserIdTip);
       return;
     }
     _roomIDFocusNode.unfocus();
@@ -132,8 +133,8 @@ class _LoginPageState extends State<LoginPage> {
           content: Text(warning),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, '确定'),
-              child: const Text('确定'),
+              onPressed: () => Navigator.pop(context),
+              child: Text(Localizator.ok),
             ),
           ],
         ),

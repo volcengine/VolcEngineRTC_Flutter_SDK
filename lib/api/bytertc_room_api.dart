@@ -8,7 +8,9 @@ import 'bytertc_rts_defines.dart';
 import 'dart:typed_data';
 
 import 'bytertc_spatial_audio_api.dart';
+import 'bytertc_video_api.dart';
 import 'bytertc_video_defines.dart';
+import 'bytertc_video_event_handler.dart';
 
 /// 房间接口
 abstract class RTCRoom {
@@ -57,13 +59,17 @@ abstract class RTCRoom {
   /// + true: 可以被房间中的其他用户感知，且可以在房间内发布和订阅音视频流；
   /// + false: 无法被房间中的其他用户感知，且只能在房间内订阅音视频流。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 该方法在加入房间前后均可调用。
   /// + 在房间内调用此方法，房间内其他用户会收到相应的回调通知：
   ///   - 从 false 切换至 true 时，房间内其他用户会收到 [RTCRoomEventHandler.onUserJoined]
   ///   - 从 true 切换至 false 时，房间内其他用户会收到 [RTCRoomEventHandler.onUserLeave]
   /// + 若调用该方法将可见性设为 false，此时尝试发布流会收到 [RTCVideoEventHandler.onWarning]
-  Future<void> setUserVisibility(bool enable);
+  Future<int?> setUserVisibility(bool enable);
 
   /// 设置发流端音画同步
   ///
@@ -71,13 +77,17 @@ abstract class RTCRoom {
   ///
   /// [audioUid] 传入音频发送端的用户 ID，将该参数设为空则可解除当前音视频的同步关系。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 该方法在进房前后均可调用。
   /// + 进行音画同步的音频发布用户 ID 和视频发布用户 ID 须在同一个 RTC 房间内。
   /// + 调用该接口后音画同步状态发生改变时，你会收到 [RTCRoomEventHandler.onAVSyncStateChange] 回调。
   /// + 同一 RTC 房间内允许存在多个音视频同步关系，但需注意单个音频源不支持与多个视频源同时同步。
   /// + 如需更换同步音频源，再次调用该接口传入新的 `audioUid` 即可；如需更换同步视频源，需先解除当前的同步关系，后在新视频源端开启同步。
-  Future<void> setMultiDeviceAVSync(String audioUid);
+  Future<int?> setMultiDeviceAVSync(String audioUid);
 
   /// 离开房间
   ///
@@ -85,10 +95,14 @@ abstract class RTCRoom {
   /// 无论当前是否在房间内，都可以调用此方法。重复调用此方法没有负面影响。<br>
   /// 此方法是异步操作，调用返回时并没有真正退出房间。真正退出房间后，本地会收到 [RTCRoomEventHandler.onLeaveRoom] 回调通知。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 可见用户离开房间后，房间内其他用户会收到 [RTCRoomEventHandler.onUserLeave] 回调通知。
   /// + 如果调用此方法后立即销毁引擎，SDK 将无法触发 [RTCRoomEventHandler.onLeaveRoom] 回调。
-  Future<void> leaveRoom();
+  Future<int?> leaveRoom();
 
   /// 更新 Token
   ///
@@ -126,6 +140,10 @@ abstract class RTCRoom {
   ///
   /// [type] 媒体流类型，用于指定发布音频/视频
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 如果你已经在用户进房时通过调用 [RTCRoom.joinRoom] 成功选择了自动发布，则无需再调用本接口。
   /// + 调用 [RTCRoom.setUserVisibility] 方法将自身设置为不可见后无法调用该方法，需将自身切换至可见后方可调用该方法发布摄像头音视频流。
@@ -133,20 +151,28 @@ abstract class RTCRoom {
   /// + 如果你需要向多个房间发布流，调用 [RTCRoom.startForwardStreamToRooms]。
   /// + 调用此方法后，房间中的所有远端用户会收到 [RTCRoomEventHandler.onUserPublishStream] 回调通知，其中成功收到了音频流的远端用户会收到 [RTCVideoEventHandler.onFirstRemoteAudioFrame] 回调，订阅了视频流的远端用户会收到 [RTCVideoEventHandler.onFirstRemoteVideoFrameDecoded] 回调。
   /// + 调用 [RTCRoom.unpublishStream] 取消发布。
-  Future<void> publishStream(MediaStreamType type);
+  Future<int?> publishStream(MediaStreamType type);
 
   /// 停止将本地摄像头/麦克风采集的媒体流发布到当前所在房间中
   ///
   /// [type] 媒体流类型，用于取消指定发布音频/视频
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用 [RTCRoom.publishStream] 手动发布摄像头音视频流后，你需调用此接口停止发布。
   /// + 调用此方法停止发布音视频流后，房间中的其他用户将会收到 [RTCRoomEventHandler.onUserUnpublishStream] 回调通知。
-  Future<void> unpublishStream(MediaStreamType type);
+  Future<int?> unpublishStream(MediaStreamType type);
 
   /// 在当前所在房间内发布本地屏幕共享音视频流
   ///
   /// [type] 媒体流类型，用于指定发布音频/视频
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
   /// + 如果你已经在用户进房时通过调用 [RTCRoom.joinRoom] 成功选择了自动发布，则无需再调用本接口。
@@ -155,16 +181,20 @@ abstract class RTCRoom {
   /// + 调用该方法后，本地用户会收到 [RTCVideoEventHandler.onScreenVideoFrameSendStateChanged]。
   /// + 如果你需要向多个房间发布流，调用 [RTCRoom.startForwardStreamToRooms]。
   /// + 调用 [RTCRoom.unpublishScreen] 取消发布。
-  Future<void> publishScreen(MediaStreamType type);
+  Future<int?> publishScreen(MediaStreamType type);
 
   /// 停止将本地屏幕共享音视频流发布到当前所在房间中
   ///
   /// [type] 媒体流类型，用于指定取消发布音频/视频。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用 [RTCRoom.publishScreen] 发布屏幕流后，你需调用此接口停止发布。
   /// + 调用此方法停止发布屏幕音视频流后，房间中的其他用户将会收到 [RTCRoomEventHandler.onUserUnpublishScreen] 回调。
-  Future<void> unpublishScreen(MediaStreamType type);
+  Future<int?> unpublishScreen(MediaStreamType type);
 
   /// 订阅房间内指定的通过摄像头/麦克风采集的媒体流，或更新对指定远端用户的订阅选项
   ///
@@ -229,7 +259,9 @@ abstract class RTCRoom {
   ///
   /// [type] 传入媒体流类型，用于指定订阅音频/视频。
   ///
-  /// 返回值参看 [ReturnStatus]。
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
   /// + 该方法可以用于首次订阅某远端用户的屏幕流，也可用于更新已订阅远端用户的屏幕媒体流类型。
@@ -249,7 +281,9 @@ abstract class RTCRoom {
   ///
   /// [type] 传入媒体流类型，用于指定取消订阅音频/视频。
   ///
-  /// 返回值参看 [ReturnStatus]。
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体失败原因参看 [ErrorCode]。
   Future<int?> unsubscribeScreen({
@@ -263,13 +297,21 @@ abstract class RTCRoom {
   /// + 该方法不改变用户的订阅状态以及订阅流的属性。
   /// + 若想恢复接收远端流，需调用 [RTCRoom.resumeAllSubscribedStream]。
   /// + 多房间场景下，仅暂停接收发布在当前所在房间的流。
-  Future<void> pauseAllSubscribedStream(PauseResumeControlMediaType mediaType);
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  Future<int?> pauseAllSubscribedStream(PauseResumeControlMediaType mediaType);
 
   /// 恢复接收来自远端的媒体流
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 该方法仅恢复远端流的接收，并不影响远端流的采集和发送。
   /// + 该方法不改变用户的订阅状态以及订阅流的属性。
-  Future<void> resumeAllSubscribedStream(PauseResumeControlMediaType mediaType);
+  Future<int?> resumeAllSubscribedStream(PauseResumeControlMediaType mediaType);
 
   /// 给房间内指定的用户发送文本消息
   ///
@@ -356,27 +398,39 @@ abstract class RTCRoom {
   ///
   /// 通过 [RTCRoom.startForwardStreamToRooms] 发起媒体流转发后，可调用本方法停止向所有目标房间转发媒体流。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用本方法后，将在本端触发 [RTCRoomEventHandler.onForwardStreamStateChanged] 回调。
   /// + 调用本方法后，原目标房间中的用户将接收到本地用户停止发布流 [RTCRoomEventHandler.onUserUnpublishStream]/[RTCRoomEventHandler.onUserUnpublishScreen] 和退房 [RTCRoomEventHandler.onUserLeave] 的回调。
   /// + 如果需要停止向指定的房间转发媒体流，请调用 [RTCRoom.updateForwardStreamToRooms] 更新房间信息。
   /// + 如果需要暂停转发，请调用 [RTCRoom.pauseForwardStreamToAllRooms]，并在之后随时调用 [RTCRoom.resumeForwardStreamToAllRooms] 快速恢复转发。
-  Future<void> stopForwardStreamToRooms();
+  Future<int?> stopForwardStreamToRooms();
 
   /// 暂停跨房间媒体流转发
   ///
   /// 通过 [RTCRoom.startForwardStreamToRooms] 发起媒体流转发后，可调用本方法暂停向所有目标房间转发媒体流。
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：
   /// + 调用本方法暂停向所有目标房间转发后，你可以随时调用 [RTCRoom.resumeForwardStreamToAllRooms] 快速恢复转发。
   /// + 调用本方法后，目标房间中的用户将接收到本地用户停止发布流 [RTCRoomEventHandler.onUserUnpublishStream]/[RTCRoomEventHandler.onUserUnpublishScreen] 和退房 [RTCRoomEventHandler.onUserLeave] 的回调。
-  Future<void> pauseForwardStreamToAllRooms();
+  Future<int?> pauseForwardStreamToAllRooms();
 
   /// 恢复跨房间媒体流转发
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// + 调用 [RTCRoom.pauseForwardStreamToAllRooms] 暂停转发之后，调用本方法恢复向所有目标房间转发媒体流。
   /// + 目标房间中的用户将接收到本地用户进房 [RTCRoomEventHandler.onUserJoined] 和发流 [RTCRoomEventHandler.onUserPublishStream]/[RTCRoomEventHandler.onUserPublishScreen] 的回调。
-  Future<void> resumeForwardStreamToAllRooms();
+  Future<int?> resumeForwardStreamToAllRooms();
 
   /// 获取范围语音接口实例
   ///
@@ -409,8 +463,76 @@ abstract class RTCRoom {
   /// + 100: 原始音量，默认值
   /// + 400: 最大可为原始音量的 4 倍(自带溢出保护)
   ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
   /// 注意：假设某远端用户 A 始终在被调节的目标用户范围内，
   /// + 当该方法与 [RTCVideo.setRemoteAudioPlaybackVolume] 共同使用时，本地收听用户 A 的音量为后调用的方法设置的音量；
   /// + 当该方法与 [RTCVideo.setPlaybackVolume] 方法共同使用时，本地收听用户 A 的音量将为两次设置的音量效果的叠加。
-  Future<void> setRemoteRoomAudioPlaybackVolume(int volume);
+  Future<int?> setRemoteRoomAudioPlaybackVolume(int volume);
+
+  /// v3.54.1 新增。
+  ///
+  /// 设置本端发布流在音频选路中的优先级。
+  ///
+  /// [audioSelectionPriority]：本端发布流在音频选路中的优先级，默认正常参与音频选路。
+  ///
+  /// 注意：
+  /// + 在控制台上为本 appId 开启音频选路后，调用本接口才会生效。进房前后调用均可生效。更多信息参见[音频选路](https://www.volcengine.com/docs/6348/113547)。
+  /// + 如果本端用户同时加入不同房间，使用本接口进行的设置相互独立。
+  Future<int?> setAudioSelectionConfig(
+      AudioSelectionPriority audioSelectionPriority);
+
+  /// v3.54.1 新增。
+  ///
+  /// 设置/更新房间附加信息，可用于标识房间状态或属性，或灵活实现各种业务逻辑。
+  ///
+  /// [key]：房间附加信息键值，长度小于 10 字节。<br>
+  /// 同一房间内最多可存在 5 个 key，超出则会从第一个 key 起进行替换。
+  ///
+  /// [value]：房间附加信息内容，长度小于 128 字节。
+  ///
+  /// 返回值：
+  /// + `0`: 方法调用成功，返回本次调用的任务编号；
+  /// + `<0`: 方法调用失败，具体原因详见 [SetRoomExtraInfoResult]。
+  ///
+  /// 注意：
+  /// + 在设置房间附加信息前，必须先调用 [RTCRoom.joinRoom] 加入房间。
+  /// + 调用该方法后，会收到一次 [RTCRoomEventHandler.onSetRoomExtraInfoResult] 回调，提示设置结果。
+  /// + 调用该方法成功设置附加信息后，同一房间内的其他用户会收到关于该信息的回调 [RTCRoomEventHandler.onRoomExtraInfoUpdate]。
+  /// + 新进房的用户会收到进房前房间内已有的全部附加信息通知。
+  Future<int?> setRoomExtraInfo({
+    required String key,
+    required String value,
+  });
+
+  /// v3.54.1 新增。
+  ///
+  /// 识别或翻译房间内所有用户的语音，形成字幕。<br>
+  /// 语音识别或翻译的结果会通过 [RTCRoomEventHandler.onSubtitleMessageReceived] 事件回调给你。<br>
+  /// 调用该方法后，你会收到 [RTCRoomEventHandler.onSubtitleStateChanged] 回调，通知字幕是否开启。
+  ///
+  /// [subtitleConfig]：字幕配置信息。
+  ///
+  /// 返回值：
+  /// + 0：调用成功。
+  /// + !0：调用失败。失败原因参看 [ReturnStatus]。
+  ///
+  /// 注意：
+  /// + 使用字幕功能前，你需要[开通机器翻译服务](https://www.volcengine.com/docs/4640/130262)并前往 [RTC 控制台](https://console.volcengine.com/rtc/cloudRTC?tab=subtitle)，在功能配置页面开启字幕功能。
+  /// + 此方法需要在进房后调用。
+  /// + 如需指定源语言，你需要在调用 `joinRoom` 接口进房时，通过 extraInfo 参数传入 `"source_language": "zh"` JSON 字符串，设置源语言为中文；传入 `"source_language": "en"`JSON 字符串，设置源语言为英文；传入 `"source_language": "ja"` JSON 字符串，设置源语言为日文。如未指定源语言，SDK 会将系统语种设定为源语言。如果你的系统语种不是中文、英文和日文，此时 SDK 会自动将中文设为源语言。
+  /// + 调用 [RTCRoom.stopSubtitle] 可以关闭字幕。
+  Future<int?> startSubtitle(SubtitleConfig subtitleConfig);
+
+  /// v3.54.1 新增。
+  ///
+  /// 关闭字幕。 <br>
+  /// 调用该方法后，你会收到 [RTCRoomEventHandler.onSubtitleStateChanged] 回调，通知字幕是否关闭。
+  ///
+  /// 返回值：
+  /// + 0: 调用成功。
+  /// + !0: 调用失败。
+  Future<int?> stopSubtitle();
 }

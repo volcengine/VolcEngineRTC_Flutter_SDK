@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: MIT
 
 import '../src/bytertc_video_event_impl.dart';
+import 'bytertc_audio_mixing_api.dart';
 import 'bytertc_event_define.dart';
+import 'bytertc_media_player_api.dart';
 import 'bytertc_video_api.dart';
 
 /// RTCVideo 事件回调接口
@@ -16,6 +18,12 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   ///
   /// 当 SDK 运行时出现了网络或媒体相关的错误，且无法自动恢复时触发此回调。
   OnErrorType? onError;
+
+  /// v3.54.1 新增。
+  ///
+  /// 当访问插件失败时，收到此回调。<br>
+  /// RTC SDK 将一些功能封装成插件。当使用这些功能时，如果插件不存在，功能将无法使用。
+  OnExtensionAccessErrorType? onExtensionAccessError;
 
   /// 创建房间失败回调
   OnCreateRoomStateChangedType? onCreateRoomStateChanged;
@@ -121,6 +129,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   OnStreamSyncInfoReceivedType? onStreamSyncInfoReceived;
 
   /// 周期性（2s）收到此回调，获取当前 CPU 与内存的使用率
+  @override
   abstract OnSysStatsType? onSysStats;
 
   /// 本地音频的状态发生改变时，收到此回调。
@@ -188,11 +197,13 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// + 调用 [RTCAudioMixingManager.resumeAudioMixing]恢复播放成功；
   /// + 调用 [RTCAudioMixingManager.stopAudioMixing] 暂停止播放成功；
   /// + 播放结束。
+  @Deprecated(
+      'Deprecated since v3.54.1, use RTCMediaPlayerEventHandler.onMediaPlayerStateChanged and RTCAudioEffectPlayerEventHandler.onAudioEffectPlayerStateChanged instead')
   OnAudioMixingStateChangedType? onAudioMixingStateChanged;
 
   /// 混音音频文件播放进度回调
   ///
-  /// 调用 [RTCAudioMixingManager.setAudioMixingProgressInterval] 将时间间隔设为大于 0 的值后，或调用 [RTCAudioMixingManager.startAudioMixing] 将 `config` 中的时间间隔设为大于 0 的值后，SDK 会按照设置的时间间隔回调该事件。
+  /// 调用 [RTCMediaPlayer.setProgressInterval] 将时间间隔设为大于 0 的值后，或调用 [RTCMediaPlayer.start] 将 `config` 中的时间间隔设为大于 0 的值后，SDK 会按照设置的时间间隔回调该事件。
   OnAudioMixingPlayingProgressType? onAudioMixingPlayingProgress;
 
   /// 未开启发布性能回退，检测到设备性能不足时，收到此回调；<br>
@@ -234,10 +245,23 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   ///
   /// 调用 [RTCVideo.startPlayPublicStream] 接口启动拉公共流功能后，通过此回调收到公共流中的SEI消息。
   ///
-  /// 注意，当公共流中的多路视频流均包含有 SEI 信息时：
+  /// 注意，本回调可以获取通过调用客户端 [RTCVideo.sendSEIMessage] 插入的 SEI 信息。<br>
+  /// 当公共流中的多路视频流均包含有 SEI 信息时：
   /// + SEI 不互相冲突时，将通过多次回调分别发送；
   /// + SEI 在同一帧有冲突时，则只有一条流中的 SEI 信息被透传并融合到公共流中。
-  OnPublicStreamSEIMessageReceivedType? onPublicStreamSEIMessageReceived;
+  ///
+  /// 通过 Open API 插入的 SEI 信息，应通过回调 [RTCVideoEventHandler.onPublicStreamDataMessageReceived] 获取。
+  OnPublicStreamDataMessageReceivedType? onPublicStreamSEIMessageReceived;
+
+  /// 回调公共流中包含的数据信息。<br>
+  /// 调用 [RTCVideo.startPlayPublicStream] 接口启动拉公共流功能后，通过此回调收到公共流中的数据消息。
+  ///
+  /// 收到的数据消息内容如下：
+  /// + 调用公共流 OpenAPI 发送的 SEI 消息。当公共流中的多路视频流均包含有 SEI 信息：SEI 不互相冲突时，将通过多次回调分别发送；SEI 在同一帧有冲突时，则只有一条流中的 SEI 信息被透传并融合到公共流中。
+  /// + 媒体流音量变化，需要通过公共流 OpenAPI 开启回调。
+  ///
+  /// 注意，通过调用客户端 API 插入的 SEI 信息，应通过回调 [RTCVideoEventHandler.onPublicStreamSEIMessageReceived] 获取。
+  OnPublicStreamDataMessageReceivedType? onPublicStreamDataMessageReceived;
 
   /// 公共流的首帧视频解码成功
   OnFirstPublicStreamVideoFrameDecodedType?
@@ -275,9 +299,14 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// + 如果 SDK 在通话中检测到回声，将通过 [RTCVideoEventHandler.onAudioDeviceWarning] 回调 `detectLeakEcho`。
   OnHardwareEchoDetectionResultType? onHardwareEchoDetectionResult;
 
+  /// 本地代理状态发生改变回调。调用 [RTCVideo.setLocalProxy] 设置本地代理后，SDK 会触发此回调，返回代理连接的状态。
+  OnLocalProxyStateChangedType? onLocalProxyStateChanged;
+
+  /// @nodoc
   RTCVideoEventHandler({
     this.onWarning,
     this.onError,
+    this.onExtensionAccessError,
     this.onCreateRoomStateChanged,
     this.onConnectionStateChanged,
     this.onNetworkTypeChanged,
@@ -337,6 +366,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onPushPublicStreamResult,
     this.onPlayPublicStreamResult,
     this.onPublicStreamSEIMessageReceived,
+    this.onPublicStreamDataMessageReceived,
     this.onFirstPublicStreamVideoFrameDecoded,
     this.onFirstPublicStreamAudioFrame,
     this.onCloudProxyConnected,
@@ -345,7 +375,6 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onLicenseWillExpire,
     this.onInvokeExperimentalAPI,
     this.onHardwareEchoDetectionResult,
-  }) {
-    this.onSysStats = onSysStats;
-  }
+    this.onLocalProxyStateChanged,
+  }) : super(onSysStats: onSysStats);
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+// Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
 import 'bytertc_ktv_defines.dart';
@@ -12,9 +12,9 @@ typedef OnPlayProgressType = void Function(String musicId, int progress);
 ///
 /// [playState]：音乐播放状态。
 ///
-/// [error]：音乐播放错误码。
-typedef OnPlayStateChangeType = void Function(
-    String musicId, KTVPlayState playState, KTVPlayerError error);
+/// [errorCode]：音乐播放错误码。
+typedef OnPlayStateChangedType = void Function(
+    String musicId, PlayState playState, KTVPlayerErrorCode errorCode);
 
 /// KTV 播放器回调类
 class RTCKTVPlayerEventHandler {
@@ -30,11 +30,12 @@ class RTCKTVPlayerEventHandler {
   /// + 调用 [RTCKTVPlayer.resumeMusic] 方法恢复播放成功后，会触发 playState 值为 playing 的回调；否则触发 playState 值为 failed 的回调。
   /// + 调用 [RTCKTVPlayer.stopMusic] 方法停止播放成功后，会触发 playState 值为 stopped 的回调；否则触发 playState 值为 failed 的回调。
   /// + 音乐播放结束会触发 playState 值为 finished 的回调。
-  OnPlayStateChangeType? onPlayStateChange;
+  OnPlayStateChangedType? onPlayStateChanged;
 
+  /// @nodoc
   RTCKTVPlayerEventHandler({
     this.onPlayProgress,
-    this.onPlayStateChange,
+    this.onPlayStateChanged,
   });
 }
 
@@ -53,26 +54,26 @@ abstract class RTCKTVPlayer {
   ///
   /// [playType]：音乐播放类型。
   ///
-  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> playMusic(
     String musicId, {
-    required KTVAudioTrackType trackType,
-    required KTVAudioPlayType playType,
+    required AudioTrackType trackType,
+    required AudioPlayType playType,
   });
 
   /// 暂停播放歌曲
   ///
-  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> pauseMusic(String musicId);
 
   /// 继续播放歌曲
   ///
-  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> resumeMusic(String musicId);
 
   /// 停止播放歌曲。
   ///
-  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> stopMusic(String musicId);
 
   /// 设置音乐文件的起始播放位置
@@ -82,7 +83,7 @@ abstract class RTCKTVPlayer {
   ///
   /// 注意：
   /// + 调用该接口时音乐必须处于播放中状态。
-  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> seekMusic(
     String musicId, {
     required int position,
@@ -99,7 +100,7 @@ abstract class RTCKTVPlayer {
   /// 注意：
   /// + 调用本接口时音乐必须处于播放中状态。
   /// + 若设置的音量大于 400，则按最大值 400 进行调整；若设置的音量小于 0，则按最小值 0 进行调整。
-  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> setMusicVolume(
     String musicId, {
     required int volume,
@@ -119,7 +120,7 @@ abstract class RTCKTVPlayer {
   ///
   /// 注意：
   /// + 调用本接口时音乐必须处于播放中状态。
-  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChange] 回调感知歌曲播放状态。
+  /// + 调用该接口后，你可以通过 [RTCKTVPlayerEventHandler.onPlayStateChanged] 回调感知歌曲播放状态。
   Future<void> setMusicPitch(
     String musicId, {
     required int pitch,

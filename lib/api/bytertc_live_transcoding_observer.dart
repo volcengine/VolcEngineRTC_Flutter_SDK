@@ -8,6 +8,7 @@ class RTCLiveTranscodingObserver {
   /// 转推直播状态回调
   OnStreamMixingEventType? onStreamMixingEvent;
 
+  /// @nodoc
   RTCLiveTranscodingObserver({
     this.onStreamMixingEvent,
   });

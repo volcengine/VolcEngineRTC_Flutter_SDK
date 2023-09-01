@@ -1,11 +1,18 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import '../api/bytertc_event_define.dart';
 import '../api/bytertc_video_event_handler.dart';
 import 'base/bytertc_event_serialize.dart';
 
 class RTCVideoEventValue {
+  RTCVideoEventValue({
+    OnSysStatsType? onSysStats,
+  }) {
+    this.onSysStats = onSysStats;
+  }
+
   void Function(Map<String, dynamic>)? _valueObserver;
 
   set valueObserver(void Function(Map<String, dynamic>)? valueObserver) {
@@ -288,8 +295,13 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
         onPlayPublicStreamResult?.call(data.publicStreamId, data.errorCode);
         break;
       case 'onPublicStreamSEIMessageReceived':
-        final data = OnPublicStreamSEIMessageReceivedData.fromMap(dic);
+        final data = OnPublicStreamDataMessageReceivedData.fromMap(dic);
         onPublicStreamSEIMessageReceived?.call(
+            data.publicStreamId, data.message, data.sourceType);
+        break;
+      case 'onPublicStreamDataMessageReceived':
+        final data = OnPublicStreamDataMessageReceivedData.fromMap(dic);
+        onPublicStreamDataMessageReceived?.call(
             data.publicStreamId, data.message, data.sourceType);
         break;
       case 'onFirstPublicStreamVideoFrameDecoded':
@@ -323,6 +335,15 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
       case 'onHardwareEchoDetectionResult':
         final data = OnHardwareEchoDetectionResultData.fromMap(dic);
         onHardwareEchoDetectionResult?.call(data.result);
+        break;
+      case 'onExtensionAccessError':
+        final data = OnExtensionAccessErrorData.fromMap(dic);
+        onExtensionAccessError?.call(data.extensionName, data.msg);
+        break;
+      case 'onLocalProxyStateChanged':
+        final data = OnLocalProxyStateChangedData.fromMap(dic);
+        onLocalProxyStateChanged?.call(
+            data.localProxyType, data.localProxyState, data.localProxyError);
         break;
       default:
         break;

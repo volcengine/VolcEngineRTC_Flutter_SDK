@@ -13,6 +13,7 @@ import com.ss.bytertc.engine.ScreenVideoEncoderConfig;
 import com.ss.bytertc.engine.UserInfo;
 import com.ss.bytertc.engine.VideoEncoderConfig;
 import com.ss.bytertc.engine.data.AudioChannel;
+import com.ss.bytertc.engine.data.AudioEffectPlayerConfig;
 import com.ss.bytertc.engine.data.AudioFrameSource;
 import com.ss.bytertc.engine.data.AudioMixingConfig;
 import com.ss.bytertc.engine.data.AudioMixingType;
@@ -26,10 +27,14 @@ import com.ss.bytertc.engine.data.CloudProxyInfo;
 import com.ss.bytertc.engine.data.EchoTestConfig;
 import com.ss.bytertc.engine.data.ForwardStreamInfo;
 import com.ss.bytertc.engine.data.HumanOrientation;
+import com.ss.bytertc.engine.data.LocalLogLevel;
+import com.ss.bytertc.engine.data.MediaPlayerConfig;
 import com.ss.bytertc.engine.data.MulDimSingScoringMode;
 import com.ss.bytertc.engine.data.Orientation;
 import com.ss.bytertc.engine.data.Position;
+import com.ss.bytertc.engine.data.PositionInfo;
 import com.ss.bytertc.engine.data.RTCASRConfig;
+import com.ss.bytertc.engine.data.RTCLogConfig;
 import com.ss.bytertc.engine.data.ReceiveRange;
 import com.ss.bytertc.engine.data.RecordingConfig;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
@@ -41,17 +46,26 @@ import com.ss.bytertc.engine.data.VirtualBackgroundSource;
 import com.ss.bytertc.engine.data.VirtualBackgroundSourceType;
 import com.ss.bytertc.engine.live.ByteRTCStreamMixingType;
 import com.ss.bytertc.engine.live.LiveTranscoding;
+import com.ss.bytertc.engine.live.MixedStreamConfig;
 import com.ss.bytertc.engine.live.PushSingleStreamParam;
 import com.ss.bytertc.engine.publicstream.PublicStreaming;
 import com.ss.bytertc.engine.type.AttenuationType;
+import com.ss.bytertc.engine.type.AudioSelectionPriority;
 import com.ss.bytertc.engine.type.ChannelProfile;
+import com.ss.bytertc.engine.type.LocalProxyConfiguration;
+import com.ss.bytertc.engine.type.LocalProxyType;
 import com.ss.bytertc.engine.type.MediaStreamType;
+import com.ss.bytertc.engine.type.MediaTypeEnhancementConfig;
 import com.ss.bytertc.engine.type.PauseResumeControlMediaType;
-import com.ss.bytertc.engine.type.ProblemFeedback;
+import com.ss.bytertc.engine.type.ProblemFeedbackInfo;
+import com.ss.bytertc.engine.type.ProblemFeedbackOption;
+import com.ss.bytertc.engine.type.ProblemFeedbackRoomInfo;
 import com.ss.bytertc.engine.type.PublishFallbackOption;
 import com.ss.bytertc.engine.type.RecordingFileType;
 import com.ss.bytertc.engine.type.RemoteUserPriority;
 import com.ss.bytertc.engine.type.SubscribeFallbackOptions;
+import com.ss.bytertc.engine.type.SubtitleConfig;
+import com.ss.bytertc.engine.type.SubtitleMode;
 import com.ss.bytertc.engine.type.TorchState;
 import com.ss.bytertc.engine.type.VoiceEqualizationBandFrequency;
 import com.ss.bytertc.engine.type.VoiceEqualizationConfig;
@@ -435,11 +449,11 @@ public class RTCType {
         region.setCornerRadius(obj.optDouble("cornerRadius"));
         Position position = toBytePosition(obj.optBox("spatialPosition"));
         region.spatialPosition(position.x, position.y, position.z);
-
+        region.applySpatialAudio(obj.optBoolean("applySpatialAudio"));
         region.type(toTranscoderLayoutRegionType(obj.optInt("type")));
         region.data(obj.optBytes("data", null));
         RTCTypeBox dataParam = obj.optBox("dataParam");
-        if (dataParam != null) {
+        if (dataParam.arguments != null) {
             region.dataParam(toDataParam(dataParam));
         }
         return region;
@@ -511,14 +525,38 @@ public class RTCType {
         throw new IllegalArgumentException("Unknown RTCASRConfig.ASRAuthorizationType value: " + value);
     }
 
-    public static List<ProblemFeedback> toFeedBackList(List<Integer> obj) {
-        List<ProblemFeedback> lists = new ArrayList<>();
+    public static List<ProblemFeedbackOption> toFeedBackList(List<Integer> obj) {
+        List<ProblemFeedbackOption> lists = new ArrayList<>(obj.size());
         for (Integer feedback : obj) {
-            lists.add(ProblemFeedback.fromId(feedback));
+            lists.add(ProblemFeedbackOption.fromId(feedback));
         }
         return lists;
     }
 
+    public static ProblemFeedbackRoomInfo toFeedbackRoomInfo(RTCTypeBox value) {
+        return new ProblemFeedbackRoomInfo(
+                value.optString("roomId"),
+                value.optString("uid")
+        );
+    }
+
+    public static ProblemFeedbackInfo toFeedbackInfo(RTCTypeBox value) {
+        if (value == null || value.arguments == null) {
+            return null;
+        }
+
+        ProblemFeedbackInfo info = new ProblemFeedbackInfo();
+        info.problemDesc = value.optString("problemDesc");
+        List<?> infos = value.getList("roomInfo");
+        if (!infos.isEmpty()) {
+            List<ProblemFeedbackRoomInfo> lists = new ArrayList<>(infos.size());
+            for (Object obj : infos) {
+                lists.add(toFeedbackRoomInfo(new RTCTypeBox(obj)));
+            }
+            info.roomInfo = lists;
+        }
+        return info;
+    }
 
     public static AudioPropertiesConfig toAudioPropertiesConfig(RTCTypeBox obj) {
         return new AudioPropertiesConfig(
@@ -594,6 +632,13 @@ public class RTCType {
         );
     }
 
+    public static PositionInfo toPositionInfo(RTCTypeBox value) {
+        return new PositionInfo(
+                toBytePosition(value.optBox("position")),
+                toHumanOrientation(value.optBox("orientation"))
+        );
+    }
+
     public static ReceiveRange toReceiveRange(RTCTypeBox range) {
         return new ReceiveRange(
                 range.optInt("min"),
@@ -631,7 +676,7 @@ public class RTCType {
     }
 
     public static List<CloudProxyInfo> toCloudProxyInfoList(List<?> values) {
-        List<CloudProxyInfo> retValue = new ArrayList<>();
+        List<CloudProxyInfo> retValue = new ArrayList<>(values.size());
         for (Object value : values) {
             retValue.add(toCloudProxy(new RTCTypeBox(value)));
         }
@@ -703,10 +748,231 @@ public class RTCType {
 
     public static SingScoringConfig toSingScoringConfig(RTCTypeBox values) {
         return new SingScoringConfig(
-                AudioSampleRate.fromId(values.optInt("sampleRate")) ,
+                AudioSampleRate.fromId(values.optInt("sampleRate")),
                 MulDimSingScoringMode.MUL_DIM_SING_SCORING_MODE_NOTE,
                 values.optString("lyricsFilepath"),
                 values.optString("midiFilepath")
+        );
+    }
+
+    public static MixedStreamConfig toMixedStreamConfig(RTCTypeBox obj) {
+        MixedStreamConfig mixedConfig = MixedStreamConfig.defaultMixedStreamConfig();
+        mixedConfig.setPushURL(obj.optString("pushURL"));
+        mixedConfig.setRoomID(obj.optString("roomId"));
+        mixedConfig.setUserID(obj.optString("uid"));
+        mixedConfig.setExpectedMixingType(ByteRTCStreamMixingType.fromId(obj.optInt("expectedMixingType")));
+        mixedConfig.setAudioConfig(toMixedStreamAudioConfig(obj.optBox("audioConfig")));
+        mixedConfig.setVideoConfig(toMixedStreamVideoConfig(obj.optBox("videoConfig")));
+        mixedConfig.setLayout(toMixedStreamLayoutConfig(obj.optBox("layout")));
+        mixedConfig.setSpatialConfig(toMixedStreamSpatialConfig(obj.optBox("spatialConfig")));
+        return mixedConfig;
+    }
+
+    public static MixedStreamConfig.MixedStreamVideoConfig toMixedStreamVideoConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamVideoConfig videoConfig = new MixedStreamConfig.MixedStreamVideoConfig();
+        videoConfig.setVideoCodec(toMixedStreamVideoCodecType(obj.optInt("videoCodec")));
+        videoConfig.setFps(obj.optInt("fps"));
+        videoConfig.setGop(obj.optInt("gop"));
+        videoConfig.setBitrate(obj.optInt("bitrate"));
+        videoConfig.setWidth(obj.optInt("width"));
+        videoConfig.setHeight(obj.optInt("height"));
+        videoConfig.setEnableBframe(obj.optBoolean("enableBFrame"));
+        return videoConfig;
+    }
+
+    public static MixedStreamConfig.MixedStreamVideoConfig.MixedStreamVideoCodecType toMixedStreamVideoCodecType(int value) {
+        if (value == 1) {
+            return MixedStreamConfig.MixedStreamVideoConfig.MixedStreamVideoCodecType.MIXED_STREAM_VIDEO_CODEC_TYPE_BYTEVC1;
+        }
+        return MixedStreamConfig.MixedStreamVideoConfig.MixedStreamVideoCodecType.MIXED_STREAM_VIDEO_CODEC_TYPE_H264;
+    }
+
+    public static MixedStreamConfig.MixedStreamAudioConfig toMixedStreamAudioConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamAudioConfig audioConfig = new MixedStreamConfig.MixedStreamAudioConfig();
+        audioConfig.setChannels(obj.optInt("channels"));
+        audioConfig.setSampleRate(obj.optInt("sampleRate"));
+        audioConfig.setBitrate(obj.optInt("bitrate"));
+        audioConfig.setAudioProfile(toMixedStreamAudioProfile(obj.optInt("audioProfile")));
+        return audioConfig;
+    }
+
+    public static MixedStreamConfig.MixedStreamAudioProfile toMixedStreamAudioProfile(int value) {
+        switch (value) {
+            case 1:
+                return MixedStreamConfig.MixedStreamAudioProfile.MIXED_STREAM_AUDIO_PROFILE_HEV1;
+            case 2:
+                return MixedStreamConfig.MixedStreamAudioProfile.MIXED_STREAM_AUDIO_PROFILE_HEV2;
+            default:
+                return MixedStreamConfig.MixedStreamAudioProfile.MIXED_STREAM_AUDIO_PROFILE_LC;
+        }
+    }
+
+    public static MixedStreamConfig.MixedStreamSpatialConfig toMixedStreamSpatialConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamSpatialConfig spatialConfig = new MixedStreamConfig.MixedStreamSpatialConfig();
+        spatialConfig.setAudienceSpatialOrientation(toHumanOrientation(obj.optBox("orientation")));
+        spatialConfig.setAudienceSpatialPosition(toBytePosition(obj.optBox("position")));
+        spatialConfig.setEnableSpatialRender(obj.optBoolean("enableSpatialRender"));
+        return spatialConfig;
+    }
+
+    public static MixedStreamConfig.MixedStreamLayoutConfig toMixedStreamLayoutConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamLayoutConfig layout = new MixedStreamConfig.MixedStreamLayoutConfig();
+        layout.setBackgroundColor(obj.optString("backgroundColor"));
+        layout.setUserConfigExtraInfo(obj.optString("userConfigExtraInfo"));
+        List<?> regionList = obj.getList("regions");
+        MixedStreamConfig.MixedStreamLayoutRegionConfig[] regions = new MixedStreamConfig.MixedStreamLayoutRegionConfig[regionList.size()];
+        for (int i = 0; i < regionList.size(); i++) {
+            RTCTypeBox regionBox = new RTCTypeBox(regionList.get(i));
+            regions[i] = toMixedStreamLayoutRegionConfig(regionBox);
+        }
+        layout.setRegions(regions);
+        return layout;
+    }
+
+    public static MixedStreamConfig.MixedStreamLayoutRegionConfig toMixedStreamLayoutRegionConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamLayoutRegionConfig region = new MixedStreamConfig.MixedStreamLayoutRegionConfig();
+        region.setUserID(obj.optString("uid"));
+        region.setRoomID(obj.optString("roomId"));
+        region.setLocationX(obj.optDouble("locationX"));
+        region.setLocationY(obj.optDouble("locationY"));
+        region.setWidthProportion(obj.optDouble("widthProportion"));
+        region.setHeightProportion(obj.optDouble("heightProportion"));
+        region.setZOrder(obj.optInt("zOrder"));
+        region.setAlpha(obj.optDouble("alpha"));
+        region.setCornerRadius(obj.optDouble("cornerRadius"));
+        region.setMediaType(toMixedStreamMediaType(obj.optInt("mediaType")));
+        region.setRenderMode(toMixedStreamRenderMode(obj.optInt("renderMode")));
+        region.setIsLocalUser(obj.optBoolean("isLocalUser"));
+        region.setStreamType(toMixedStreamVideoType(obj.optInt("streamType")));
+        region.setRegionContentType(toMixedStreamLayoutRegionType(obj.optInt("regionContentType")));
+        region.setSpatialPosition(toBytePosition(obj.optBox("spatialPosition")));
+        region.setApplySpatialAudio(obj.optBoolean("applySpatialAudio"));
+        region.setImageWaterMark(obj.optBytes("imageWaterMark", null));
+        RTCTypeBox dataParam = obj.optBox("imageWaterMarkConfig");
+        if (dataParam.arguments != null) {
+            region.setImageWaterMarkConfig(toMixedStreamLayoutRegionImageWaterMarkConfig(dataParam));
+        }
+        return region;
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamMediaType toMixedStreamMediaType(int value) {
+        for (MixedStreamConfig.MixedStreamMediaType type : MixedStreamConfig.MixedStreamMediaType.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamMediaType value: " + value);
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamRenderMode toMixedStreamRenderMode(int value) {
+        for (MixedStreamConfig.MixedStreamRenderMode mode : MixedStreamConfig.MixedStreamRenderMode.values()) {
+            if (mode.getValue() == value) {
+                return mode;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamRenderMode value: " + value);
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamLayoutRegionConfig.MixedStreamVideoType toMixedStreamVideoType(int value) {
+        for (MixedStreamConfig.MixedStreamLayoutRegionConfig.MixedStreamVideoType type : MixedStreamConfig.MixedStreamLayoutRegionConfig.MixedStreamVideoType.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamVideoType value: " + value);
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamLayoutRegionType toMixedStreamLayoutRegionType(int value) {
+        for (MixedStreamConfig.MixedStreamLayoutRegionType type : MixedStreamConfig.MixedStreamLayoutRegionType.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamLayoutRegionType value: " + value);
+    }
+
+    public static MixedStreamConfig.MixedStreamLayoutRegionConfig.MixedStreamLayoutRegionImageWaterMarkConfig toMixedStreamLayoutRegionImageWaterMarkConfig(RTCTypeBox values) {
+        return new MixedStreamConfig.MixedStreamLayoutRegionConfig.MixedStreamLayoutRegionImageWaterMarkConfig(
+                values.optInt("imageWidth"),
+                values.optInt("imageHeight")
+        );
+    }
+
+    public static MediaTypeEnhancementConfig toMediaTypeEnhancementConfig(RTCTypeBox values) {
+        return new MediaTypeEnhancementConfig(
+                values.optBoolean("enhanceSignaling"),
+                values.optBoolean("enhanceAudio"),
+                values.optBoolean("enhanceVideo"),
+                values.optBoolean("enhanceScreenAudio"),
+                values.optBoolean("enhanceScreenVideo")
+        );
+    }
+
+    public static List<LocalProxyConfiguration> toLocalProxyConfigurations(List<?> value) {
+        List<LocalProxyConfiguration> list = new ArrayList<>(value.size());
+        for (Object obj : value) {
+            RTCTypeBox arguments = new RTCTypeBox(obj);
+            list.add(new LocalProxyConfiguration(
+                    LocalProxyType.fromId(arguments.optInt("localProxyType")),
+                    arguments.optString("localProxyIp"),
+                    arguments.optInt("localProxyPort"),
+                    arguments.optString("localProxyUsername"),
+                    arguments.optString("localProxyPassword")
+            ));
+        }
+        return list;
+    }
+
+    public static AudioSelectionPriority toAudioSelectionPriority(int value) {
+        for (AudioSelectionPriority type : AudioSelectionPriority.values()) {
+            if (value == type.value()) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown AudioSelectionPriority value: " + value);
+    }
+
+    public static SubtitleConfig toSubtitleConfig(RTCTypeBox values) {
+        return new SubtitleConfig(
+                SubtitleMode.fromId(values.optInt("mode")),
+                values.optString("targetLanguage")
+        );
+    }
+
+    public static RTCLogConfig toLogConfig(RTCTypeBox values) {
+        return new RTCLogConfig(
+                LocalLogLevel.fromId(values.optInt("logLevel")),
+                values.optString("logPath"),
+                values.optInt("logFileSize")
+        );
+    }
+
+    public static AudioEffectPlayerConfig toAudioEffectPlayerConfig(RTCTypeBox values) {
+        return new AudioEffectPlayerConfig(
+                AudioMixingType.fromId(values.optInt("type")),
+                values.optInt("playCount"),
+                values.optInt("startPos"),
+                values.optInt("pitch")
+        );
+    }
+
+    public static MediaPlayerConfig toMediaPlayerConfig(RTCTypeBox values) {
+        return new MediaPlayerConfig(
+                AudioMixingType.fromId(values.optInt("type")),
+                values.optInt("playCount"),
+                values.optInt("startPos"),
+                values.optBoolean("autoPlay"),
+                values.optLong("callbackOnProgressInterval"),
+                values.optBoolean("syncProgressToRecordFrame")
         );
     }
 }

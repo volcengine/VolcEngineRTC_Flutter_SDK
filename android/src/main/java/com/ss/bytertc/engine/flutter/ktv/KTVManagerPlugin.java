@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -13,8 +13,8 @@ import com.ss.bytertc.engine.flutter.base.Logger;
 import com.ss.bytertc.engine.flutter.base.RTCType;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.plugin.RTCFlutterPlugin;
-import com.ss.bytertc.ktv.KTVManager;
-import com.ss.bytertc.ktv.KTVPlayer;
+import com.ss.bytertc.ktv.IKTVManager;
+import com.ss.bytertc.ktv.IKTVPlayer;
 import com.ss.bytertc.ktv.data.DownloadLyricType;
 import com.ss.bytertc.ktv.data.MusicFilterType;
 import com.ss.bytertc.ktv.data.MusicHotType;
@@ -24,14 +24,14 @@ import io.flutter.plugin.common.MethodChannel;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class KTVManagerPlugin extends RTCFlutterPlugin {
 
-    private KTVManager mKTVManager;
-    private final KTVEventProxy mEventProxy = new KTVEventProxy();
+    private IKTVManager mKTVManager;
+    private final KTVManagerEventProxy mEventProxy = new KTVManagerEventProxy();
 
     private KTVPlayerPlugin mKTVPlayer;
 
-    public KTVManagerPlugin(@NonNull KTVManager ktvManager) {
+    public KTVManagerPlugin(@NonNull IKTVManager ktvManager) {
         mKTVManager = ktvManager;
-        ktvManager.setKTVEventHandler(mEventProxy);
+        ktvManager.setKTVManagerEventHandler(mEventProxy);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class KTVManagerPlugin extends RTCFlutterPlugin {
                     result.success(true);
                     break;
                 }
-                KTVPlayer player = mKTVManager.getKTVPlayer();
+                IKTVPlayer player = mKTVManager.getKTVPlayer();
                 boolean res = player != null;
                 if (res) {
                     mKTVPlayer = new KTVPlayerPlugin(player);

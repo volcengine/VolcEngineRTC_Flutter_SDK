@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -43,9 +43,6 @@ public class VideoEffectPlugin extends RTCFlutterPlugin {
         faceDetectionHandler.destroy();
     }
 
-    /**
-     * 响应 IVideoEffect 接口
-     */
     private final MethodChannel.MethodCallHandler callHandler = (call, result) -> {
         if (BuildConfig.DEBUG) {
             Logger.d(getTAG(), "IVideoEffect Call: " + call.method);

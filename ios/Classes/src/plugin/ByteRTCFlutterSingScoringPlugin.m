@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -23,17 +23,17 @@
 
 @interface ByteRTCFlutterSingScoringPlugin ()
 
-@property (nonatomic, strong) ByteRTCVideo *rtcVideo;
+@property (nonatomic, strong) ByteRTCSingScoringManager *singScoringManager;
 @property (nonatomic, strong) ByteRTCFlutterSingScoringEventHandler *eventHandler;
 
 @end
 
 @implementation ByteRTCFlutterSingScoringPlugin
 
-- (instancetype)initWithRTCVideo:(ByteRTCVideo *)rtcVideo {
+- (instancetype)initWithRTCSingScoringManager:(ByteRTCSingScoringManager *)manager {
     self = [super init];
     if (self) {
-        self.rtcVideo = rtcVideo;
+        self.singScoringManager = manager;
     }
     return self;
 }
@@ -43,10 +43,6 @@
     [self.methodHandler registerMethodChannelWithName:@"com.bytedance.ve_rtc_sing_scoring_manager"
                                          methodTarget:self
                                       binaryMessenger:[registrar messenger]];
-}
-
-- (nullable ByteRTCSingScoringManager *)singScoringManager {
-    return self.rtcVideo.getSingScoringManager;
 }
 
 - (void)destroy {

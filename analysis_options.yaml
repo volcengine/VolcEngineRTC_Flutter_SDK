@@ -9,3 +9,7 @@ analyzer:
 linter:
   rules:
     prefer_single_quotes: true
+    slash_for_doc_comments: true
+    comment_references: true
+    package_api_docs: true
+    public_member_api_docs: true

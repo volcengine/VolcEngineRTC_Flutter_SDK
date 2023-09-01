@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -43,8 +43,8 @@
 #pragma mark - method
 - (void)playMusic:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *musicId = arguments[@"musicId"];
-    ByteRTCKTVAudioTrackType trackType = [arguments[@"trackType"] integerValue];
-    ByteRTCKTVAudioPlayType playType = [arguments[@"playType"] integerValue];
+    ByteRTCAudioTrackType trackType = [arguments[@"trackType"] integerValue];
+    ByteRTCAudioPlayType playType = [arguments[@"playType"] integerValue];
     [self.ktvPlayer playMusic:musicId audioTrackType:trackType audioPlayType:playType];
     result(nil);
 }

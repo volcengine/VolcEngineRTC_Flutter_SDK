@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import com.ss.bytertc.engine.RTCVideo;
 import com.ss.bytertc.engine.flutter.BuildConfig;
 import com.ss.bytertc.engine.flutter.base.Logger;
+import com.ss.bytertc.engine.flutter.base.RTCType;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;
 import com.ss.bytertc.engine.flutter.render.RTCSurfaceViewFactory;
@@ -82,6 +83,12 @@ public class ByteRTCPlugin implements FlutterPlugin {
             // region Static Methods
             case "getSDKVersion": {
                 result.success(RTCVideo.getSDKVersion());
+                break;
+            }
+
+            case "setLogConfig": {
+                int retValue = RTCVideo.setLogConfig(RTCType.toLogConfig(arguments.optBox("logConfig")));
+                result.success(retValue);
                 break;
             }
 

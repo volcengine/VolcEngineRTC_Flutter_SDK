@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
+ * Copyright (c) 2023 Beijing Volcano Engine Technology Ltd.
  * SPDX-License-Identifier: MIT
  */
 
@@ -9,6 +9,10 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ByteRTCFlutterPushSingleStreamToCDNObserver : ByteRTCFlutterEventHandler <ByteRTCPushSingleStreamToCDNObserver>
+
+@end
+
+@interface ByteRTCFlutterMixedStreamObserver : ByteRTCFlutterEventHandler <ByteRTCMixedStreamObserver>
 
 @end
 

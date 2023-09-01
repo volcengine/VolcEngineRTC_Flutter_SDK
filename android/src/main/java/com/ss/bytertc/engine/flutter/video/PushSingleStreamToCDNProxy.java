@@ -5,6 +5,8 @@
 
 package com.ss.bytertc.engine.flutter.video;
 
+import androidx.annotation.RestrictTo;
+
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
 import com.ss.bytertc.engine.live.ByteRTCStreamSinglePushEvent;
 import com.ss.bytertc.engine.live.IPushSingleStreamToCDNObserver;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 
 import io.flutter.plugin.common.BinaryMessenger;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class PushSingleStreamToCDNProxy implements IPushSingleStreamToCDNObserver {
     private final EventEmitter emitter = new EventEmitter();
 

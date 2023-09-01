@@ -1,13 +1,13 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
 import 'dart:async';
 
 import 'package:flutter/services.dart';
 
 import '../api/bytertc_audio_defines.dart';
 import '../api/bytertc_range_audio_api.dart';
-import 'base/bytertc_enum_convert.dart';
 
 class RTCRangeAudioImpl implements RTCRangeAudio {
   late final MethodChannel _methodChannel;
@@ -51,11 +51,12 @@ class RTCRangeAudioImpl implements RTCRangeAudio {
       {required AttenuationType type, required double coefficient}) {
     return _invokeMethod<int>('setAttenuationModel', {
       'insId': _insId,
-      'type': type.value,
+      'type': type.index,
       'coefficient': coefficient,
     });
   }
 
+  @override
   Future<void> setNoAttenuationFlags(List<String> flags) {
     return _invokeMethod<void>('setNoAttenuationFlags', {
       'insId': _insId,

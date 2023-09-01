@@ -1,101 +1,19 @@
 // Copyright (c) 2022 Beijing Volcano Engine Technology Ltd.
 // SPDX-License-Identifier: MIT
 
+// ignore_for_file: public_member_api_docs
+import 'package:flutter/foundation.dart';
+
 import '../../api/bytertc_audio_defines.dart';
 import '../../api/bytertc_ktv_defines.dart';
 import '../../api/bytertc_media_defines.dart';
-import '../../api/bytertc_render_view.dart';
 import '../../api/bytertc_rts_defines.dart';
 import '../../api/bytertc_video_defines.dart';
 
 /// enum to int
-extension AudioScenarioValue on AudioScenario {
-  int get value {
-    return index;
-  }
-}
-
-extension RoomProfileValue on RoomProfile {
-  int get value {
-    return index;
-  }
-}
-
-extension CameraIdValue on CameraId {
-  int get value {
-    return index;
-  }
-}
-
-extension ScaleModeValue on ScaleMode {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoCodecTypeValue on VideoCodecType {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoEncoderPreferenceValue on VideoEncoderPreference {
-  int get value {
-    return index;
-  }
-}
-
 extension ScreenVideoEncoderPreferenceValue on ScreenVideoEncoderPreference {
   int get value {
     return index + 1;
-  }
-}
-
-extension StreamIndexValue on StreamIndex {
-  int get value {
-    return index;
-  }
-}
-
-extension PauseResumeControlMediaTypeValue on PauseResumeControlMediaType {
-  int get value {
-    return index;
-  }
-}
-
-extension EarMonitorModeValue on EarMonitorMode {
-  int get value {
-    return index;
-  }
-}
-
-extension AudioProfileTypeValue on AudioProfileType {
-  int get value {
-    return index;
-  }
-}
-
-extension AudioMixingTypeValue on AudioMixingType {
-  int get value {
-    return index;
-  }
-}
-
-extension SyncInfoStreamTypeValue on SyncInfoStreamType {
-  int get value {
-    return index;
-  }
-}
-
-extension PublishFallbackOptionValue on PublishFallbackOption {
-  int get value {
-    return index;
-  }
-}
-
-extension SubscribeFallbackOptionValue on SubscribeFallbackOption {
-  int get value {
-    return index;
   }
 }
 
@@ -125,28 +43,54 @@ extension MirrorTypeValue on MirrorType {
   }
 }
 
-extension RecordingFileTypeValue on RecordingFileType {
+extension ProblemFeedbackValue on ProblemFeedbackOption {
   int get value {
-    return index;
-  }
-}
-
-extension RecordingTypeValue on RecordingType {
-  int get value {
-    return index;
-  }
-}
-
-extension ASRAuthorizationTypeValue on ASRAuthorizationType {
-  int get value {
-    return index;
-  }
-}
-
-extension ProblemFeedbackValue on ProblemFeedback {
-  int get value {
-    if (this == ProblemFeedback.none) return 0;
-    return 1 << (index - 1);
+    switch (this) {
+      case ProblemFeedbackOption.none:
+        return 0;
+      case ProblemFeedbackOption.otherMessage:
+        return 1 << 0;
+      case ProblemFeedbackOption.disconnected:
+        return 1 << 1;
+      case ProblemFeedbackOption.earBackDelay:
+        return 1 << 2;
+      case ProblemFeedbackOption.localNoise:
+        return 1 << 10;
+      case ProblemFeedbackOption.localAudioLagging:
+        return 1 << 11;
+      case ProblemFeedbackOption.localNoAudio:
+        return 1 << 12;
+      case ProblemFeedbackOption.localAudioStrength:
+        return 1 << 13;
+      case ProblemFeedbackOption.localEcho:
+        return 1 << 14;
+      case ProblemFeedbackOption.localVideoFuzzy:
+        return 1 << 24;
+      case ProblemFeedbackOption.localNotSync:
+        return 1 << 25;
+      case ProblemFeedbackOption.localVideoLagging:
+        return 1 << 26;
+      case ProblemFeedbackOption.localNoVideo:
+        return 1 << 27;
+      case ProblemFeedbackOption.remoteNoise:
+        return 1 << 37;
+      case ProblemFeedbackOption.remoteAudioLagging:
+        return 1 << 38;
+      case ProblemFeedbackOption.remoteNoAudio:
+        return 1 << 39;
+      case ProblemFeedbackOption.remoteAudioStrength:
+        return 1 << 40;
+      case ProblemFeedbackOption.remoteEcho:
+        return 1 << 41;
+      case ProblemFeedbackOption.remoteVideoFuzzy:
+        return 1 << 51;
+      case ProblemFeedbackOption.remoteNotSync:
+        return 1 << 52;
+      case ProblemFeedbackOption.remoteVideoLagging:
+        return 1 << 53;
+      case ProblemFeedbackOption.remoteNoVideo:
+        return 1 << 54;
+    }
   }
 }
 
@@ -162,53 +106,11 @@ extension MediaStreamTypeValue on MediaStreamType {
   }
 }
 
-extension VoiceChangerTypeValue on VoiceChangerType {
-  int get value {
-    return index;
-  }
-}
-
-extension VoiceReverbTypeValue on VoiceReverbType {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoRotationModeeValue on VideoRotationMode {
-  int get value {
-    return index;
-  }
-}
-
-extension VirtualBackgroundSourceTypeValue on VirtualBackgroundSourceType {
-  int get value {
-    return index;
-  }
-}
-
-extension TorchStateValue on TorchState {
-  int get value {
-    return index;
-  }
-}
-
 extension AudioRouteValue on AudioRoute {
   int get value {
     if (index == 0) {
       return -1;
     }
-    return index;
-  }
-}
-
-extension AudioMixingDualMonoModeValue on AudioMixingDualMonoMode {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoCapturePreferenceValue on VideoCapturePreference {
-  int get value {
     return index;
   }
 }
@@ -246,84 +148,6 @@ extension AACProfileValue on AACProfile {
   }
 }
 
-extension StreamMixingTypeValue on StreamMixingType {
-  int get value {
-    return index;
-  }
-}
-
-extension TranscoderContentControlTypeValue on TranscoderContentControlType {
-  int get value {
-    return index;
-  }
-}
-
-extension TranscoderLayoutRegionTypeValue on TranscoderLayoutRegionType {
-  int get value {
-    return index;
-  }
-}
-
-extension ScreenMediaTypeValue on ScreenMediaType {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoCanvasTypeValue on VideoCanvasType {
-  int get value {
-    return index;
-  }
-}
-
-extension EffectBeautyModeValue on EffectBeautyMode {
-  int get value {
-    return index;
-  }
-}
-
-extension MessageConfigValue on MessageConfig {
-  int get value {
-    return index;
-  }
-}
-
-extension AttenuationTypeValue on AttenuationType {
-  int get value {
-    return index;
-  }
-}
-
-extension VideoOrientationValue on VideoOrientation {
-  int get value {
-    return index;
-  }
-}
-
-extension AudioReportModeValue on AudioReportMode {
-  int get value {
-    return index;
-  }
-}
-
-extension AudioPropertiesModeValue on AudioPropertiesMode {
-  int get value {
-    return index;
-  }
-}
-
-extension SEICountPerFrameValue on SEICountPerFrame {
-  int get value {
-    return index;
-  }
-}
-
-extension BluetoothModeValue on BluetoothMode {
-  int get value {
-    return index;
-  }
-}
-
 extension AudioSampleRateValue on AudioSampleRate {
   int get value {
     switch (this) {
@@ -356,90 +180,41 @@ extension AudioChannelValue on AudioChannel {
   }
 }
 
-extension AudioFrameSourceValue on AudioFrameSource {
+extension MusicFilterTypeValue on MusicFilterType {
   int get value {
-    return index;
-  }
-}
-
-extension AudioQualityValue on AudioQuality {
-  int get value {
-    return index;
-  }
-}
-
-extension VoiceEqualizationBandFrequencyValue
-    on VoiceEqualizationBandFrequency {
-  int get value {
-    return index;
-  }
-}
-
-extension AudioAlignmentModeValue on AudioAlignmentMode {
-  int get value {
-    return index;
-  }
-}
-
-extension KTVMusicFilterTypeValue on KTVMusicFilterType {
-  int get value {
-    if (this == KTVMusicFilterType.none) return 0;
+    if (this == MusicFilterType.none) return 0;
     return 1 << (index - 1);
   }
 }
 
-extension KTVMusicHotTypeValue on KTVMusicHotType {
+extension MusicHotTypeValue on MusicHotType {
   int get value {
     return 1 << index;
   }
 }
 
-extension KTVAudioTrackTypeValue on KTVAudioTrackType {
+extension AudioTrackTypeValue on AudioTrackType {
   int get value {
     return index + 1;
   }
 }
 
-extension KTVAudioPlayTypeValue on KTVAudioPlayType {
+extension LocalProxyTypeValue on LocalProxyType {
   int get value {
-    return index;
+    return index + 1;
   }
 }
 
-extension KTVDownloadLyricTypeValue on KTVDownloadLyricType {
+extension MixedStreamRenderModeValue on MixedStreamRenderMode {
   int get value {
-    return index;
-  }
-}
-
-extension MulDimSingScoringModeValue on MulDimSingScoringMode {
-  int get value {
-    return index;
-  }
-}
-
-extension AnsModeValue on AnsMode {
-  int get value {
-    return index;
-  }
-}
-
-extension ZoomConfigTypeValue on ZoomConfigType {
-  int get value {
-    return index;
-  }
-}
-
-extension ZoomDirectionTypeValue on ZoomDirectionType {
-  int get value {
-    return index;
+    return index + 1;
   }
 }
 
 /// int to enum
 E _convertEnumValue<E>(List<E> values, int? idx, E defaultValue) {
   if (idx == null || idx >= values.length || idx < 0) {
-    print('RTC: Enum ($E) unknown value $idx');
+    debugPrint('RTC: Enum ($E) unknown value $idx');
     return defaultValue;
   }
   return values[idx];
@@ -496,8 +271,16 @@ extension RTCTypeValue on int? {
         return WarningCode.invalidCallForExtAudio;
       case -6001:
         return WarningCode.invalidCanvasHandle;
+      case -7002:
+        return WarningCode.invalidSamiAppKeyOrToken;
+      case -7003:
+        return WarningCode.invalidSamiResourcePath;
+      case -7004:
+        return WarningCode.loadSamiLibraryFailed;
+      case -7005:
+        return WarningCode.invalidSamiEffectType;
       default:
-        print('RTC: WarningCode unknown value $this');
+        debugPrint('RTC: WarningCode unknown value $this');
         return WarningCode.unknown;
     }
   }
@@ -552,6 +335,8 @@ extension RTCTypeValue on int? {
         return ErrorCode.joinRoomRoomForbidden;
       case -1026:
         return ErrorCode.joinRoomUserForbidden;
+      case -1027:
+        return ErrorCode.joinRoomLicenseFunctionNotFound;
       case -1070:
         return ErrorCode.overStreamSubscribeLimit;
       case -1072:
@@ -567,7 +352,7 @@ extension RTCTypeValue on int? {
       case -1084:
         return ErrorCode.abnormalServerStatus;
       default:
-        print('RTC: ErrorCode unknown value $this');
+        debugPrint('RTC: ErrorCode unknown value $this');
         return ErrorCode.unknown;
     }
   }
@@ -641,7 +426,7 @@ extension RTCTypeValue on int? {
       case 270:
         return VideoRotation.rotation270;
       default:
-        print('RTC: VideoRotation unknown value $this');
+        debugPrint('RTC: VideoRotation unknown value $this');
         return VideoRotation.rotation0;
     }
   }
@@ -709,11 +494,6 @@ extension RTCTypeValue on int? {
     return _convertEnumValue(AudioRoute.values, this, AudioRoute.routeDefault);
   }
 
-  NetworkDetectionStartReturn get networkDetectionStartReturn {
-    return _convertEnumValue(NetworkDetectionStartReturn.values, this,
-        NetworkDetectionStartReturn.notSupport);
-  }
-
   ForwardStreamState get forwardStreamState {
     return _convertEnumValue(
         ForwardStreamState.values, this, ForwardStreamState.failure);
@@ -764,7 +544,7 @@ extension RTCTypeValue on int? {
       case 13:
         return MediaDeviceState.interruptionEnded;
       default:
-        print('RTC: MediaDeviceState unknown value $this');
+        debugPrint('RTC: MediaDeviceState unknown value $this');
         return MediaDeviceState.runtimeError;
     }
   }
@@ -815,7 +595,7 @@ extension RTCTypeValue on int? {
       case 26:
         return MediaDeviceWarning.setBluetoothModeUnsupport;
       default:
-        print('RTC: MediaDeviceWarning unknown value $this');
+        debugPrint('RTC: MediaDeviceWarning unknown value $this');
         return MediaDeviceWarning.operationDenied;
     }
   }
@@ -845,12 +625,12 @@ extension RTCTypeValue on int? {
         StreamMixingEvent.values, this, StreamMixingEvent.base);
   }
 
-  TranscoderErrorCode get transcoderErrorCode {
+  StreamMixingErrorCode get transcoderErrorCode {
     if (this == 0) {
-      return TranscoderErrorCode.ok;
+      return StreamMixingErrorCode.ok;
     }
-    return _convertEnumValue(TranscoderErrorCode.values, (this ?? 1090) - 1089,
-        TranscoderErrorCode.base);
+    return _convertEnumValue(StreamMixingErrorCode.values,
+        (this ?? 1090) - 1089, StreamMixingErrorCode.base);
   }
 
   AVSyncState get avSyncState {
@@ -914,8 +694,10 @@ extension RTCTypeValue on int? {
         return UserMessageSendResult.notLogin;
       case 106:
         return UserMessageSendResult.serverParamsNotSet;
+      case 1000:
+        return UserMessageSendResult.unknown;
       default:
-        print('RTC: UserMessageSendResult unknown value $this');
+        debugPrint('RTC: UserMessageSendResult unknown value $this');
         return UserMessageSendResult.unknown;
     }
   }
@@ -943,8 +725,10 @@ extension RTCTypeValue on int? {
         return RoomMessageSendResult.noConnection;
       case 103:
         return RoomMessageSendResult.exceedMaxLength;
+      case 1000:
+        return RoomMessageSendResult.unknown;
       default:
-        print('RTC: RoomMessageSendResult unknown value $this');
+        debugPrint('RTC: RoomMessageSendResult unknown value $this');
         return RoomMessageSendResult.unknown;
     }
   }
@@ -952,27 +736,28 @@ extension RTCTypeValue on int? {
   PublicStreamErrorCode get publicStreamErrorCode {
     switch (this) {
       case 0:
-      case 200:
         return PublicStreamErrorCode.success;
       case 1191:
-        return PublicStreamErrorCode.paramError;
+        return PublicStreamErrorCode.pushParamError;
       case 1192:
-        return PublicStreamErrorCode.statusError;
+        return PublicStreamErrorCode.pushStateError;
       case 1193:
-        return PublicStreamErrorCode.internalError;
+        return PublicStreamErrorCode.pushInternalError;
       case 1195:
         return PublicStreamErrorCode.pushError;
       case 1196:
-        return PublicStreamErrorCode.timeOut;
+        return PublicStreamErrorCode.pushTimeOut;
+      case 1300:
+        return PublicStreamErrorCode.pullNoPushStream;
       default:
-        print('RTC: PublicStreamErrorCode unknown value $this');
-        return PublicStreamErrorCode.internalError;
+        debugPrint('RTC: PublicStreamErrorCode unknown value $this');
+        return PublicStreamErrorCode.pushInternalError;
     }
   }
 
-  SEIMessageSourceType get seiMessageSourceType {
+  DataMessageSourceType get seiMessageSourceType {
     return _convertEnumValue(
-        SEIMessageSourceType.values, this, SEIMessageSourceType.def);
+        DataMessageSourceType.values, this, DataMessageSourceType.def);
   }
 
   AudioRecordingState get audioRecordingState {
@@ -997,98 +782,184 @@ extension RTCTypeValue on int? {
       case -6:
         return AudioRecordingErrorCode.other;
       default:
-        print('RTC: PublicStreamErrorCode unknown value $this');
+        debugPrint('RTC: PublicStreamErrorCode unknown value $this');
         return AudioRecordingErrorCode.other;
     }
   }
 
-  KTVMusicHotType get ktvMusicHotType {
+  MusicHotType get ktvMusicHotType {
     return _convertEnumValue(
-        KTVMusicHotType.values, (this ?? 1) - 1, KTVMusicHotType.contentCenter);
+        MusicHotType.values, (this ?? 1) - 1, MusicHotType.contentCenter);
   }
 
-  KTVPlayState get ktvPlayState {
+  PlayState get ktvPlayState {
     return _convertEnumValue(
-        KTVPlayState.values, (this ?? 4) - 1, KTVPlayState.failed);
+        PlayState.values, (this ?? 4) - 1, PlayState.failed);
   }
 
-  KTVLyricStatus get ktvLyricStatus {
-    return _convertEnumValue(KTVLyricStatus.values, this, KTVLyricStatus.none);
+  LyricStatus get ktvLyricStatus {
+    return _convertEnumValue(LyricStatus.values, this, LyricStatus.none);
   }
 
-  KTVDownloadFileType get ktvDownloadFileType {
+  DownloadFileType get ktvDownloadFileType {
     return _convertEnumValue(
-        KTVDownloadFileType.values, (this ?? 1) - 1, KTVDownloadFileType.music);
+        DownloadFileType.values, (this ?? 1) - 1, DownloadFileType.music);
   }
 
-  KTVError get ktvError {
+  KTVErrorCode get ktvError {
     switch (this) {
       case 0:
-        return KTVError.ok;
+        return KTVErrorCode.ok;
       case -3000:
-        return KTVError.appIdInValid;
+        return KTVErrorCode.appIdInValid;
       case -3001:
-        return KTVError.parasInValid;
+        return KTVErrorCode.parasInValid;
       case -3002:
-        return KTVError.getMusicFailed;
+        return KTVErrorCode.getMusicFailed;
       case -3003:
-        return KTVError.getLyricFailed;
+        return KTVErrorCode.getLyricFailed;
       case -3004:
-        return KTVError.musicTakedown;
+        return KTVErrorCode.musicTakedown;
       case -3005:
-        return KTVError.musicDownload;
+        return KTVErrorCode.musicDownload;
       case -3006:
-        return KTVError.midiDownloadFailed;
+        return KTVErrorCode.midiDownloadFailed;
       case -3007:
-        return KTVError.systemBusy;
+        return KTVErrorCode.systemBusy;
       case -3008:
-        return KTVError.network;
+        return KTVErrorCode.network;
       case -3009:
-        return KTVError.notJoinRoom;
+        return KTVErrorCode.notJoinRoom;
       case -3010:
-        return KTVError.parseData;
+        return KTVErrorCode.parseData;
       case -3011:
-        return KTVError.download;
+        return KTVErrorCode.download;
       case -3012:
-        return KTVError.downloading;
+        return KTVErrorCode.downloading;
+      case -3013:
+        return KTVErrorCode.internal;
+      case -3014:
+        return KTVErrorCode.insufficientDiskSpace;
+      case -3015:
+        return KTVErrorCode.musicDecryptionFailed;
+      case -3016:
+        return KTVErrorCode.fileRenameFailed;
+      case -3017:
+        return KTVErrorCode.downloadTimeOut;
+      case -3018:
+        return KTVErrorCode.clearCacheFailed;
+      case -3019:
+        return KTVErrorCode.downloadCanceled;
       default:
-        return KTVError.internal;
+        debugPrint('RTC: KTVErrorCode unknown value $this');
+        return KTVErrorCode.internal;
     }
   }
 
-  KTVPlayerError get ktvPlayerError {
+  KTVPlayerErrorCode get ktvPlayerError {
     switch (this) {
       case 0:
-        return KTVPlayerError.ok;
+        return KTVPlayerErrorCode.ok;
       case -3020:
-        return KTVPlayerError.fileNotExist;
+        return KTVPlayerErrorCode.fileNotExist;
       case -3021:
-        return KTVPlayerError.fileError;
+        return KTVPlayerErrorCode.fileError;
       case -3022:
-        return KTVPlayerError.notJoinRoom;
+        return KTVPlayerErrorCode.notJoinRoom;
       case -3023:
-        return KTVPlayerError.param;
+        return KTVPlayerErrorCode.param;
       case -3024:
-        return KTVPlayerError.startError;
+        return KTVPlayerErrorCode.startError;
       case -3025:
-        return KTVPlayerError.mixIdError;
+        return KTVPlayerErrorCode.mixIdError;
       case -3026:
-        return KTVPlayerError.positionError;
+        return KTVPlayerErrorCode.positionError;
       case -3027:
-        return KTVPlayerError.audioVolumeError;
+        return KTVPlayerErrorCode.audioVolumeError;
       case -3028:
-        return KTVPlayerError.typeError;
+        return KTVPlayerErrorCode.typeError;
       case -3029:
-        return KTVPlayerError.pitchError;
+        return KTVPlayerErrorCode.pitchError;
       case -3030:
-        return KTVPlayerError.audioTrackError;
+        return KTVPlayerErrorCode.audioTrackError;
+      case -3031:
+        return KTVPlayerErrorCode.startingError;
       default:
-        return KTVPlayerError.startingError;
+        debugPrint('RTC: KTVPlayerErrorCode unknown value $this');
+        return KTVPlayerErrorCode.param;
     }
   }
 
   HardwareEchoDetectionResult get hardwareEchoDetectionResult {
     return _convertEnumValue(HardwareEchoDetectionResult.values, this,
         HardwareEchoDetectionResult.unknown);
+  }
+
+  LocalProxyType get localProxyType {
+    return _convertEnumValue(
+        LocalProxyType.values, (this ?? 1) - 1, LocalProxyType.socks5);
+  }
+
+  LocalProxyState get localProxyState {
+    return _convertEnumValue(
+        LocalProxyState.values, this, LocalProxyState.error);
+  }
+
+  LocalProxyError get localProxyError {
+    return _convertEnumValue(
+        LocalProxyError.values, this, LocalProxyError.httpTunnelFailed);
+  }
+
+  SetRoomExtraInfoResult get setRoomExtraInfoResult {
+    switch (this) {
+      case 0:
+        return SetRoomExtraInfoResult.success;
+      case -1:
+        return SetRoomExtraInfoResult.notJoinRoom;
+      case -2:
+        return SetRoomExtraInfoResult.keyIsNull;
+      case -3:
+        return SetRoomExtraInfoResult.valueIsNull;
+      case -99:
+        return SetRoomExtraInfoResult.unknown;
+      case -400:
+        return SetRoomExtraInfoResult.keyIsEmpty;
+      case -406:
+        return SetRoomExtraInfoResult.tooOften;
+      case -412:
+        return SetRoomExtraInfoResult.silentUser;
+      case -413:
+        return SetRoomExtraInfoResult.keyTooLong;
+      case -414:
+        return SetRoomExtraInfoResult.valueTooLong;
+      case -500:
+        return SetRoomExtraInfoResult.serverError;
+      default:
+        debugPrint('RTC: SetRoomExtraInfoResult unknown value $this');
+        return SetRoomExtraInfoResult.unknown;
+    }
+  }
+
+  SubtitleState get subtitleState {
+    return _convertEnumValue(SubtitleState.values, this, SubtitleState.error);
+  }
+
+  SubtitleErrorCode get subtitleErrorCode {
+    return _convertEnumValue(
+        SubtitleErrorCode.values, (this ?? -1) + 1, SubtitleErrorCode.unknown);
+  }
+
+  PlayerState get playerState {
+    return _convertEnumValue(PlayerState.values, this, PlayerState.failed);
+  }
+
+  PlayerError get playerError {
+    return _convertEnumValue(
+        PlayerError.values, this, PlayerError.invalidState);
+  }
+
+  UserVisibilityChangeError get userVisibilityChangeError {
+    return _convertEnumValue(UserVisibilityChangeError.values, this,
+        UserVisibilityChangeError.unknown);
   }
 }

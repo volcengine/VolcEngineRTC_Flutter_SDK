@@ -36,5 +36,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.volcengine:VolcEngineRTC:3.51.105'
+    implementation 'com.volcengine:VolcEngineRTC:3.54.0.556400'
 }

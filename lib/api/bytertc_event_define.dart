@@ -3,13 +3,14 @@
 
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
-
 import 'bytertc_audio_defines.dart';
 import 'bytertc_media_defines.dart';
+import 'bytertc_room_api.dart';
 import 'bytertc_rts_defines.dart';
+import 'bytertc_video_api.dart';
 import 'bytertc_video_defines.dart';
 
+/// Empty Callback
 typedef EmptyCallbackType = void Function();
 
 /// [code]：警告码
@@ -194,7 +195,7 @@ typedef OnUserLeaveType = void Function(String uid, UserOfflineReason reason);
 ///
 /// [mixType]：转推直播类型
 typedef OnStreamMixingEventType = void Function(StreamMixingEvent eventType,
-    String taskId, TranscoderErrorCode error, StreamMixingType mixType);
+    String taskId, StreamMixingErrorCode error, StreamMixingType mixType);
 
 /// [roomId]：流发布用户所在的房间 ID
 ///
@@ -398,7 +399,6 @@ typedef OnAudioRouteChangedType = void Function(AudioRoute route);
 typedef OnActiveSpeakerType = void Function(String roomId, String uid);
 
 /// @nodoc('Useless')
-@protected
 typedef OnStreamSubscribedType = void Function(
     SubscribeState stateCode, String uid, SubscribeConfig info);
 
@@ -455,11 +455,11 @@ typedef OnPlayPublicStreamResultType = void Function(
 
 /// [publicStreamId]：公共流 ID
 ///
-/// [message]：收到的 SEI 消息内容
+/// [message]：收到的 SEI/其他数据消息内容
 ///
-/// [sourceType]：SEI 消息类型
-typedef OnPublicStreamSEIMessageReceivedType = void Function(
-    String publicStreamId, Uint8List message, SEIMessageSourceType sourceType);
+/// [sourceType]：消息来源
+typedef OnPublicStreamDataMessageReceivedType = void Function(
+    String publicStreamId, Uint8List message, DataMessageSourceType sourceType);
 
 /// [publicStreamId]：公共流 ID
 ///
@@ -495,9 +495,58 @@ typedef OnLicenseWillExpireType = void Function(int days);
 /// [param]：回调内容(JSON string)
 typedef OnInvokeExperimentalAPIType = void Function(String param);
 
-/// [info]：实时评分信息。详见 [SingScoringRealtimeInfo]。
-typedef OnCurrentScoringInfoType = void Function(SingScoringRealtimeInfo? info);
-
-/// [result]: 通话前回声检测结果。详见 [HardwareEchoDetectionResult]。
+/// [result]：通话前回声检测结果。详见 [HardwareEchoDetectionResult]。
 typedef OnHardwareEchoDetectionResultType = void Function(
     HardwareEchoDetectionResult result);
+
+/// [extensionName]：插件名字。
+///
+/// [msg]：失败说明。
+typedef OnExtensionAccessErrorType = void Function(
+    String extensionName, String msg);
+
+/// [localProxyType]：本地代理类型。
+///
+/// [localProxyState]：本地代理状态。
+///
+/// [localProxyError]：本地代理错误
+typedef OnLocalProxyStateChangedType = void Function(
+    LocalProxyType localProxyType,
+    LocalProxyState localProxyState,
+    LocalProxyError localProxyError);
+
+/// [taskId]：调用 setRoomExtraInfo 的任务编号。
+///
+/// [error]：设置房间附加信息的结果。
+typedef OnSetRoomExtraInfoResultType = void Function(
+    int taskId, SetRoomExtraInfoResult error);
+
+/// [key]：房间附加信息的键值。
+///
+/// [value]：房间附加信息的内容。
+///
+/// [lastUpdateUserId]：最后更新本条信息的用户 ID。
+///
+/// [lastUpdateTimeMs]：最后更新本条信息的 Unix 时间，单位：毫秒。
+typedef OnRoomExtraInfoUpdateType = void Function(
+    String key, String value, String lastUpdateUserId, int lastUpdateTimeMs);
+
+/// [state]：字幕状态。
+///
+/// [errorCode]：字幕任务错误码。
+///
+/// [errorMessage]：与第三方服务有关的错误信息。
+typedef OnSubtitleStateChangedType = void Function(
+    SubtitleState state, SubtitleErrorCode errorCode, String errorMessage);
+
+/// [subtitles]：字幕消息内容。
+typedef OnSubtitleMessageReceivedType = void Function(
+    List<SubtitleMessage> subtitles);
+
+/// [currentUserVisibility]：当前用户的可见性。
+/// + true: 可见，用户可以在房间内发布音视频流，房间中的其他用户将收到用户的行为通知，例如进房、开启视频采集和退房。
+/// + false: 不可见，用户不可以在房间内发布音视频流，房间中的其他用户不会收到用户的行为通知，例如进房、开启视频采集和退房。
+///
+/// [errorCode]：设置用户可见性错误码。
+typedef OnUserVisibilityChangedType = void Function(
+    bool currentUserVisibility, UserVisibilityChangeError errorCode);

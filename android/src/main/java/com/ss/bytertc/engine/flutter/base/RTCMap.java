@@ -31,10 +31,11 @@ import com.ss.bytertc.engine.type.RemoteStreamSwitch;
 import com.ss.bytertc.engine.type.RemoteVideoStats;
 import com.ss.bytertc.engine.type.RtcUser;
 import com.ss.bytertc.engine.type.SourceWantedData;
+import com.ss.bytertc.engine.type.SubtitleMessage;
 import com.ss.bytertc.engine.video.Rectangle;
 import com.ss.bytertc.ktv.data.DownloadResult;
 import com.ss.bytertc.ktv.data.HotMusicInfo;
-import com.ss.bytertc.ktv.data.Music;
+import com.ss.bytertc.ktv.data.MusicInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -362,7 +363,7 @@ public class RTCMap {
         return result;
     }
 
-    public static Map<String, ?> from(Music music) {
+    public static Map<String, ?> from(MusicInfo music) {
         HashMap<String, Object> retValue = new HashMap<>();
         retValue.put("musicId", music.musicId);
         retValue.put("musicName", music.musicName);
@@ -379,10 +380,10 @@ public class RTCMap {
         return retValue;
     }
 
-    public static List<Map<String, ?>> from(Music[] musics) {
+    public static List<Map<String, ?>> from(MusicInfo[] musics) {
         if (musics == null) return null;
         List<Map<String, ?>> result = new ArrayList<>(musics.length);
-        for (Music music : musics) {
+        for (MusicInfo music : musics) {
             result.add(from(music));
         }
         return result;
@@ -397,9 +398,9 @@ public class RTCMap {
             if (hotMusic.hotName != null) {
                 map.put("hotName", hotMusic.hotName);
             }
-            List<Map<String, ?>> musics = from(hotMusic.musics);
+            List<Map<String, ?>> musics = from(hotMusic.musicInfos);
             if (musics != null) {
-                map.put("musics", musics);
+                map.put("musicInfos", musics);
             }
             result.add(map);
         }
@@ -437,6 +438,19 @@ public class RTCMap {
         retValue.put("sentenceScore", info.sentenceScore);
         retValue.put("totalScore", info.totalScore);
         retValue.put("averageScore", info.averageScore);
+        return retValue;
+    }
+
+    public static List<Map<String, Object>> from(SubtitleMessage[] subtitles) {
+        List<Map<String, Object>> retValue = new ArrayList<>(subtitles.length);
+        for (SubtitleMessage subtitle : subtitles) {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("uid", subtitle.userId);
+            map.put("text", subtitle.text);
+            map.put("sequence", subtitle.sequence);
+            map.put("definite", subtitle.definite);
+            retValue.add(map);
+        }
         return retValue;
     }
 }

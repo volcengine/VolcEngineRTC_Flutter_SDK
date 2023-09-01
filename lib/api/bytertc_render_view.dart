@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 
 import '../src/bytertc_render_view_impl.dart';
 import 'bytertc_media_defines.dart';
+import 'bytertc_video_api.dart';
 import 'bytertc_video_defines.dart';
 
 /// 画布类型
@@ -118,6 +119,7 @@ class RTCSurfaceView extends StatefulWidget {
   /// + Android 参看 [gestureRecognizers property](https://api.flutter.dev/flutter/widgets/AndroidView/gestureRecognizers.html)。
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
 
+  /// @nodoc
   const RTCSurfaceView({
     Key? key,
     required this.context,
