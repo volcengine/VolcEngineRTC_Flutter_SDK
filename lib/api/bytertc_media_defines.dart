@@ -163,7 +163,7 @@ enum RoomProfile {
 
   /// @nodoc
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use interactivePodcast instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use interactivePodcast instead')
   liveBroadCasting,
 
   /// 游戏模式
@@ -383,14 +383,14 @@ enum ErrorCode {
   ///
   /// RTC 系统会限制单个房间内发布的总流数，总流数包括视频流、音频流和屏幕流。<br>
   /// 如果房间内发布流数已达上限时，本地用户再向房间中发布流时会失败，同时会收到此错误通知。
-  @Deprecated('Deprecated since v3.54.1, use overStreamPublishLimit instead')
+  @Deprecated('Deprecated since v3.54, use overStreamPublishLimit instead')
   overScreenPublishLimit,
 
   /// 发布视频流总数超过上限
   ///
   /// RTC 系统会限制单个房间内发布的视频流数。<br>
   /// 如果房间内发布视频流数已达上限时，本地用户再向房间中发布视频流时会失败，同时会收到此错误通知。
-  @Deprecated('Deprecated since v3.54.1, use overStreamPublishLimit instead')
+  @Deprecated('Deprecated since v3.54, use overStreamPublishLimit instead')
   overVideoPublishLimit,
 
   /// 音视频同步失败
@@ -476,47 +476,47 @@ enum WarningCode {
 
   /// 麦克风权限异常，当前应用没有获取麦克风权限
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   noMicrophonePermission,
 
   /// 音频采集设备启动失败。
   ///
   /// 启动音频采集设备失败，当前设备可能被其他应用占用。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   audioDeviceManagerRecordingStartFail,
 
   /// 音频播放设备启动失败警告。
   ///
   /// 可能由于系统资源不足，或参数错误。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   audioDeviceManagerPlayoutStartFail,
 
   /// 无可用音频采集设备。
   ///
   /// 启动音频采集设备失败，请插入可用的音频采集设备。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   noRecordingDevice,
 
   /// 无可用音频播放设备。
   ///
   /// 启动音频播放设备失败，请插入可用的音频播放设备。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   noPlayoutDevice,
 
   /// 当前音频设备没有采集到有效的声音数据，请检查更换音频采集设备。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   recordingSilence,
 
   /// 媒体设备误操作警告。
   ///
   /// 使用自定义采集时，不可调用内部采集开关，调用时触发此警告。
   @Deprecated(
-      'Deprecated since v3.45.1 and will be deleted in v3.52.1, use MediaDeviceWarning instead')
+      'Deprecated since v3.45 and will be deleted in v3.54, use MediaDeviceWarning instead')
   mediaDeviceOperationDenied,
 
   /// 不支持在 [RTCRoom.publishScreen] 之后，切换屏幕音频采集源
@@ -1452,9 +1452,9 @@ class EchoTestConfig {
 
   /// 音量信息提示间隔，单位：ms，默认为 100ms
   ///
-  /// + `<= 0`: 无信息提示；
-  /// + `(0,100]`: 开启信息提示，不合法值，SDK 将自动设置为 100ms；
-  /// + `> 100`: 开启信息提示，并将信息提示间隔设置为此值。
+  /// + `<= 0`：无信息提示；
+  /// + `(0,100]`：开启信息提示，不合法值，SDK 将自动设置为 100ms；
+  /// + `> 100`：开启信息提示，并将信息提示间隔设置为此值。
   int audioReportInterval;
 
   /// @nodoc
@@ -1564,9 +1564,11 @@ class RTCRoomStats {
   /// 客户端到服务端数据传输的往返时延（单位 ms）
   final int? rtt;
 
+  /// @nodoc('Not available')
   /// 系统上行网络抖动（ms）
   final int? txJitter;
 
+  /// @nodoc('Not available')
   /// 系统下行网络抖动（ms）
   final int? rxJitter;
 
@@ -1689,6 +1691,9 @@ class LocalVideoStats {
   /// 你可以知道当前统计数据来自主流还是屏幕流。
   final bool? isScreen;
 
+  /// 视频上行网络抖动，单位为 ms。
+  final int? jitter;
+
   /// @nodoc
   const LocalVideoStats({
     this.sentKBitrate,
@@ -1705,6 +1710,7 @@ class LocalVideoStats {
     this.encodedFrameCount,
     this.codecType,
     this.isScreen,
+    this.jitter,
   });
 
   /// @nodoc
@@ -1724,6 +1730,7 @@ class LocalVideoStats {
       encodedFrameCount: map['encodedFrameCount'],
       codecType: (map['codecType'] as int?).videoCodecType,
       isScreen: map['isScreen'],
+      jitter: map['jitter'],
     );
   }
 }
@@ -1874,6 +1881,9 @@ class LocalAudioStats {
   /// 此次统计周期内的音频发送采样率信息，单位为 Hz。
   final int? sentSampleRate;
 
+  /// 音频上行网络抖动，单位为 ms。
+  final int? jitter;
+
   /// @nodoc
   const LocalAudioStats({
     this.audioLossRate,
@@ -1883,6 +1893,7 @@ class LocalAudioStats {
     this.rtt,
     this.numChannels,
     this.sentSampleRate,
+    this.jitter,
   });
 
   /// @nodoc
@@ -1895,6 +1906,7 @@ class LocalAudioStats {
       rtt: map['rtt'],
       numChannels: map['numChannels'],
       sentSampleRate: map['sentSampleRate'],
+      jitter: map['jitter'],
     );
   }
 }
@@ -2576,12 +2588,20 @@ class SubtitleMessage {
   /// 语音识别出的文本是否为一段完整的一句话。 True：是；False：否。
   final bool definite;
 
+  /// 字幕语种，根据字幕模式为原文或译文对应的语种。
+  final String language;
+
+  /// 字幕模式。
+  final SubtitleMode mode;
+
   /// @nodoc
   const SubtitleMessage({
     required this.uid,
     required this.text,
     required this.sequence,
     required this.definite,
+    required this.language,
+    required this.mode,
   });
 
   /// @nodoc
@@ -2591,6 +2611,8 @@ class SubtitleMessage {
       text: map['text'],
       sequence: map['sequence'],
       definite: map['definite'],
+      language: map['language'],
+      mode: (map['mode'] as int?).subtitleMode,
     );
   }
 }

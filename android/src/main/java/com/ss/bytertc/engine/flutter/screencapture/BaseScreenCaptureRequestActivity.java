@@ -17,7 +17,7 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.bytedance.realx.video.RXScreenCaptureService;
+import com.ss.bytertc.base.media.screen.RXScreenCaptureService;
 import com.ss.bytertc.engine.RTCVideo;
 import com.ss.bytertc.engine.data.ScreenMediaType;
 import com.ss.bytertc.engine.flutter.base.RTCVideoManager;

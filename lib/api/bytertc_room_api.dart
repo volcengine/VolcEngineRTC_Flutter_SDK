@@ -56,8 +56,8 @@ abstract class RTCRoom {
   /// 设置用户可见性。未调用该接口前，本地用户默认对他人可见。
   ///
   /// 通过 [enable] 设置用户可见性和用户在房间内的行为：
-  /// + true: 可以被房间中的其他用户感知，且可以在房间内发布和订阅音视频流；
-  /// + false: 无法被房间中的其他用户感知，且只能在房间内订阅音视频流。
+  /// + true：可以被房间中的其他用户感知，且可以在房间内发布和订阅音视频流；
+  /// + false：无法被房间中的其他用户感知，且只能在房间内订阅音视频流。
   ///
   /// 返回值：
   /// + `0`：调用成功；
@@ -106,10 +106,10 @@ abstract class RTCRoom {
 
   /// 更新 Token
   ///
-  /// Token 中同时包含进房、发布和订阅权限，各权限有一定的有效期，并且到期前 30 秒会触发回调，提示用户更新 Token 相关权限。此时需要重新获取 Token，并调用此方法更新 Token，以保证通话的正常进行。
+  /// 收到 [RTCRoomEventHandler.onTokenWillExpire]，[RTCRoomEventHandler.onPublishPrivilegeTokenWillExpire]，或 [RTCRoomEventHandler.onSubscribePrivilegeTokenWillExpire] 时，你必须重新获取 Token，并调用此方法更新 Token，以保证通话的正常进行。
   ///
   /// [token] 重新获取的有效 Token。<br>
-  /// 如果传入的 Token 无效，回调错误码为 [ErrorCode] 中的 `updateTokenWithInvalidToken` 提示传入的 Token 无效。
+  /// 如果 Token 无效，你会收到 [RTCRoomEventHandler.onRoomStateChanged]，错误码是 `-1010`。
   ///
   /// 返回值参看 [ReturnStatus]。
   ///
@@ -205,7 +205,7 @@ abstract class RTCRoom {
   /// 返回值参看 [ReturnStatus]。
   ///
   /// 注意：
-  /// + 该方法可以用于首次订阅某远端用户，也可用于更新已订阅远端用户的媒体流类型。
+  /// + 该方法可以用于首次订阅某远端用户，也可用于更新已订阅远端用户的媒体流类型。若当前用户在调用本接口时已经订阅该远端用户（手动订阅或自动订阅），则将根据本次传入的参数，更新订阅配置。
   /// + 你必须先通过 [RTCRoomEventHandler.onUserPublishStream] 回调获取当前房间里的远端摄像头音视频流信息，然后调用本方法按需订阅。
   /// + 成功订阅远端用户的媒体流后，订阅关系将持续到调用 [RTCRoom.unsubscribeStream] 取消订阅或本端用户退房。
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体异常原因参看 [ErrorCode]。
@@ -218,7 +218,7 @@ abstract class RTCRoom {
   ///
   /// [type] 媒体流类型，用于指定取消订阅音频/视频。
   ///
-  /// 注意:
+  /// 注意：
   /// + 多次调用订阅接口时，将根据末次调用接口和传入的参数，更新订阅配置。
   /// + 大会模式下，如果房间内的媒体流超过上限，建议通过调用 [subscribeStream] 逐一指定需要订阅的媒体流。
   /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知方法调用结果。
@@ -248,7 +248,7 @@ abstract class RTCRoom {
   ///
   /// [type] 媒体流类型，用于指定取消订阅音频/视频
   ///
-  /// 注意:
+  /// 注意：
   /// + 调用该方法后，你会收到 [RTCRoomEventHandler.onStreamSubscribed] 通知方法调用结果。
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体失败原因参看 [ErrorCode]。
   Future<int?> unsubscribeAllStreams(MediaStreamType type);
@@ -264,7 +264,7 @@ abstract class RTCRoom {
   /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
   ///
   /// 注意：
-  /// + 该方法可以用于首次订阅某远端用户的屏幕流，也可用于更新已订阅远端用户的屏幕媒体流类型。
+  /// + 该方法可以用于首次订阅某远端用户的屏幕流，也可用于更新已订阅远端用户的屏幕媒体流类型。若当前用户在调用本接口时已经订阅该远端用户（手动订阅或自动订阅），则将根据本次传入的参数，更新订阅配置。
   /// + 你必须先通过 [RTCRoomEventHandler.onUserPublishScreen] 回调获取当前房间里的远端屏幕流信息，然后调用本方法按需订阅。
   /// + 成功订阅远端用户的媒体流后，订阅关系将持续到调用 [RTCRoom.unsubscribeScreen] 取消订阅或本端用户退房。
   /// + 关于其他调用异常，你会收到 [RTCRoomEventHandler.onStreamStateChanged] 回调通知，具体异常原因参看 [ErrorCode]。
@@ -459,9 +459,9 @@ abstract class RTCRoom {
   /// 调节某个房间内所有远端用户的音频播放音量。
   ///
   /// [volume] 为音频播放音量值和原始音量的比值，范围是 `[0, 400]`，单位为 %，自带溢出保护。为保证更好的通话质量，建议将 volume 值设为 `[0,100]`。 <br>
-  /// + 0: 静音
-  /// + 100: 原始音量，默认值
-  /// + 400: 最大可为原始音量的 4 倍(自带溢出保护)
+  /// + 0：静音
+  /// + 100：原始音量，默认值
+  /// + 400：最大可为原始音量的 4 倍(自带溢出保护)
   ///
   /// 返回值：
   /// + `0`：调用成功；
@@ -472,9 +472,9 @@ abstract class RTCRoom {
   /// + 当该方法与 [RTCVideo.setPlaybackVolume] 方法共同使用时，本地收听用户 A 的音量将为两次设置的音量效果的叠加。
   Future<int?> setRemoteRoomAudioPlaybackVolume(int volume);
 
-  /// v3.54.1 新增。
-  ///
   /// 设置本端发布流在音频选路中的优先级。
+  ///
+  /// v3.54 新增。
   ///
   /// [audioSelectionPriority]：本端发布流在音频选路中的优先级，默认正常参与音频选路。
   ///
@@ -484,9 +484,9 @@ abstract class RTCRoom {
   Future<int?> setAudioSelectionConfig(
       AudioSelectionPriority audioSelectionPriority);
 
-  /// v3.54.1 新增。
-  ///
   /// 设置/更新房间附加信息，可用于标识房间状态或属性，或灵活实现各种业务逻辑。
+  ///
+  /// v3.54 新增。
   ///
   /// [key]：房间附加信息键值，长度小于 10 字节。<br>
   /// 同一房间内最多可存在 5 个 key，超出则会从第一个 key 起进行替换。
@@ -494,8 +494,8 @@ abstract class RTCRoom {
   /// [value]：房间附加信息内容，长度小于 128 字节。
   ///
   /// 返回值：
-  /// + `0`: 方法调用成功，返回本次调用的任务编号；
-  /// + `<0`: 方法调用失败，具体原因详见 [SetRoomExtraInfoResult]。
+  /// + `0`：方法调用成功，返回本次调用的任务编号；
+  /// + `<0`：方法调用失败，具体原因详见 [SetRoomExtraInfoResult]。
   ///
   /// 注意：
   /// + 在设置房间附加信息前，必须先调用 [RTCRoom.joinRoom] 加入房间。
@@ -507,9 +507,10 @@ abstract class RTCRoom {
     required String value,
   });
 
-  /// v3.54.1 新增。
+  /// 识别或翻译房间内所有用户的语音，形成字幕。
   ///
-  /// 识别或翻译房间内所有用户的语音，形成字幕。<br>
+  /// v3.54 新增。
+  ///
   /// 语音识别或翻译的结果会通过 [RTCRoomEventHandler.onSubtitleMessageReceived] 事件回调给你。<br>
   /// 调用该方法后，你会收到 [RTCRoomEventHandler.onSubtitleStateChanged] 回调，通知字幕是否开启。
   ///
@@ -522,17 +523,20 @@ abstract class RTCRoom {
   /// 注意：
   /// + 使用字幕功能前，你需要[开通机器翻译服务](https://www.volcengine.com/docs/4640/130262)并前往 [RTC 控制台](https://console.volcengine.com/rtc/cloudRTC?tab=subtitle)，在功能配置页面开启字幕功能。
   /// + 此方法需要在进房后调用。
-  /// + 如需指定源语言，你需要在调用 `joinRoom` 接口进房时，通过 extraInfo 参数传入 `"source_language": "zh"` JSON 字符串，设置源语言为中文；传入 `"source_language": "en"`JSON 字符串，设置源语言为英文；传入 `"source_language": "ja"` JSON 字符串，设置源语言为日文。如未指定源语言，SDK 会将系统语种设定为源语言。如果你的系统语种不是中文、英文和日文，此时 SDK 会自动将中文设为源语言。
+  /// + 如需指定源语言，你需要在调用 `joinRoom` 接口进房时，通过 extraInfo 参数传入格式为`"语种英文名": "语种代号"` JSON 字符串，例如设置源语言为英文时，传入 `"source_language": "en"`。如未指定源语言，SDK 会将系统语种设定为源语言。如果你的系统语种不是中文、英文和日文，此时 SDK 会自动将中文设为源语言。
+  ///   + 识别模式下，你可以传入 [RTC 控制台](https://console.volcengine.com/rtc/cloudRTC?tab=subtitle)上预设或自定义的语种英文名和语种代号。识别模式下支持的语言参看[识别模式语种支持](https://www.volcengine.com/docs/6561/109880#%E8%AF%AD%E7%A7%8D%E6%94%AF%E6%8C%81)。
+  ///   + 翻译模式下，你需要传入机器翻译规定的语种英文名和语种代号。翻译模式下支持的语言及对应的代号参看[翻译模式语言支持](https://www.volcengine.com/docs/4640/35107)。
   /// + 调用 [RTCRoom.stopSubtitle] 可以关闭字幕。
   Future<int?> startSubtitle(SubtitleConfig subtitleConfig);
 
-  /// v3.54.1 新增。
+  /// 关闭字幕。
   ///
-  /// 关闭字幕。 <br>
+  /// v3.54 新增。
+  ///
   /// 调用该方法后，你会收到 [RTCRoomEventHandler.onSubtitleStateChanged] 回调，通知字幕是否关闭。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + !0: 调用失败。
+  /// + 0：调用成功。
+  /// + !0：调用失败。
   Future<int?> stopSubtitle();
 }

@@ -171,7 +171,7 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
         int backgroundColor = arguments.optInt("backgroundColor");
 
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.background_color = backgroundColor;
+        mVideoCanvas.backgroundColor = backgroundColor;
 
         return RTCVideoManager.getRTCVideo().setLocalVideoCanvas(streamType, mVideoCanvas);
     }
@@ -184,7 +184,7 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
         int backgroundColor = arguments.optInt("backgroundColor");
 
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.background_color = backgroundColor;
+        mVideoCanvas.backgroundColor = backgroundColor;
 
         final RemoteStreamKey streamKey = new RemoteStreamKey(roomId, uid, streamType);
 
@@ -197,7 +197,7 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
         int backgroundColor = arguments.optInt("backgroundColor");
 
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.background_color = backgroundColor;
+        mVideoCanvas.backgroundColor = backgroundColor;
 
         RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
         return rtcVideo.setPublicStreamVideoCanvas(uid, mVideoCanvas);
@@ -208,7 +208,7 @@ class RTCSurfaceView implements PlatformView, MethodChannel.MethodCallHandler {
         int backgroundColor = arguments.optInt("backgroundColor");
 
         mVideoCanvas.renderMode = renderMode;
-        mVideoCanvas.background_color = backgroundColor;
+        mVideoCanvas.backgroundColor = backgroundColor;
 
         EchoTestViewHolder.setView(mVideoCanvas);
     }

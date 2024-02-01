@@ -13,6 +13,9 @@ import 'bytertc_video_defines.dart';
 /// Empty Callback
 typedef EmptyCallbackType = void Function();
 
+/// [reason]：登出原因
+typedef OnLogoutType = void Function(LogoutReason reason);
+
 /// [code]：警告码
 typedef OnWarningType = void Function(WarningCode code);
 
@@ -142,9 +145,9 @@ typedef OnRecordingStateUpdateType = void Function(StreamIndex type,
 typedef OnRecordingProgressUpdateType = void Function(
     StreamIndex type, RecordingProgress progress, RecordingInfo info);
 
-/// [state]: 录制状态
+/// [state]：录制状态
 ///
-/// [errorCode]: 录制错误码
+/// [errorCode]：录制错误码
 typedef OnAudioRecordingStateUpdateType = void Function(
     AudioRecordingState state, AudioRecordingErrorCode errorCode);
 
@@ -165,8 +168,8 @@ typedef OnRemoteStreamStatsType = void Function(RemoteStreamStats stats);
 /// [uid]：发生状态改变的用户 ID
 ///
 /// [state]：房间状态码
-/// + 0: 成功；
-/// + !0: 失败，具体原因参看 [ErrorCode] 及 [WarningCode]
+/// + 0：成功；
+/// + !0：失败，具体原因参看 [ErrorCode] 及 [WarningCode]
 ///
 /// [extraInfo]：额外信息
 /// + `joinType`表示加入房间的类型，`0`为首次进房，`1`为重连进房。
@@ -257,6 +260,22 @@ typedef OnLocalVideoStateChangedType = void Function(StreamIndex index,
 typedef OnRemoteVideoStateChangedType = void Function(RemoteStreamKey streamKey,
     RemoteVideoState state, RemoteVideoStateChangeReason reason);
 
+/// [streamKey]：远端视频流信息
+///
+/// [mode]： 超分模式
+///
+/// [reason]：超分模式改变原因
+typedef OnRemoteVideoSuperResolutionModeChangedType = void Function(
+    RemoteStreamKey streamKey,
+    VideoSuperResolutionMode mode,
+    VideoSuperResolutionModeChangedReason reason);
+
+/// [mode]：视频降噪模式
+///
+/// [reason]：视频降噪模式改变的原因
+typedef OnVideoDenoiseModeChangedType = void Function(
+    VideoDenoiseMode mode, VideoDenoiseModeChangedReason reason);
+
 /// [uid]：登录用户 ID
 ///
 /// [errorCode]：登录结果
@@ -310,23 +329,23 @@ typedef OnBinaryMessageReceivedType = void Function(
 /// [uid]：被封禁/解禁的视频流用户 ID
 ///
 /// [banned]：视频流发送状态
-/// + true: 视频流发送被封禁
-/// + false: 视频流发送被解禁
+/// + true：视频流发送被封禁
+/// + false：视频流发送被解禁
 typedef OnVideoStreamBannedType = void Function(String uid, bool banned);
 
 /// [uid]：被封禁/解禁的音频流用户 ID
 ///
 /// [banned]：音频流发送状态
-/// + true: 音频流发送被封禁
-/// + false: 音频流发送被解禁
+/// + true：音频流发送被封禁
+/// + false：音频流发送被解禁
 typedef OnAudioStreamBannedType = void Function(String uid, bool banned);
 
 /// [message]：识别完成后得到的文字消息
 typedef OnMessageType = void Function(String message);
 
 /// [errorCode]：错误码
-/// + `<0`: 参数错误或 API 调用顺序错误
-/// + `>0`: 参看 [语音识别服务错误码](https://www.volcengine.com/docs/6561/80818#_3-3-%E9%94%99%E8%AF%AF%E7%A0%81)
+/// + `<0`：参数错误或 API 调用顺序错误
+/// + `>0`：参看 [语音识别服务错误码](https://www.volcengine.com/docs/6561/80818#_3-3-%E9%94%99%E8%AF%AF%E7%A0%81)
 ///
 /// [errorMessage]：错误原因说明
 typedef OnErrorMsgType = void Function(int errorCode, String errorMessage);
@@ -463,6 +482,14 @@ typedef OnPublicStreamDataMessageReceivedType = void Function(
 
 /// [publicStreamId]：公共流 ID
 ///
+/// [channelId]：SEI 的消息传输通道，取值范围 [0 - 255]。
+///
+/// [message]：收到的 SEI/其他数据消息内容
+typedef OnPublicStreamSEIMessageReceivedWithChannelType = void Function(
+    String publicStreamId, int channelId, Uint8List message);
+
+/// [publicStreamId]：公共流 ID
+///
 /// [videoFrameInfo]：视频帧信息
 typedef OnFirstPublicStreamVideoFrameDecodedType = void Function(
     String publicStreamId, VideoFrameInfo videoFrameInfo);
@@ -544,8 +571,8 @@ typedef OnSubtitleMessageReceivedType = void Function(
     List<SubtitleMessage> subtitles);
 
 /// [currentUserVisibility]：当前用户的可见性。
-/// + true: 可见，用户可以在房间内发布音视频流，房间中的其他用户将收到用户的行为通知，例如进房、开启视频采集和退房。
-/// + false: 不可见，用户不可以在房间内发布音视频流，房间中的其他用户不会收到用户的行为通知，例如进房、开启视频采集和退房。
+/// + true：可见，用户可以在房间内发布音视频流，房间中的其他用户将收到用户的行为通知，例如进房、开启视频采集和退房。
+/// + false：不可见，用户不可以在房间内发布音视频流，房间中的其他用户不会收到用户的行为通知，例如进房、开启视频采集和退房。
 ///
 /// [errorCode]：设置用户可见性错误码。
 typedef OnUserVisibilityChangedType = void Function(

@@ -47,19 +47,19 @@
 }
 
 - (void)updateReceiveRange:(NSDictionary *)arguments result:(FlutterResult)result {
-    ReceiveRange *range = [ReceiveRange bf_fromMap:arguments[@"range"]];
+    ByteRTCReceiveRange *range = [ByteRTCReceiveRange bf_fromMap:arguments[@"range"]];
     int res = [self.rangeAudio updateReceiveRange:range];
     result(@(res));
 }
 
 - (void)updatePosition:(NSDictionary *)arguments result:(FlutterResult)result {
-    Position *pos = [Position bf_fromMap:arguments[@"pos"]];
+    ByteRTCPosition *pos = [ByteRTCPosition bf_fromMap:arguments[@"pos"]];
     int res = [self.rangeAudio updatePosition:pos];
     result(@(res));
 }
 
 - (void)setAttenuationModel:(NSDictionary *)arguments result:(FlutterResult)result {
-    AttenuationType type = [arguments[@"type"] integerValue];
+    ByteRTCAttenuationType type = [arguments[@"type"] integerValue];
     float coefficient = [arguments[@"coefficient"] floatValue];
     int res = [self.rangeAudio setAttenuationModel:type coefficient:coefficient];
     result(@(res));

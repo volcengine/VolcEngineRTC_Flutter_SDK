@@ -23,7 +23,11 @@ import com.ss.bytertc.engine.data.RemoteAudioStateChangeReason;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
+import com.ss.bytertc.engine.data.VideoDenoiseMode;
+import com.ss.bytertc.engine.data.VideoDenoiseModeChangedReason;
 import com.ss.bytertc.engine.data.VideoFrameInfo;
+import com.ss.bytertc.engine.data.VideoSuperResolutionMode;
+import com.ss.bytertc.engine.data.VideoSuperResolutionModeChangedReason;
 import com.ss.bytertc.engine.flutter.base.RTCMap;
 import com.ss.bytertc.engine.flutter.base.RTCTypeBox;
 import com.ss.bytertc.engine.flutter.event.EventEmitter;
@@ -205,6 +209,23 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
     }
 
     @Override
+    public void onRemoteVideoSuperResolutionModeChanged(RemoteStreamKey streamKey, VideoSuperResolutionMode mode, VideoSuperResolutionModeChangedReason reason) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("streamKey", RTCMap.from(streamKey));
+        map.put("mode", mode.value());
+        map.put("reason", reason.value());
+        emitter.emit("onRemoteVideoSuperResolutionModeChanged", map);
+    }
+
+    @Override
+    public void onVideoDenoiseModeChanged(VideoDenoiseMode mode, VideoDenoiseModeChangedReason reason) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("mode", mode.value());
+        map.put("reason", reason.value());
+        emitter.emit("onVideoDenoiseModeChanged", map);
+    }
+
+    @Override
     public void onFirstRemoteVideoFrameRendered(RemoteStreamKey remoteStreamKey, VideoFrameInfo frameInfo) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("streamKey", RTCMap.from(remoteStreamKey));
@@ -304,8 +325,9 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
     }
 
     @Override
-    public void onLogout() {
+    public void onLogout(int reason) {
         final HashMap<String, Object> map = new HashMap<>();
+        map.put("reason", reason);
         emitter.emit("onLogout", map);
     }
 
@@ -618,6 +640,15 @@ public final class VideoEventProxy extends IRTCVideoEventHandler {
         map.put("message", message.array());
         map.put("sourceType", sourceType.value());
         emitter.emit("onPublicStreamSEIMessageReceived", map);
+    }
+
+    @Override
+    public void onPublicStreamSEIMessageReceivedWithChannel(String publicStreamId, int channelId, ByteBuffer message) {
+        final HashMap<String, Object> map = new HashMap<>();
+        map.put("publicStreamId", publicStreamId);
+        map.put("channelId", channelId);
+        map.put("message", message.array());
+        emitter.emit("onPublicStreamSEIMessageReceivedWithChannel", map);
     }
 
     @Override

@@ -21,6 +21,19 @@ enum UserOfflineReason {
   kickedByAdmin,
 }
 
+/// 用户登出的原因
+enum LogoutReason {
+  /// 用户主动退出
+  ///
+  /// 用户调用 `logout` 接口登出，或者销毁引擎登出
+  logout,
+
+  /// 用户被动退出
+  ///
+  /// 另一个用户以相同 UserId 进行了 `login`，导致本端用户被踢出
+  duplicateLogin,
+}
+
 /// SDK 与 RTC 服务器连接状态
 enum RTCConnectionState {
   /// 连接断开，且断开时长超过 12s，SDK 会自动重连
@@ -154,6 +167,14 @@ enum UserMessageSendResult {
 
   /// 超过 QPS 限制
   exceedQPS,
+
+  /// 消息发送失败。应用服务器未收到客户端发送的消息。
+  /// 由 [RTCVideo.sendServerMessage]/[RTCVideo.sendServerBinaryMessage] 触发，通过 [RTCVideoEventHandler.onServerMessageSendResult] 回调。
+  e2BSSendFailed,
+
+  /// 消息发送失败。应用服务器接收到了客户端发送的消息，但响应失败。
+  /// 由 [RTCVideo.sendServerMessage]/[RTCVideo.sendServerBinaryMessage] 触发，通过 [RTCVideoEventHandler.onServerMessageSendResult] 回调。
+  e2BSReturnFailed,
 
   /// 发送端用户未加入房间
   notJoin,
@@ -418,11 +439,16 @@ class RTCLogConfig {
   /// 日志可使用的最大缓存空间，单位为 MB。取值范围为 1～100 MB，默认值为 10 MB。
   final int logFileSize;
 
+  /// 日志文件名前缀，选填。该字符串必须符合正则表达式：[a-zA-Z0-9_@\-\.]{1,128}。
+  /// 最终的日志文件名为`前缀 + "_" + 文件创建时间 + "_rtclog".log`，如 `logPrefix_2023-05-25_172324_rtclog.log`。
+  final String logFilenamePrefix;
+
   /// @nodoc
   const RTCLogConfig({
     required this.logPath,
     this.logLevel = LocalLogLevel.warning,
     this.logFileSize = 10,
+    this.logFilenamePrefix = '',
   });
 
   /// @nodoc
@@ -431,6 +457,7 @@ class RTCLogConfig {
       'logPath': logPath,
       'logLevel': logLevel.index,
       'logFileSize': logFileSize,
+      'logFilenamePrefix': logFilenamePrefix,
     };
   }
 }

@@ -113,9 +113,9 @@
 
 - (NSDictionary *)bf_toMap {
     NSMutableDictionary * dict = [NSMutableDictionary dictionary];
-    dict[@"audioStats"] = [ByteRTCFlutterEventfactory localAudioStatsToMap:self.audio_stats];
-    dict[@"videoStats"] = [ByteRTCFlutterEventfactory localVideoStatsToMap:self.self.video_stats];
-    dict[@"isScreen"] = @(self.is_screen);
+    dict[@"audioStats"] = [ByteRTCFlutterEventfactory localAudioStatsToMap:self.audioStats];
+    dict[@"videoStats"] = [ByteRTCFlutterEventfactory localVideoStatsToMap:self.self.videoStats];
+    dict[@"isScreen"] = @(self.isScreen);
     return dict.copy;
 }
 
@@ -126,9 +126,9 @@
 - (NSDictionary *)bf_toMap {
     NSMutableDictionary * dict = [NSMutableDictionary dictionary];
     dict[@"uid"] = self.uid;
-    dict[@"audioStats"] = self.audio_stats.bf_toMap;
-    dict[@"videoStats"] = self.video_stats.bf_toMap;
-    dict[@"isScreen"] = @(self.is_screen);
+    dict[@"audioStats"] = self.audioStats.bf_toMap;
+    dict[@"videoStats"] = self.videoStats.bf_toMap;
+    dict[@"isScreen"] = @(self.isScreen);
     return dict.copy;
 }
 
@@ -147,7 +147,7 @@
     dict[@"e2eDelay"] = @(self.e2eDelay);
     dict[@"statsInterval"] = @(self.statsInterval);
     dict[@"rtt"] = @(self.rtt);
-    dict[@"totalRtt"] = @(self.total_rtt);
+    dict[@"totalRtt"] = @(self.totalRtt);
     dict[@"quality"] = @(self.quality);
     dict[@"jitterBufferDelay"] = @(self.jitterBufferDelay);
     dict[@"numChannels"] = @(self.numChannels);
@@ -193,15 +193,15 @@
 
 - (NSDictionary *)bf_toMap {
     NSMutableDictionary * dict = [NSMutableDictionary dictionary];
-    dict[@"cpuCores"] = @(self.cpu_cores);
-    dict[@"cpuAppUsage"] = @(self.cpu_app_usage);
-    dict[@"cpuTotalUsage"] = @(self.cpu_total_usage);
-    dict[@"memoryUsage"] = @(self.memory_usage);
-    dict[@"fullMemory"] = @(self.full_memory);
-    dict[@"totalMemoryUsage"] = @(self.total_memory_usage);
-    dict[@"freeMemory"] = @(self.free_memory);
-    dict[@"memoryRatio"] = @(self.memory_ratio);
-    dict[@"totalMemoryRatio"] = @(self.total_memory_ratio);
+    dict[@"cpuCores"] = @(self.cpuCores);
+    dict[@"cpuAppUsage"] = @(self.cpuAppUsage);
+    dict[@"cpuTotalUsage"] = @(self.cpuTotalUsage);
+    dict[@"memoryUsage"] = @(self.memoryUsage);
+    dict[@"fullMemory"] = @(self.fullMemory);
+    dict[@"totalMemoryUsage"] = @(self.totalMemoryUsage);
+    dict[@"freeMemory"] = @(self.freeMemory);
+    dict[@"memoryRatio"] = @(self.memoryRatio);
+    dict[@"totalMemoryRatio"] = @(self.totalMemoryRatio);
     return dict.copy;
 }
 
@@ -305,7 +305,7 @@
     region.renderMode = [dict[@"renderMode"] unsignedIntegerValue];
     region.type = [dict[@"type"] integerValue];
     region.cornerRadius = [dict[@"cornerRadius"] doubleValue];
-    region.spatialPosition = [Position bf_fromMap:dict[@"spatialPosition"]];
+    region.spatialPosition = [ByteRTCPosition bf_fromMap:dict[@"spatialPosition"]];
     region.applySpatialAudio = [dict[@"applySpatialAudio"] boolValue];
     FlutterStandardTypedData *data = dict[@"data"];
     if (data != nil) {
@@ -327,8 +327,8 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return config;
     }
-    config.audienceSpatialOrientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
-    config.audienceSpatialPosition = [Position bf_fromMap:dict[@"position"]];
+    config.audienceSpatialOrientation = [ByteRTCHumanOrientation bf_fromMap:dict[@"orientation"]];
+    config.audienceSpatialPosition = [ByteRTCPosition bf_fromMap:dict[@"position"]];
     config.enableSpatialRender = [dict[@"enableSpatialRender"] boolValue];
     return config;
 }
@@ -434,10 +434,10 @@
     }
     region.userID = dict[@"uid"];
     region.roomID = dict[@"roomId"];
-    region.locationX = [dict[@"locationX"] doubleValue];
-    region.locationY = [dict[@"locationY"] doubleValue];
-    region.widthProportion = [dict[@"widthProportion"] doubleValue];
-    region.heightProportion = [dict[@"heightProportion"] doubleValue];
+    region.locationX = [dict[@"locationX"] integerValue];
+    region.locationY = [dict[@"locationY"] integerValue];
+    region.width = [dict[@"width"] integerValue];
+    region.height = [dict[@"height"] integerValue];
     region.zOrder = [dict[@"zOrder"] integerValue];
     region.isLocalUser = [dict[@"isLocalUser"] boolValue];
     region.streamType = [dict[@"streamType"] integerValue];
@@ -445,8 +445,10 @@
     region.cornerRadius = [dict[@"cornerRadius"] doubleValue];
     region.mediaType = [dict[@"mediaType"] integerValue];
     region.renderMode = [dict[@"renderMode"] unsignedIntegerValue];
+    region.alternateImageFillMode = [dict[@"alternateImageFillMode"] integerValue];
+    region.alternateImageUrl = dict[@"alternateImageUrl"];
     region.regionContentType = [dict[@"regionContentType"] integerValue];
-    region.spatialPosition = [Position bf_fromMap:dict[@"spatialPosition"]];
+    region.spatialPosition = [ByteRTCPosition bf_fromMap:dict[@"spatialPosition"]];
     region.applySpatialAudio = [dict[@"applySpatialAudio"] boolValue];
     FlutterStandardTypedData *imageWaterMark = dict[@"imageWaterMark"];
     if (imageWaterMark != nil) {
@@ -468,8 +470,8 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return config;
     }
-    config.audienceSpatialOrientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
-    config.audienceSpatialPosition = [Position bf_fromMap:dict[@"position"]];
+    config.audienceSpatialOrientation = [ByteRTCHumanOrientation bf_fromMap:dict[@"orientation"]];
+    config.audienceSpatialPosition = [ByteRTCPosition bf_fromMap:dict[@"position"]];
     config.enableSpatialRender = [dict[@"enableSpatialRender"] boolValue];
     return config;
 }
@@ -511,6 +513,7 @@
     NSDictionary *layoutDict = dict[@"layout"];
     if ([layoutDict isKindOfClass:[NSDictionary class]]) {
         layout.backgroundColor = layoutDict[@"backgroundColor"];
+        layout.backgroundImageUrl = layoutDict[@"backgroundImageUrl"];
         layout.userConfigExtraInfo = layoutDict[@"userConfigExtraInfo"];
         NSArray *regionList = layoutDict[@"regions"];
         if ([regionList isKindOfClass:[NSArray class]]) {
@@ -521,6 +524,20 @@
             }];
             [layout setRegions:regions];
         }
+    }
+    
+    ByteRTCMixedStreamServerControlConfig* serverControlConfig = obj.serverControlConfig;
+    NSDictionary *serverControlConfigDict = dict[@"serverControlConfig"];
+    if ([serverControlConfigDict isKindOfClass:[NSDictionary class]]) {
+        serverControlConfig.enableVolumeIndication = [serverControlConfigDict[@"enableVolumeIndication"] boolValue];
+        serverControlConfig.volumeIndicationInterval = [serverControlConfigDict[@"volumeIndicationInterval"] floatValue];
+        serverControlConfig.talkVolume = [serverControlConfigDict[@"talkVolume"] integerValue];
+        serverControlConfig.isAddVolumeValue = [serverControlConfigDict[@"isAddVolumeValue"] boolValue];
+        serverControlConfig.seiContentMode = [serverControlConfigDict[@"seiContentMode"] integerValue];
+        serverControlConfig.seiPayloadType = [serverControlConfigDict[@"seiPayloadType"] integerValue];
+        serverControlConfig.seiPayloadUUID = serverControlConfigDict[@"seiPayloadUuid"];
+        serverControlConfig.mediaType = [serverControlConfigDict[@"mediaType"] integerValue];
+        serverControlConfig.pushStreamMode = [serverControlConfigDict[@"pushStreamMode"] integerValue];
     }
     
     obj.pushURL = dict[@"pushURL"];
@@ -578,10 +595,10 @@
 
 @end
 
-@implementation ReceiveRange (ByteRTCFlutterMapCategory)
+@implementation ByteRTCReceiveRange (ByteRTCFlutterMapCategory)
 
-+ (ReceiveRange *)bf_fromMap:(NSDictionary *)dict {
-    ReceiveRange *range = [[ReceiveRange alloc] init];
++ (ByteRTCReceiveRange *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCReceiveRange *range = [[ByteRTCReceiveRange alloc] init];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return range;
     }
@@ -592,10 +609,10 @@
 
 @end
 
-@implementation Position (ByteRTCFlutterMapCategory)
+@implementation ByteRTCPosition (ByteRTCFlutterMapCategory)
 
-+ (Position *)bf_fromMap:(NSDictionary *)dict {
-    Position *pos = [[Position alloc] init];
++ (ByteRTCPosition *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCPosition *pos = [[ByteRTCPosition alloc] init];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return pos;
     }
@@ -607,10 +624,10 @@
 
 @end
 
-@implementation Orientation (ByteRTCFlutterMapCategory)
+@implementation ByteRTCOrientation (ByteRTCFlutterMapCategory)
 
-+ (Orientation *)bf_fromMap:(NSDictionary *)dict {
-    Orientation *ori = [[Orientation alloc] init];
++ (ByteRTCOrientation *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCOrientation *ori = [[ByteRTCOrientation alloc] init];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return ori;
     }
@@ -622,16 +639,16 @@
 
 @end
 
-@implementation HumanOrientation (ByteRTCFlutterMapCategory)
+@implementation ByteRTCHumanOrientation (ByteRTCFlutterMapCategory)
 
-+ (HumanOrientation *)bf_fromMap:(NSDictionary *)dict {
-    HumanOrientation *ori = [[HumanOrientation alloc] init];
++ (ByteRTCHumanOrientation *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCHumanOrientation *ori = [[ByteRTCHumanOrientation alloc] init];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return ori;
     }
-    ori.forward = [Orientation bf_fromMap:dict[@"forward"]];
-    ori.right = [Orientation bf_fromMap:dict[@"right"]];
-    ori.up = [Orientation bf_fromMap:dict[@"up"]];
+    ori.forward = [ByteRTCOrientation bf_fromMap:dict[@"forward"]];
+    ori.right = [ByteRTCOrientation bf_fromMap:dict[@"right"]];
+    ori.up = [ByteRTCOrientation bf_fromMap:dict[@"up"]];
     return ori;
 }
 
@@ -644,8 +661,8 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return info;
     }
-    info.position = [Position bf_fromMap:dict[@"position"]];
-    info.orientation = [HumanOrientation bf_fromMap:dict[@"orientation"]];
+    info.position = [ByteRTCPosition bf_fromMap:dict[@"position"]];
+    info.orientation = [ByteRTCHumanOrientation bf_fromMap:dict[@"orientation"]];
     return info;
 }
 
@@ -706,11 +723,12 @@
         return config;
     }
     config.interval = [dict[@"interval"] integerValue];
-    config.enable_spectrum = [dict[@"enableSpectrum"] boolValue];
-    config.enable_vad = [dict[@"enableVad"] boolValue];
-    config.local_main_report_mode = [dict[@"localMainReportMode"] integerValue];
-    config.audio_report_mode = [dict[@"audioReportMode"] integerValue];
+    config.enableSpectrum = [dict[@"enableSpectrum"] boolValue];
+    config.enableVad = [dict[@"enableVad"] boolValue];
+    config.localMainReportMode = [dict[@"localMainReportMode"] integerValue];
+    config.audioReportMode = [dict[@"audioReportMode"] integerValue];
     config.smooth = [dict[@"smooth"] floatValue];
+    config.enableVoicePitch = [dict[@"enableVoicePitch"] boolValue];
     return config;
 }
 
@@ -763,6 +781,7 @@
     dict[@"nonlinearVolume"] = @(self.nonlinearVolume);
     dict[@"vad"] = @(self.vad);
     dict[@"spectrum"] = self.spectrum;
+    dict[@"voicePitch"] = @(self.voicePitch);
     return dict.copy;
 }
 
@@ -863,10 +882,10 @@
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return info;
     }
-    info.LocationX = [dict[@"locationX"] doubleValue];
-    info.LocationY = [dict[@"locationY"] doubleValue];
-    info.WidthProportion = [dict[@"widthProportion"] doubleValue];
-    info.HeightProportion = [dict[@"heightProportion"] doubleValue];
+    info.locationX = [dict[@"locationX"] doubleValue];
+    info.locationY = [dict[@"locationY"] doubleValue];
+    info.widthProportion = [dict[@"widthProportion"] doubleValue];
+    info.heightProportion = [dict[@"heightProportion"] doubleValue];
     return info;
 }
 
@@ -966,10 +985,10 @@
 
 @end
 
-@implementation ForwardStreamConfiguration (ByteRTCFlutterMapCategory)
+@implementation ByteRTCForwardStreamConfiguration (ByteRTCFlutterMapCategory)
 
-+ (ForwardStreamConfiguration *)bf_fromMap:(NSDictionary *)dict {
-    ForwardStreamConfiguration *config = [[ForwardStreamConfiguration alloc] init];
++ (ByteRTCForwardStreamConfiguration *)bf_fromMap:(NSDictionary *)dict {
+    ByteRTCForwardStreamConfiguration *config = [[ByteRTCForwardStreamConfiguration alloc] init];
     if (![dict isKindOfClass:[NSDictionary class]]) {
         return config;
     }
@@ -980,7 +999,7 @@
 
 @end
 
-@implementation ForwardStreamStateInfo (ByteRTCFlutterMapCategory)
+@implementation ByteRTCForwardStreamStateInfo (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -992,7 +1011,7 @@
 
 @end
 
-@implementation ForwardStreamEventInfo (ByteRTCFlutterMapCategory)
+@implementation ByteRTCForwardStreamEventInfo (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
@@ -1298,6 +1317,8 @@
     dict[@"text"] = self.text;
     dict[@"sequence"] = @(self.sequence);
     dict[@"definite"] = @(self.definite);
+    dict[@"language"] = self.language;
+    dict[@"mode"] = @(self.mode);
     return dict.copy;
 }
 
@@ -1313,6 +1334,7 @@
     config.logPath = dict[@"logPath"];
     config.logLevel = [dict[@"logLevel"] unsignedIntegerValue];
     config.logFileSize = [dict[@"logFileSize"] intValue];
+    config.logFilenamePrefix = dict[@"logFilenamePrefix"];
     return config;
 }
 

@@ -6,6 +6,7 @@ import 'bytertc_audio_effect_player_api.dart';
 import 'bytertc_media_defines.dart';
 import 'bytertc_room_api.dart';
 import 'bytertc_video_event_handler.dart';
+import 'bytertc_video_api.dart';
 
 /// 音频设备类型
 enum AudioDeviceType {
@@ -106,6 +107,21 @@ enum AudioScenario {
   /// <tr><td>蓝牙耳机</td><td>通话音量</td><td>通话音量</td><td>能够使用蓝牙耳机上自带的麦克风进行音频采集。</td></tr>
   /// </table>
   highQualityChat,
+}
+
+/// @nodoc
+enum AudioSceneType {
+  /// 默认场景
+  defautType,
+
+  /// 语聊场景
+  chatRoom,
+
+  /// 高音质语聊场景
+  highQualityChatRoom,
+
+  /// 低延迟场景
+  lowLatency,
 }
 
 /// 变声特效类型。如需更多变声特效类型，联系技术支持。
@@ -404,9 +420,9 @@ class AudioMixingConfig {
 
   /// 混音播放次数
   ///
-  /// + playCount <= 0: 无限循环
-  /// + playCount == 1: 播放一次（默认）
-  /// + playCount > 1: 播放 playCount 次
+  /// + playCount <= 0：无限循环
+  /// + playCount == 1：播放一次（默认）
+  /// + playCount > 1：播放 playCount 次
   int playCount;
 
   /// 混音时音频文件播放进度条位置，参数为整数，单位为毫秒
@@ -486,9 +502,9 @@ enum AudioPropertiesMode {
 class AudioPropertiesConfig {
   /// 信息提示间隔，单位为毫秒
   ///
-  /// + `<= 0`: 关闭信息提示
-  /// + `(0,100]`: 开启信息提示，不合法的 interval 值，SDK 自动设置为 100ms
-  /// + `> 100`: 开启信息提示，并将信息提示间隔设置为此值
+  /// + `<= 0`：关闭信息提示
+  /// + `(0,100]`：开启信息提示，不合法的 interval 值，SDK 自动设置为 100ms
+  /// + `> 100`：开启信息提示，并将信息提示间隔设置为此值
   int interval;
 
   /// 是否开启音频频谱检测
@@ -510,6 +526,9 @@ class AudioPropertiesConfig {
   /// 默认值为 `1.0`，不开启平滑效果；值越小，提示音量平滑效果越明显。如果要开启平滑效果，可以设置为 `0.3`。
   double smooth;
 
+  /// 是否回调本地用户的人声基频
+  bool enableVoicePitch;
+
   /// @nodoc
   AudioPropertiesConfig({
     this.interval = 100,
@@ -518,6 +537,7 @@ class AudioPropertiesConfig {
     this.localMainReportMode = AudioReportMode.normal,
     this.audioReportMode = AudioPropertiesMode.microphone,
     this.smooth = 1.0,
+    this.enableVoicePitch = false,
   });
 
   /// @nodoc
@@ -529,6 +549,7 @@ class AudioPropertiesConfig {
       'localMainReportMode': localMainReportMode.index,
       'audioReportMode': audioReportMode.index,
       'smooth': smooth,
+      'enableVoicePitch': enableVoicePitch,
     };
   }
 }
@@ -537,26 +558,37 @@ class AudioPropertiesConfig {
 class AudioPropertiesInfo {
   /// 线性音量，与原始音量呈线性关系，数值越大，音量越大。取值范围是：`[0,255]`。
   ///
-  /// - `[0, 25]`: 无声
-  /// - `[26, 75]`: 低音量
-  /// - `[76, 204]`: 中音量
-  /// - `[205, 255]`: 高音量
+  /// - `[0, 25]`：无声
+  /// - `[26, 75]`：低音量
+  /// - `[76, 204]`：中音量
+  /// - `[205, 255]`：高音量
   final int? linearVolume;
 
   /// 非线性音量，由原始音量的对数值转化而来，因此在中低音量时更灵敏，可以用作 Active Speaker（房间内最活跃用户）的识别。取值范围是：`[-127，0]`，单位：dB。
   ///
-  /// - `[-127, -60]`: 无声
-  /// - `[-59, -40]`: 低音量
-  /// - `[-39, -20]`: 中音量
-  /// - `[-19, 0]`: 高音量
+  /// - `[-127, -60]`：无声
+  /// - `[-59, -40]`：低音量
+  /// - `[-39, -20]`：中音量
+  /// - `[-19, 0]`：高音量
   final int? nonlinearVolume;
 
   /// 人声检测（VAD）结果
   ///
-  /// - 1: 检测到人声
-  /// - 0: 未检测到人声
-  /// - -1: 未开启 VAD
+  /// - 1：检测到人声
+  /// - 0：未检测到人声
+  /// - -1：未开启 VAD
   final int? vad;
+
+  /// 本地用户的人声基频，单位为赫兹
+  ///
+  /// v3.57 新增。
+  ///
+  /// 同时满足以下两个条件时，返回的值为本地用户的人声基频：
+  /// + 调用 [RTCVideo.enableAudioPropertiesReport]，并设置参数 enableVoicePitch 的值为 `true`；
+  /// + 本地采集的音频中包含本地用户的人声。
+  ///
+  /// 其他情况下返回 `0`。
+  final double? voicePitch;
 
   /// 频谱数组
   final List<double>? spectrum;
@@ -567,6 +599,7 @@ class AudioPropertiesInfo {
     this.nonlinearVolume,
     this.vad,
     this.spectrum,
+    this.voicePitch,
   });
 
   /// @nodoc
@@ -576,6 +609,7 @@ class AudioPropertiesInfo {
       nonlinearVolume: map['nonlinearVolume'],
       vad: map['vad'],
       spectrum: List<double>.from(map['spectrum']),
+      voicePitch: map['voicePitch'].toDouble(),
     );
   }
 }

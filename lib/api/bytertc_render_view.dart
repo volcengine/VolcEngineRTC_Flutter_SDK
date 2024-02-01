@@ -84,8 +84,8 @@ class RTCViewContext {
 /// 若使用 Flutter 3.0.0 及以上版本开发 Android 应用，建议使用 Android 6.0 及以上设备，否则会出现图层显示错误。
 ///
 /// 不同平台对应不同对象：
-/// + Android: [TextureView](https://developer.android.com/reference/android/view/TextureView).
-/// + iOS: [UIView](https://developer.apple.com/documentation/uikit/uiview).
+/// + Android：[TextureView](https://developer.android.com/reference/android/view/TextureView).
+/// + iOS：[UIView](https://developer.apple.com/documentation/uikit/uiview).
 class RTCSurfaceView extends StatefulWidget {
   /// 传入 context 用于实例初始化
   final RTCViewContext context;

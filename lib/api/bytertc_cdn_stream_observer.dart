@@ -16,7 +16,7 @@ class RTCPushSingleStreamToCDNObserver {
 
 /// 转推直播观察者。
 ///
-/// v3.54.1 新增
+/// v3.54 新增。
 class RTCMixedStreamObserver {
   /// 转推直播状态回调。
   OnStreamMixingEventType? onMixingEvent;

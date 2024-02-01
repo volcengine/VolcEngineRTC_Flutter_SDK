@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import 'dart:collection';
+import 'dart:ffi';
 import 'dart:typed_data';
 
 import '../src/base/bytertc_enum_convert.dart';
@@ -87,6 +88,15 @@ enum MirrorType {
   renderAndEncoder,
 }
 
+/// 远端镜像类型
+enum RemoteMirrorType {
+  /// （默认值）远端视频渲染无镜像效果
+  none,
+
+  /// 远端视频渲染有镜像效果
+  render,
+}
+
 /// 基础美颜模式
 enum EffectBeautyMode {
   /// 美白
@@ -97,11 +107,14 @@ enum EffectBeautyMode {
 
   /// 锐化
   sharpenMode,
+
+  /// 清晰
+  clearMode
 }
 
 /// 视频帧旋转角度
 enum VideoRotation {
-  /// 顺时针旋转 0 度(默认设置）
+  /// 顺时针旋转 0 度
   rotation0,
 
   /// 顺时针旋转 90 度
@@ -284,6 +297,29 @@ enum StreamMixingEvent {
 
   /// 合流加图片
   mixImage,
+}
+
+/// 服务端合流转推 SEI 内容
+enum MixedStreamSEIContentMode {
+  /// 视频流中包含全部的 SEI 信息。默认设置。
+  defaultMode,
+
+  /// 随非关键帧传输的 SEI 数据中仅包含音量信息
+  /// 当设置 [MixedStreamServerControlConfig.enableVolumeIndication] 为 true 时，此参数设置生效
+  enableVolumeIndicationMode,
+}
+
+/// 服务端合流转推发起模式
+enum MixedStreamPushMode {
+  /// 无用户发布媒体流时，发起合流任务无效。默认设置。
+  ///
+  /// 当有用户发布媒体流时，才能发起合流任务。
+  onStreamMode,
+
+  /// 无用户发布媒体流时，可以使用占位图发起合流任务。
+  ///
+  /// 占位图设置参看 [MixedStreamLayoutRegionConfig.alternateImageUrl]、[MixedStreamLayoutRegionConfig.alternateImageFillMode]。
+  onStartRequestMode,
 }
 
 /// 转推直播错误码
@@ -1088,6 +1124,67 @@ enum VideoOrientation {
   landscape,
 }
 
+/// 超分状态改变原因
+enum VideoSuperResolutionModeChangedReason {
+  /// 成功关闭超分。
+  apiOff,
+
+  /// 成功开启超分。
+  apiOn,
+
+  /// 开启超分失败，远端视频流的原始视频分辨率超过 640 × 360 px。
+  resolutionExceed,
+
+  /// 开启超分失败，已对一路远端流开启超分。
+  overUse,
+
+  /// 设备不支持使用超分辨率。
+  deviceNotSupport,
+
+  /// 当前设备性能存在风险，已动态关闭超分。
+  dynamicClose,
+
+  /// 超分因其他原因关闭。
+  otherSettingDisabled,
+
+  /// 超分因其他原因开启。
+  otherSettingEnabled,
+
+  /// SDK 没有编译超分组件。
+  noComponent,
+
+  /// 远端流不存在。房间 ID 或用户 ID 无效，或对方没有发布流。
+  streamNotExist,
+}
+
+/// 视频降噪模式状态改变原因
+enum VideoDenoiseModeChangedReason {
+  /// 成功关闭视频降噪。
+  apiOff,
+
+  /// 成功开启视频降噪。
+  apiOn,
+
+  /// 后台未配置视频降噪，视频降噪开启失败，请联系技术人员解决。
+  configDisabled,
+
+  /// 后台配置开启了视频降噪。
+  configEnabled,
+
+  /// 由于内部发生了异常，视频降噪关闭。
+  internalException,
+
+  /// 当前设备性能过载，已动态关闭视频降噪。
+  dynamicClose,
+
+  /// 当前设备性能裕量充足，已动态开启视频降噪。
+  dynamicOpen,
+
+  /// 分辨率导致视频降噪状态发生改变。分辨率过高会导致性能消耗过大，从而导致视频降噪关闭。<br>
+  /// 若希望继续使用视频降噪，可选择降低分辨率。
+  resolution,
+}
+
 /// 相机闪光灯状态
 enum TorchState {
   /// 关闭
@@ -1491,11 +1588,11 @@ class PublicStreamingLayout {
   List<PublicStreamingRegion> regions;
 
   /// 插帧模式：
-  /// + `0`: 补最后一帧<br>
-  /// + `1`: 补背景图片，如果没有设置背景图片则补黑帧
+  /// + `0`：补最后一帧
+  /// + `1`：补背景图片，如果没有设置背景图片则补黑帧
   int interpolationMode;
 
-  /// 公共流布局模式，`2`: 自定义模式。
+  /// 公共流布局模式，`2`：自定义模式。
   int layoutMode;
 
   /// 画布的背景图片地址
@@ -1567,8 +1664,8 @@ class PublicStreamingAudioConfig {
   int sampleRate;
 
   /// 音频声道数，必填。<br>
-  /// + `1`: 单声道，默认值<br>
-  /// + `2`: 双声道
+  /// + `1`：单声道，默认值
+  /// + `2`：双声道
   int channels;
 
   /// @nodoc
@@ -1757,6 +1854,24 @@ enum MixedStreamVideoCodecType {
   byteVC1,
 }
 
+/// 超分模式
+enum VideoSuperResolutionMode {
+  /// 关闭超分
+  off,
+
+  /// 开启超分
+  on,
+}
+
+/// 视频降噪模式
+enum VideoDenoiseMode {
+  /// 视频降噪关闭
+  off,
+
+  /// 视频降噪开启，由 ByteRTC 后台配置视频降噪算法。
+  on,
+}
+
 /// 视频转码配置参数(新)。值不合法或未设置时，自动使用默认值。
 class MixedStreamVideoConfig {
   /// 视频编码格式。默认值为 `0`。
@@ -1930,6 +2045,15 @@ enum MixedStreamRenderMode {
   adaptive,
 }
 
+/// 服务端合流占位图填充模式。
+enum MixedStreamAlternateImageFillMode {
+  /// 占位图跟随用户原始视频帧相同的比例缩放。默认设置。
+  fit,
+
+  /// 占位图不跟随用户原始视频帧相同的比例缩放，保持图片原有比例。
+  fill,
+}
+
 /// region 中流的类型属性。
 enum MixedStreamVideoType {
   /// 主流。由摄像头/麦克风采集到的流。
@@ -1973,10 +2097,6 @@ class MixedStreamLayoutRegionImageWaterMarkConfig {
 
 /// 单个图片或视频流在合流中的布局信息。(新)<br>
 /// 开启转推直播功能后，在多路图片或视频流合流时，你可以设置其中一路流在合流中的预设布局信息。
-///
-/// 注意：
-/// + 视频流对应区域左上角的实际坐标是通过画面尺寸和归一化比例相乘，并四舍五入取整得到的。假如：Canvas.Width = 1920, Region.LocationX = 0.33，那么该画布左上角的横坐标为 634（1920×0.33=633.6，四舍五入取整）。
-/// + 视频流对应区域宽度和高度的像素值是通过画面尺寸和归一化比例相乘，四舍五入取整，并向上转换为偶数得到的。假如：Canvas.Width = 1920, Region.WidthProportion = 0.21，那么该画布横向宽度为 404px（1920x0.21=403.2，四舍五入取整后，再向上转换为偶数）。
 class MixedStreamLayoutRegionConfig {
   /// 视频流发布用户的用户 ID。必填。
   final String uid;
@@ -1985,17 +2105,19 @@ class MixedStreamLayoutRegionConfig {
   /// 如果此图片或视频流是通过 [RTCRoom.startForwardStreamToRooms] 转发到你所在房间的媒体流时，你应将房间 ID 设置为你所在的房间 ID。
   final String roomId;
 
-  /// 视频流对应区域左上角的横坐标相对整体画面的归一化比例，取值的范围为 [0.0, 1.0)。默认值为 0.0。
-  final double locationX;
+  /// 单个用户画面左上角在整个画布坐标系中的 X 坐标（pixel），即以画布左上角为原点，用户画面左上角相对于原点的横向位移。<br>
+  /// 取值范围为 [0, 整体画布宽度)。默认值为 0。
+  final int locationX;
 
-  /// 视频流对应区域左上角的纵坐标相对整体画面的归一化比例，取值的范围为 [0.0, 1.0)。默认值为 0.0。
-  final double locationY;
+  /// 单个用户画面左上角在整个画布坐标系中的 Y 坐标（pixel），即以画布左上角为原点，用户画面左上角相对于原点的纵向位移。<br>
+  /// 取值范围为 [0, 整体画布高度)。默认值为 0。
+  final int locationY;
 
-  /// 视频流对应区域宽度相对整体画面的归一化比例，取值的范围为 [0.0, 1.0]。默认值为 1.0。
-  final double widthProportion;
+  /// 单个用户画面的宽度。取值范围为 [0, 整体画布宽度]，默认值为 360。
+  final int width;
 
-  /// 视频流对应区域高度相对整体画面的归一化比例，取值的范围为 [0.0, 1.0]。默认值为 1.0。
-  final double heightProportion;
+  /// 单个用户画面的高度。取值范围为 [0, 整体画布高度]，默认值为 640。
+  final int height;
 
   /// 用户视频布局在画布中的层级。取值范围为 [0 - 100]，0 为底层，值越大越上层。默认值为 0。
   final int zOrder;
@@ -2013,6 +2135,18 @@ class MixedStreamLayoutRegionConfig {
 
   /// 图片或视频流的缩放模式。默认值为 1。
   final MixedStreamRenderMode renderMode;
+
+  /// 设置占位图的填充模式。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 该参数用来控制当用户停止发布视频流，画面恢复为占位图后，此时占位图的填充模式。
+  final MixedStreamAlternateImageFillMode alternateImageFillMode;
+
+  /// 设置占位图的 URL，长度小于 1024 字符。
+  ///
+  /// v3.57 新增。
+  final String alternateImageUrl;
 
   /// 是否为本地用户。
   final bool isLocalUser;
@@ -2039,15 +2173,17 @@ class MixedStreamLayoutRegionConfig {
   const MixedStreamLayoutRegionConfig({
     this.uid = '',
     this.roomId = '',
-    this.locationX = 0.0,
-    this.locationY = 0.0,
-    this.widthProportion = 1.0,
-    this.heightProportion = 1.0,
+    this.locationX = 0,
+    this.locationY = 0,
+    this.width = 360,
+    this.height = 640,
     this.zOrder = 0,
     this.alpha = 1.0,
     this.cornerRadius = 0.0,
     this.mediaType = MixedStreamMediaType.audioAndVideo,
     this.renderMode = MixedStreamRenderMode.hidden,
+    this.alternateImageFillMode = MixedStreamAlternateImageFillMode.fit,
+    this.alternateImageUrl = '',
     this.isLocalUser = false,
     this.streamType = MixedStreamVideoType.main,
     this.regionContentType = MixedStreamLayoutRegionType.videoStream,
@@ -2064,13 +2200,15 @@ class MixedStreamLayoutRegionConfig {
       'roomId': roomId,
       'locationX': locationX,
       'locationY': locationY,
-      'widthProportion': widthProportion,
-      'heightProportion': heightProportion,
+      'width': width,
+      'height': height,
       'zOrder': zOrder,
       'alpha': alpha,
       'cornerRadius': cornerRadius,
       'mediaType': mediaType.index,
       'renderMode': renderMode.value,
+      'alternateImageFillMode': alternateImageFillMode.index,
+      'alternateImageUrl': alternateImageUrl,
       'isLocalUser': isLocalUser,
       'streamType': streamType.index,
       'regionContentType': regionContentType.index,
@@ -2086,22 +2224,32 @@ class MixedStreamLayoutRegionConfig {
 /// 视频流合流整体布局信息。(新)<br>
 /// 开启转推直播功能后，你可以设置参与合流的每路视频流的预设布局信息和合流背景信息等。
 class MixedStreamLayoutConfig {
-  /// 用户布局信息列表。每条流的具体布局参看 [MixedStreamLayoutRegionConfig]。<br>
+  /// 用户布局信息列表。每条流的具体布局参看 [MixedStreamLayoutRegionConfig]。
+  ///
   /// 值不合法或未设置时，自动使用默认值。
   final List<MixedStreamLayoutRegionConfig> regions;
 
   /// 用户透传的额外数据。
   final String userConfigExtraInfo;
 
-  /// 合流背景颜色，用十六进制颜色码（HEX）表示。例如，#FFFFFF 表示纯白，#000000 表示纯黑。默认值为 #000000。<br>
+  /// 合流背景颜色，用十六进制颜色码（HEX）表示。例如，#FFFFFF 表示纯白，#000000 表示纯黑。默认值为 #000000。
+  ///
   /// 值不合法或未设置时，自动使用默认值。
   final String backgroundColor;
+
+  /// 设置合流后整体画布的背景图片 URL，长度最大为 1024 bytes。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 支持的图片格式包括：JPG, JPEG, PNG。如果背景图片的宽高和整体屏幕的宽高不一致，背景图片会缩放到铺满屏幕。
+  final String backgroundImageUrl;
 
   /// @nodoc
   const MixedStreamLayoutConfig({
     this.regions = const [],
     this.userConfigExtraInfo = '',
     this.backgroundColor = '#000000',
+    this.backgroundImageUrl = '',
   });
 
   /// @nodoc
@@ -2110,6 +2258,108 @@ class MixedStreamLayoutConfig {
       'regions': regions.map((e) => e.toMap()).toList(growable: false),
       'userConfigExtraInfo': userConfigExtraInfo,
       'backgroundColor': backgroundColor,
+      'backgroundImageUrl': backgroundImageUrl,
+    };
+  }
+}
+
+/// 服务端合流控制参数
+class MixedStreamServerControlConfig {
+  /// 是否开启单独发送声音提示 SEI 的功能：
+  /// + true：开启；
+  /// + false：关闭。（默认值）
+  ///
+  /// v3.57 新增。
+  ///
+  /// 开启后，你可以通过 [MixedStreamServerControlConfig.seiContentMode] 控制 SEI 的内容是否只携带声音信息。
+  final bool enableVolumeIndication;
+
+  /// 声音提示间隔，单位为秒，取值范围为 [0.3,+∞)，默认值为 2。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 此值仅取整百毫秒。若传入两位及以上小数，则四舍五入取第一位小数的值。例如，若传入 0.36，则取 0.4。
+  final double volumeIndicationInterval;
+
+  /// 有效音量大小，取值范围为 [0, 255]，默认值为 0。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 超出取值范围则自动调整为默认值，即 0。
+  final int talkVolume;
+
+  /// 声音信息 SEI 是否包含音量值：
+  /// + true：是；
+  /// + false：否，默认值。
+  ///
+  /// v3.57 新增。
+  final bool isAddVolumeValue;
+
+  /// 设置 SEI 内容。
+  ///
+  /// v3.57 新增。
+  final MixedStreamSEIContentMode seiContentMode;
+
+  /// SEI 信息的 payload type。<br>
+  /// 默认值为 100，只支持设置 5 和 100。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 在转推直播的过程中，该参数不支持变更。
+  final int seiPayloadType;
+
+  /// SEI 信息的 payload UUID。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 注意：
+  /// + PayloadType 为 5 时，必须填写 PayloadUUID，否则会收到错误回调。
+  /// + PayloadType 不是 5 时，不需要填写 PayloadUUID，如果填写会被后端忽略。
+  /// + 该参数长度需为 32 位，否则会收到错误回调。
+  /// + 该参数每个字符的范围需为 [0, 9] [a, f] [A, F]。
+  /// + 该参数不应带有-字符，如系统自动生成的 UUID 中带有-，则应删去。
+  /// + 在转推直播的过程中，该参数不支持变更。
+  final String seiPayloadUuid;
+
+  /// 设置合流推到 CDN 时输出的媒体流类型。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 默认输出音视频流。支持输出纯音频流，但暂不支持输出纯视频流。
+  final MixedStreamMediaType mediaType;
+
+  /// 设置是否在没有用户发布流的情况下发起转推直播。
+  ///
+  /// v3.57 新增。
+  ///
+  /// 该参数在发起合流任务后的转推直播过程中不支持动态变更。
+  final MixedStreamPushMode pushStreamMode;
+
+  /// @nodoc
+  const MixedStreamServerControlConfig({
+    this.enableVolumeIndication = false,
+    this.volumeIndicationInterval = 2.0,
+    this.talkVolume = 0,
+    this.isAddVolumeValue = false,
+    this.seiContentMode = MixedStreamSEIContentMode.defaultMode,
+    this.seiPayloadType = 100,
+    this.seiPayloadUuid = '',
+    this.mediaType = MixedStreamMediaType.audioAndVideo,
+    this.pushStreamMode = MixedStreamPushMode.onStreamMode,
+  });
+
+  /// @nodoc
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'enableVolumeIndication': enableVolumeIndication,
+      'volumeIndicationInterval': volumeIndicationInterval,
+      'talkVolume': talkVolume,
+      'isAddVolumeValue': isAddVolumeValue,
+      'seiContentMode': seiContentMode.index,
+      'seiPayloadType': seiPayloadType,
+      'seiPayloadUuid': seiPayloadUuid,
+      'mediaType': mediaType.index,
+      'pushStreamMode': pushStreamMode.index,
     };
   }
 }
@@ -2147,6 +2397,9 @@ class MixedStreamConfig {
   /// 开启转推直播功能后，你可以设置参与合流的每路视频流的预设布局信息和合流背景信息等。
   final MixedStreamLayoutConfig layout;
 
+  /// 服务端合流控制参数
+  final MixedStreamServerControlConfig serverControlConfig;
+
   /// @nodoc
   const MixedStreamConfig({
     required this.pushURL,
@@ -2157,6 +2410,7 @@ class MixedStreamConfig {
     this.audioConfig = const MixedStreamAudioConfig(),
     this.spatialConfig = const MixedStreamSpatialConfig.disabled(),
     this.layout = const MixedStreamLayoutConfig(),
+    this.serverControlConfig = const MixedStreamServerControlConfig(),
   });
 
   /// @nodoc
@@ -2170,6 +2424,7 @@ class MixedStreamConfig {
       'audioConfig': audioConfig.toMap(),
       'spatialConfig': spatialConfig.toMap(),
       'layout': layout.toMap(),
+      'serverControlConfig': serverControlConfig.toMap(),
     };
   }
 }

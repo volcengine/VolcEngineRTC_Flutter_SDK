@@ -19,9 +19,10 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 当 SDK 运行时出现了网络或媒体相关的错误，且无法自动恢复时触发此回调。
   OnErrorType? onError;
 
-  /// v3.54.1 新增。
+  /// 当访问插件失败时，收到此回调。
   ///
-  /// 当访问插件失败时，收到此回调。<br>
+  /// v3.54 新增。
+  ///
   /// RTC SDK 将一些功能封装成插件。当使用这些功能时，如果插件不存在，功能将无法使用。
   OnExtensionAccessErrorType? onExtensionAccessError;
 
@@ -134,7 +135,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
 
   /// 本地音频的状态发生改变时，收到此回调。
   @Deprecated(
-      'Deprecated since v3.50.1 and will be deleted in v3.56.1, use `RTCVideoEventHandler.onAudioDeviceStateChanged` instead.')
+      'Deprecated since v3.50 and will be deleted in v3.57, use `RTCVideoEventHandler.onAudioDeviceStateChanged` instead.')
   OnLocalAudioStateChangedType? onLocalAudioStateChanged;
 
   /// 用户订阅来自远端的音频流状态发生改变时，收到此回调。
@@ -143,18 +144,25 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
 
   /// 本地视频流的状态发生改变时，收到此回调。
   @Deprecated(
-      'Deprecated since v3.50.1 and will be deleted in v3.56.1, use `RTCVideoEventHandler.onVideoDeviceStateChanged` instead.')
+      'Deprecated since v3.50 and will be deleted in v3.57, use `RTCVideoEventHandler.onVideoDeviceStateChanged` instead.')
   OnLocalVideoStateChangedType? onLocalVideoStateChanged;
 
   /// 远端视频流的状态发生改变时，房间内订阅此流的用户收到此回调。
   /// @nodoc('Not available')
   OnRemoteVideoStateChangedType? onRemoteVideoStateChanged;
 
+  /// 远端视频流的超分状态发生改变时，房间内订阅此流的用户会收到该回调。
+  OnRemoteVideoSuperResolutionModeChangedType?
+      onRemoteVideoSuperResolutionModeChanged;
+
+  /// 降噪模式状态变更回调。当降噪模式的运行状态发生改变，SDK 会触发该回调，提示用户降噪模式改变后的运行状态及状态发生改变的原因。
+  OnVideoDenoiseModeChangedType? onVideoDenoiseModeChanged;
+
   /// 调用 [RTCVideo.login] 后，收到此回调。
   OnLoginResultType? onLoginResult;
 
   /// 调用 [RTCVideo.logout] 后，收到此回调。
-  EmptyCallbackType? onLogout;
+  OnLogoutType? onLogout;
 
   /// 调用 [RTCVideo.setServerParams] 后，收到此回调。
   OnServerParamsSetResultType? onServerParamsSetResult;
@@ -198,7 +206,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// + 调用 [RTCAudioMixingManager.stopAudioMixing] 暂停止播放成功；
   /// + 播放结束。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayerEventHandler.onMediaPlayerStateChanged and RTCAudioEffectPlayerEventHandler.onAudioEffectPlayerStateChanged instead')
+      'Deprecated since v3.54, use RTCMediaPlayerEventHandler.onMediaPlayerStateChanged and RTCAudioEffectPlayerEventHandler.onAudioEffectPlayerStateChanged instead')
   OnAudioMixingStateChangedType? onAudioMixingStateChanged;
 
   /// 混音音频文件播放进度回调
@@ -206,8 +214,8 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   /// 调用 [RTCMediaPlayer.setProgressInterval] 将时间间隔设为大于 0 的值后，或调用 [RTCMediaPlayer.start] 将 `config` 中的时间间隔设为大于 0 的值后，SDK 会按照设置的时间间隔回调该事件。
   OnAudioMixingPlayingProgressType? onAudioMixingPlayingProgress;
 
-  /// 未开启发布性能回退，检测到设备性能不足时，收到此回调；<br>
-  /// 开启发布性能回退，因设备性能/网络原因，造成发布性能回退/恢复时，收到此回调。
+  /// 未通过 [RTCVideo.setPublishFallbackOption] 开启发布性能回退，检测到设备性能不足时，收到此回调；<br>
+  /// 通过 [RTCVideo.setPublishFallbackOption] 开启发布性能回退，因设备性能/网络原因，造成发布性能回退/恢复时，收到此回调。
   OnPerformanceAlarmsType? onPerformanceAlarms;
 
   /// 音视频流因网络环境变化等原因发生回退，或从回退中恢复时，触发该回调
@@ -252,6 +260,19 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
   ///
   /// 通过 Open API 插入的 SEI 信息，应通过回调 [RTCVideoEventHandler.onPublicStreamDataMessageReceived] 获取。
   OnPublicStreamDataMessageReceivedType? onPublicStreamSEIMessageReceived;
+
+  /// 回调公共流中包含的 SEI 信息，包含了传输通道
+  ///
+  /// 调用 [RTCVideo.startPlayPublicStream] 接口启动拉公共流功能后，通过此回调收到公共流中的SEI消息。
+  ///
+  /// 注意，本回调可以获取通过调用客户端 [RTCVideo.sendPublicStreamSEIMessage] 插入的 SEI 信息。<br>
+  /// 当公共流中的多路视频流均包含有 SEI 信息时：
+  /// + SEI 不互相冲突时，将通过多次回调分别发送；
+  /// + SEI 在同一帧有冲突时，则只有一条流中的 SEI 信息被透传并融合到公共流中。
+  ///
+  /// 通过 Open API 插入的 SEI 信息，应通过回调 [RTCVideoEventHandler.onPublicStreamDataMessageReceived] 获取。
+  OnPublicStreamSEIMessageReceivedWithChannelType?
+      onPublicStreamSEIMessageReceivedWithChannel;
 
   /// 回调公共流中包含的数据信息。<br>
   /// 调用 [RTCVideo.startPlayPublicStream] 接口启动拉公共流功能后，通过此回调收到公共流中的数据消息。
@@ -343,6 +364,8 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onRemoteAudioStateChanged,
     this.onLocalVideoStateChanged,
     this.onRemoteVideoStateChanged,
+    this.onRemoteVideoSuperResolutionModeChanged,
+    this.onVideoDenoiseModeChanged,
     this.onLoginResult,
     this.onLogout,
     this.onServerParamsSetResult,
@@ -366,6 +389,7 @@ class RTCVideoEventHandler extends RTCVideoEventValue {
     this.onPushPublicStreamResult,
     this.onPlayPublicStreamResult,
     this.onPublicStreamSEIMessageReceived,
+    this.onPublicStreamSEIMessageReceivedWithChannel,
     this.onPublicStreamDataMessageReceived,
     this.onFirstPublicStreamVideoFrameDecoded,
     this.onFirstPublicStreamAudioFrame,

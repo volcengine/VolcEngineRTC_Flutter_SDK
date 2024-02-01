@@ -306,7 +306,7 @@
 
 - (void)rtcEngine:(ByteRTCVideo *)engine
 onSEIStreamUpdate:(ByteRTCRemoteStreamKey *)remoteStreamKey
-        eventType:(ByteSEIStreamEventType)eventType {
+        eventType:(ByteRTCSEIStreamEventType)eventType {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"streamKey"] = remoteStreamKey.bf_toMap;
     dict[@"event"] = @(eventType);
@@ -370,6 +370,24 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey *)remoteStreamKey
     [self emitEvent:dict methodName:@"onRemoteVideoStateChanged"];
 }
 
+- (void)rtcEngine:(ByteRTCVideo *)engine onRemoteVideoSuperResolutionModeChanged:(ByteRTCRemoteStreamKey*)streamKey
+                    withMode:(ByteRTCVideoSuperResolutionMode)mode
+       withReason:(ByteRTCVideoSuperResolutionModeChangedReason)reason {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"streamKey"] = streamKey.bf_toMap;
+    dict[@"mode"] = @(mode);
+    dict[@"reason"] = @(reason);
+    [self emitEvent:dict methodName:@"onRemoteVideoSuperResolutionModeChanged"];
+}
+
+- (void)rtcEngine:(ByteRTCVideo *)engine
+    onVideoDenoiseModeChanged:(ByteRTCVideoDenoiseMode)mode
+       withReason:(ByteRTCVideoDenoiseModeChangedReason)reason {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"mode"] = @(mode);
+    dict[@"reason"] = @(reason);
+    [self emitEvent:dict methodName:@"onVideoDenoiseModeChanged"];
+}
 #pragma mark - Rtm
 
 - (void)rtcEngine:(ByteRTCVideo *)engine
@@ -383,8 +401,10 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey *)remoteStreamKey
     [self emitEvent:dict methodName:@"onLoginResult"];
 }
 
-- (void)rtcEngineOnLogout:(ByteRTCVideo *)engine {
-    [self emitEvent:nil methodName:@"onLogout"];
+- (void)rtcEngine:(ByteRTCVideo *)engine onLogout:(ByteRTCLogoutReason)reason {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"reason"] = @(reason);
+    [self emitEvent:dict methodName:@"onLogout"];
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine onServerParamsSetResult:(NSInteger)errorCode {
@@ -580,6 +600,14 @@ onSEIStreamUpdate:(ByteRTCRemoteStreamKey *)remoteStreamKey
     dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
     dict[@"sourceType"] = @(sourceType);
     [self emitEvent:dict methodName:@"onPublicStreamSEIMessageReceived"];
+}
+
+- (void)rtcEngine:(ByteRTCVideo *)engine onPublicStreamSEIMessageReceivedWithChannel:(NSString*)publicStreamId andChannelId:(int)channelId andMessage:(NSData*)message {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    dict[@"publicStreamId"] = publicStreamId;
+    dict[@"channelId"] = @(channelId);
+    dict[@"message"] = [FlutterStandardTypedData typedDataWithBytes:message];
+    [self emitEvent:dict methodName:@"onPublicStreamSEIMessageReceivedWithChannel"];
 }
 
 - (void)rtcEngine:(ByteRTCVideo *)engine onPublicStreamDataMessageReceived:(NSString *)publicStreamId andMessage:(NSData *)message andSourceType:(ByteRTCDataMessageSourceType)sourceType {

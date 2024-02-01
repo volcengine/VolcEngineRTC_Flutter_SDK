@@ -120,27 +120,27 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface ReceiveRange (ByteRTCFlutterMapCategory)
+@interface ByteRTCReceiveRange (ByteRTCFlutterMapCategory)
 
-+ (ReceiveRange *)bf_fromMap:(NSDictionary *)dict;
-
-@end
-
-@interface Position (ByteRTCFlutterMapCategory)
-
-+ (Position *)bf_fromMap:(NSDictionary *)dict;
++ (ByteRTCReceiveRange *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
-@interface Orientation (ByteRTCFlutterMapCategory)
+@interface ByteRTCPosition (ByteRTCFlutterMapCategory)
 
-+ (Orientation *)bf_fromMap:(NSDictionary *)dict;
++ (ByteRTCPosition *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
-@interface HumanOrientation (ByteRTCFlutterMapCategory)
+@interface ByteRTCOrientation (ByteRTCFlutterMapCategory)
 
-+ (HumanOrientation *)bf_fromMap:(NSDictionary *)dict;
++ (ByteRTCOrientation *)bf_fromMap:(NSDictionary *)dict;
+
+@end
+
+@interface ByteRTCHumanOrientation (ByteRTCFlutterMapCategory)
+
++ (ByteRTCHumanOrientation *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
@@ -271,19 +271,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface ForwardStreamConfiguration (ByteRTCFlutterMapCategory)
+@interface ByteRTCForwardStreamConfiguration (ByteRTCFlutterMapCategory)
 
-+ (ForwardStreamConfiguration *)bf_fromMap:(NSDictionary *)dict;
++ (ByteRTCForwardStreamConfiguration *)bf_fromMap:(NSDictionary *)dict;
 
 @end
 
-@interface ForwardStreamStateInfo (ByteRTCFlutterMapCategory)
+@interface ByteRTCForwardStreamStateInfo (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap;
 
 @end
 
-@interface ForwardStreamEventInfo (ByteRTCFlutterMapCategory)
+@interface ByteRTCForwardStreamEventInfo (ByteRTCFlutterMapCategory)
 
 - (NSDictionary *)bf_toMap;
 

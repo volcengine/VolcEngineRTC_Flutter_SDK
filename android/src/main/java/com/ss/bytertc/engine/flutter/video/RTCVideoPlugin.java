@@ -32,13 +32,17 @@ import com.ss.bytertc.engine.data.MirrorType;
 import com.ss.bytertc.engine.data.MuteState;
 import com.ss.bytertc.engine.data.RTCASRConfig;
 import com.ss.bytertc.engine.data.RecordingConfig;
+import com.ss.bytertc.engine.data.RemoteMirrorType;
 import com.ss.bytertc.engine.data.RemoteStreamKey;
 import com.ss.bytertc.engine.data.SEICountPerFrame;
 import com.ss.bytertc.engine.data.ScreenMediaType;
 import com.ss.bytertc.engine.data.StreamIndex;
 import com.ss.bytertc.engine.data.StreamSycnInfoConfig;
+import com.ss.bytertc.engine.data.VideoDenoiseMode;
 import com.ss.bytertc.engine.data.VideoOrientation;
+import com.ss.bytertc.engine.data.VideoRotation;
 import com.ss.bytertc.engine.data.VideoRotationMode;
+import com.ss.bytertc.engine.data.VideoSuperResolutionMode;
 import com.ss.bytertc.engine.data.VirtualBackgroundSource;
 import com.ss.bytertc.engine.data.ZoomConfigType;
 import com.ss.bytertc.engine.data.ZoomDirectionType;
@@ -59,6 +63,7 @@ import com.ss.bytertc.engine.publicstream.PublicStreaming;
 import com.ss.bytertc.engine.type.AnsMode;
 import com.ss.bytertc.engine.type.AudioProfileType;
 import com.ss.bytertc.engine.type.AudioScenarioType;
+import com.ss.bytertc.engine.type.AudioSceneType;
 import com.ss.bytertc.engine.type.LocalProxyConfiguration;
 import com.ss.bytertc.engine.type.MediaTypeEnhancementConfig;
 import com.ss.bytertc.engine.type.MessageConfig;
@@ -171,6 +176,22 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.setAudioScenario(scenario);
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setAudioScene": {
+                    AudioSceneType audioScene = AudioSceneType.AUDIO_SCENE_DEFAULT;
+                    for (AudioSceneType item : AudioSceneType.values()) {
+                        if (item.value == arguments.optInt("audioScene")) {
+                            audioScene = item;
+                            break;
+                        }
+                    }
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setAudioScene(audioScene);
 
                     result.success(retValue);
                     break;
@@ -432,6 +453,17 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
                     break;
                 }
 
+                case "setRemoteVideoMirrorType": {
+                    RemoteStreamKey streamKey = RTCType.toRemoteStreamKey(arguments.optBox("streamKey"));
+                    RemoteMirrorType mirrorType = RemoteMirrorType.fromId(arguments.optInt("mirrorType"));
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setRemoteVideoMirrorType(streamKey, mirrorType);
+
+                    result.success(retValue);
+                    break;
+                }
+
                 case "setVideoRotationMode": {
                     VideoRotationMode rotationMode = VideoRotationMode.fromId(arguments.optInt("rotationMode"));
 
@@ -572,6 +604,27 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
                     break;
                 }
 
+                case "setRemoteVideoSuperResolution": {
+                    RemoteStreamKey streamKey = RTCType.toRemoteStreamKey(arguments.optBox("streamKey"));
+                    VideoSuperResolutionMode mode = VideoSuperResolutionMode.fromId(arguments.optInt("mode"));
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setRemoteVideoSuperResolution(streamKey, mode);
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setVideoDenoiser": {
+                    VideoDenoiseMode mode = VideoDenoiseMode.fromId(arguments.optInt("mode"));
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.setVideoDenoiser(mode);
+
+                    result.success(retValue);
+                    break;
+                }
+
                 case "setCameraZoomRatio": {
                     float zoom = arguments.optFloat("zoom");
 
@@ -686,6 +739,20 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
 
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     int retValue = rtcVideo.sendSEIMessage(streamIndex, msg, repeatCount, mode);
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "sendPublicStreamSEIMessage": {
+                    StreamIndex streamIndex = StreamIndex.fromId(arguments.optInt("streamIndex"));
+                    int channelId = arguments.optInt("channelId");
+                    byte[] msg = arguments.optBytes("message");
+                    int repeatCount = arguments.optInt("repeatCount");
+                    SEICountPerFrame mode = SEICountPerFrame.fromId(arguments.optInt("mode"));
+
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.sendPublicStreamSEIMessage(streamIndex, channelId, msg, repeatCount, mode);
 
                     result.success(retValue);
                     break;
@@ -1300,6 +1367,15 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
                     RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
                     VideoOrientation orientation = VideoOrientation.fromId(arguments.optInt("orientation"));
                     int retValue = rtcVideo.setVideoOrientation(orientation);
+
+                    result.success(retValue);
+                    break;
+                }
+
+                case "setVideoCaptureRotation": {
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    VideoRotation rotation = VideoRotation.fromId(arguments.optInt("rotation"));
+                    int retValue = rtcVideo.setVideoCaptureRotation(rotation);
 
                     result.success(retValue);
                     break;

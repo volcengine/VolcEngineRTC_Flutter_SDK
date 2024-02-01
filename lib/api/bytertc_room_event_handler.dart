@@ -118,21 +118,21 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   /// 向房间内所有用户发送文本或二进制消息后，收到此回调。
   OnRoomMessageSendResultType? onRoomMessageSendResult;
 
-  /// v3.54.1 新增
-  ///
   /// 调用 [RTCRoom.setRoomExtraInfo] 设置房间附加信息结果的回调。
+  ///
+  /// v3.54 新增。
   OnSetRoomExtraInfoResultType? onSetRoomExtraInfoResult;
 
-  /// v3.54.1 新增
-  ///
   /// 接收同一房间内，其他用户调用 [RTCRoom.setRoomExtraInfo] 设置的房间附加信息的回调。
+  ///
+  /// v3.54 新增。
   ///
   /// 新进房的用户会收到进房前房间内已有的全部附加信息通知。
   OnRoomExtraInfoUpdateType? onRoomExtraInfoUpdate;
 
-  /// v3.54.1 新增
-  ///
   /// 用户调用 [RTCRoom.setUserVisibility] 设置用户可见性的回调。
+  ///
+  /// v3.54 新增。
   OnUserVisibilityChangedType? onUserVisibilityChanged;
 
   /// 通过调用服务端 BanUserStream/UnbanUserStream 方法禁用/解禁指定房间内指定用户视频流的发送时，触发此回调。
@@ -167,15 +167,17 @@ class RTCRoomEventHandler extends RTCRoomEventValue {
   @override
   abstract OnNetworkQualityType? onNetworkQuality;
 
-  /// v3.54.1 新增
+  /// 字幕状态发生改变回调。
   ///
-  /// 字幕状态发生改变回调。 <br>
+  /// v3.54 新增。
+  ///
   /// 调用 [RTCRoom.startSubtitle] 或 [RTCRoom.stopSubtitle] 使字幕状态发生改变或出现错误时，触发该回调。
   OnSubtitleStateChangedType? onSubtitleStateChanged;
 
-  /// v3.54.1 新增
+  /// 字幕相关内容回调。
   ///
-  /// 字幕相关内容回调。 <br>
+  /// v3.54 新增。
+  ///
   /// 成功调用 [RTCRoom.startSubtitle] 后，会通过此回调收到字幕内容及相关信息。
   OnSubtitleMessageReceivedType? onSubtitleMessageReceived;
 

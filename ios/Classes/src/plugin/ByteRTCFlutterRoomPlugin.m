@@ -232,9 +232,9 @@
 #pragma mark ForwardStream
 
 - (void)startForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSMutableArray<ForwardStreamConfiguration *> *configurations = [NSMutableArray new];
+    NSMutableArray<ByteRTCForwardStreamConfiguration *> *configurations = [NSMutableArray new];
     for (NSDictionary *dic in arguments[@"forwardStreamInfos"]) {
-        ForwardStreamConfiguration *config = [ForwardStreamConfiguration bf_fromMap:dic];
+        ByteRTCForwardStreamConfiguration *config = [ByteRTCForwardStreamConfiguration bf_fromMap:dic];
         [configurations addObject:config];
     }
     int res = [self.room startForwardStreamToRooms:configurations];
@@ -242,9 +242,9 @@
 }
 
 - (void)updateForwardStreamToRooms:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSMutableArray<ForwardStreamConfiguration *> *configurations = [NSMutableArray new];
+    NSMutableArray<ByteRTCForwardStreamConfiguration *> *configurations = [NSMutableArray new];
     for (NSDictionary *dic in arguments[@"forwardStreamInfos"]) {
-        ForwardStreamConfiguration *config = [ForwardStreamConfiguration bf_fromMap:dic];
+        ByteRTCForwardStreamConfiguration *config = [ByteRTCForwardStreamConfiguration bf_fromMap:dic];
         [configurations addObject:config];
     }
     int res = [self.room updateForwardStreamToRooms:configurations];

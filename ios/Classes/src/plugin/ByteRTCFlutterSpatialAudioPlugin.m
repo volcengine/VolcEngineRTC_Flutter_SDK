@@ -47,13 +47,13 @@
 }
 
 - (void)updatePosition:(NSDictionary *)arguments result:(FlutterResult)result {
-    Position *pos = [Position bf_fromMap:arguments[@"pos"]];
+    ByteRTCPosition *pos = [ByteRTCPosition bf_fromMap:arguments[@"pos"]];
     int res = [self.spatialAudio updatePosition:pos];
     result(@(res));
 }
 
 - (void)updateSelfOrientation:(NSDictionary *)arguments result:(FlutterResult)result {
-    HumanOrientation *orientation = [HumanOrientation bf_fromMap:arguments[@"orientation"]];
+    ByteRTCHumanOrientation *orientation = [ByteRTCHumanOrientation bf_fromMap:arguments[@"orientation"]];
     int res = [self.spatialAudio updateSelfOrientation:orientation];
     result(@(res));
 }
@@ -64,13 +64,13 @@
 }
 
 - (void)updateListenerPosition:(NSDictionary *)arguments result:(FlutterResult)result {
-    Position *pos = [Position bf_fromMap:arguments[@"pos"]];
+    ByteRTCPosition *pos = [ByteRTCPosition bf_fromMap:arguments[@"pos"]];
     int res = [self.spatialAudio updateListenerPosition:pos];
     result(@(res));
 }
 
 - (void)updateListenerOrientation:(NSDictionary *)arguments result:(FlutterResult)result {
-    HumanOrientation *orientation = [HumanOrientation bf_fromMap:arguments[@"orientation"]];
+    ByteRTCHumanOrientation *orientation = [ByteRTCHumanOrientation bf_fromMap:arguments[@"orientation"]];
     int res = [self.spatialAudio updateListenerOrientation:orientation];
     result(@(res));
 }

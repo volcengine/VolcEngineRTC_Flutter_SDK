@@ -140,6 +140,12 @@
     result(@(res));
 }
 
+- (void)setAudioScene:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCAudioSceneType audioScene = [arguments[@"audioScene"] integerValue];
+    int res = [self.rtcVideo setAudioScene:audioScene];
+    result(@(res));
+}
+
 - (void)setAudioProfile:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCAudioProfileType type = [arguments[@"audioProfile"] integerValue];
     int res = [self.rtcVideo setAudioProfile:type];
@@ -316,6 +322,13 @@
     result(@(res));
 }
 
+- (void)setRemoteVideoMirrorType:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCRemoteStreamKey *streamKey = [ByteRTCRemoteStreamKey bf_fromMap: arguments[@"streamKey"]];
+    ByteRTCRemoteMirrorType mirrorType = [arguments[@"mirrorType"] integerValue];
+    int res = [self.rtcVideo setRemoteVideoMirrorType:streamKey withMirrorType:mirrorType];
+    result(@(res));
+}
+
 - (void)setVideoRotationMode:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCVideoRotationMode rotationMode = [arguments[@"rotationMode"] integerValue];
     int res = [self.rtcVideo setVideoRotationMode:rotationMode];
@@ -325,6 +338,12 @@
 - (void)setVideoOrientation:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCVideoOrientation orientation = [arguments[@"orientation"] integerValue];
     int res = [self.rtcVideo setVideoOrientation:orientation];
+    result(@(res));
+}
+
+- (void)setVideoCaptureRotation:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCVideoRotation rotation = [arguments[@"rotation"] integerValue];
+    int res = [self.rtcVideo setVideoCaptureRotation:rotation];
     result(@(res));
 }
 
@@ -414,6 +433,19 @@
     result(@(res));
 }
 
+- (void)setRemoteVideoSuperResolution:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCRemoteStreamKey *streamKey = [ByteRTCRemoteStreamKey bf_fromMap: arguments[@"streamKey"]];
+    ByteRTCVideoSuperResolutionMode mode = [arguments[@"mode"] integerValue];
+    int res = [self.rtcVideo setRemoteVideoSuperResolution:streamKey withMode:mode];
+    result(@(res));
+}
+
+- (void)setVideoDenoiser:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCVideoDenoiseMode mode = [arguments[@"mode"] integerValue];
+    int res = [self.rtcVideo setVideoDenoiser:mode];
+    result(@(res));
+}
+
 #pragma mark - ICameraControl
 
 - (void)setCameraZoomRatio:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -491,6 +523,21 @@
     int repeatCount = [arguments[@"repeatCount"] intValue];
     ByteRTCSEICountPerFrame countPerFrame = [arguments[@"mode"] intValue];
     int res = [self.rtcVideo sendSEIMessage:streamIndex
+                                 andMessage:message.data
+                             andRepeatCount:repeatCount
+                           andCountPerFrame:countPerFrame
+    ];
+    result(@(res));
+}
+
+- (void)sendPublicStreamSEIMessage:(NSDictionary *)arguments result:(FlutterResult)result {
+    ByteRTCStreamIndex streamIndex = [arguments[@"streamIndex"] integerValue];
+    int channelId = [arguments[@"channelId"] intValue];
+    FlutterStandardTypedData *message = arguments[@"message"];
+    int repeatCount = [arguments[@"repeatCount"] intValue];
+    ByteRTCSEICountPerFrame countPerFrame = [arguments[@"mode"] intValue];
+    int res = [self.rtcVideo sendPublicStreamSEIMessage:streamIndex
+                                 andChannelId:channelId
                                  andMessage:message.data
                              andRepeatCount:repeatCount
                            andCountPerFrame:countPerFrame

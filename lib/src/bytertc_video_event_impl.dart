@@ -202,12 +202,22 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
         onRemoteVideoStateChanged?.call(
             data.streamKey, data.state, data.reason);
         break;
+      case 'onRemoteVideoSuperResolutionModeChanged':
+        final data = OnRemoteVideoSuperResolutionModeChangedData.fromMap(dic);
+        onRemoteVideoSuperResolutionModeChanged?.call(
+            data.streamKey, data.mode, data.reason);
+        break;
+      case 'onVideoDenoiseModeChanged':
+        final data = OnVideoDenoiseModeChangedData.fromMap(dic);
+        onVideoDenoiseModeChanged?.call(data.mode, data.reason);
+        break;
       case 'onLoginResult':
         final data = OnLoginResultData.fromMap(dic);
         onLoginResult?.call(data.uid, data.errorCode, data.elapsed);
         break;
       case 'onLogout':
-        onLogout?.call();
+        final data = OnLogoutReasonData.fromMap(dic);
+        onLogout?.call(data.reason);
         break;
       case 'onServerParamsSetResult':
         final data = OnServerParamsSetResultData.fromMap(dic);
@@ -298,6 +308,11 @@ extension RTCVideoEventProcessor on RTCVideoEventHandler {
         final data = OnPublicStreamDataMessageReceivedData.fromMap(dic);
         onPublicStreamSEIMessageReceived?.call(
             data.publicStreamId, data.message, data.sourceType);
+        break;
+      case 'onPublicStreamSEIMessageReceivedWithChannel':
+        final data = OnPublicStreamSEIMessageReceivedWithChannelData.fromMap(dic);
+        onPublicStreamSEIMessageReceivedWithChannel?.call(
+            data.publicStreamId, data.channelId, data.message);
         break;
       case 'onPublicStreamDataMessageReceived':
         final data = OnPublicStreamDataMessageReceivedData.fromMap(dic);

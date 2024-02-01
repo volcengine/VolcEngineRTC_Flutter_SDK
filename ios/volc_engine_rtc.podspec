@@ -18,9 +18,10 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/*.h'
   s.dependency 'Flutter'
-  s.dependency 'VolcEngineRTC/Core', '3.54.0.557200'
+  s.dependency 'VolcEngineRTC/Core', '3.57.1.3700'
+  s.dependency 'VolcEngineRTC/RealXBase', '3.57.1.3700'
   s.ios.deployment_target = '11.0'
 
   # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386', 'ENABLE_BITCODE' => 'NO'}
+  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64', 'EXCLUDED_ARCHS[sdk=iphoneos*]' => 'x86_64', 'ENABLE_BITCODE' => 'NO'}
 end

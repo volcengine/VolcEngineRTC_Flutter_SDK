@@ -18,7 +18,7 @@ abstract class RTCRangeAudio {
   ///
   /// 返回值：方法调用结果
   /// + 0：成功；
-  /// + !0: 失败。
+  /// + !0：失败。
   Future<int?> updateReceiveRange(ReceiveRange range);
 
   /// 更新本地用户在房间内空间直角坐标系中的位置坐标

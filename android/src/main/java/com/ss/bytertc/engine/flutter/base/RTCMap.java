@@ -77,6 +77,7 @@ public class RTCMap {
         map.put("rtt", stats.rtt);
         map.put("numChannels", stats.numChannels);
         map.put("sentSampleRate", stats.sentSampleRate);
+        map.put("jitter", stats.jitter);
         return map;
     }
 
@@ -96,6 +97,7 @@ public class RTCMap {
         map.put("encodedFrameCount", stats.encodedFrameCount);
         map.put("codecType", stats.codecType);
         map.put("isScreen", stats.isScreen);
+        map.put("jitter", stats.jitter);
         return map;
     }
 
@@ -118,7 +120,7 @@ public class RTCMap {
         map.put("playoutSampleRate", stats.playoutSampleRate);
         map.put("statsInterval", stats.statsInterval);
         map.put("rtt", stats.rtt);
-        map.put("totalRtt", stats.total_rtt);
+        map.put("totalRtt", stats.totalRtt);
         map.put("quality", stats.quality);
         map.put("jitterBufferDelay", stats.jitterBufferDelay);
         map.put("numChannels", stats.numChannels);
@@ -188,15 +190,15 @@ public class RTCMap {
 
     public static Map<String, ?> from(SysStats stats) {
         final HashMap<String, Object> map = new HashMap<>();
-        map.put("cpuAppUsage", stats.cpu_app_usage);
-        map.put("cpuCores", stats.cpu_cores);
-        map.put("cpuTotalUsage", stats.cpu_total_usage);
-        map.put("freeMemory", stats.free_memory);
-        map.put("fullMemory", stats.full_memory);
-        map.put("memoryRatio", stats.memory_ratio);
-        map.put("memoryUsage", stats.memory_usage);
-        map.put("totalMemoryUsage", stats.total_memory_usage);
-        map.put("totalMemoryRatio", stats.total_memory_ratio);
+        map.put("cpuAppUsage", stats.cpuAppUsage);
+        map.put("cpuCores", stats.cpuCores);
+        map.put("cpuTotalUsage", stats.cpuTotalUsage);
+        map.put("freeMemory", stats.freeMemory);
+        map.put("fullMemory", stats.fullMemory);
+        map.put("memoryRatio", stats.memoryRatio);
+        map.put("memoryUsage", stats.memoryUsage);
+        map.put("totalMemoryUsage", stats.totalMemoryUsage);
+        map.put("totalMemoryRatio", stats.totalMemoryRatio);
         return map;
     }
 
@@ -230,10 +232,10 @@ public class RTCMap {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("uid", event.uid);
         map.put("isScreen", event.isScreen);
-        map.put("beforeVideoIndex", event.before_video_index);
-        map.put("afterVideoIndex", event.after_video_index);
-        map.put("beforeEnable", event.before_enable);
-        map.put("afterEnable", event.after_enable);
+        map.put("beforeVideoIndex", event.beforeVideoIndex);
+        map.put("afterVideoIndex", event.afterVideoIndex);
+        map.put("beforeEnable", event.beforeEnable);
+        map.put("afterEnable", event.afterEnable);
         map.put("reason", event.reason.value());
         return map;
     }
@@ -250,6 +252,7 @@ public class RTCMap {
             spectrum[i] = info.spectrum[i];
         }
         result.put("spectrum", spectrum);
+        result.put("voicePitch", info.voicePitch);
         return result;
     }
 
@@ -259,9 +262,9 @@ public class RTCMap {
         result.put("subVideo", info.subVideo);
         result.put("subAudio", info.subAudio);
         result.put("videoIndex", info.videoIndex);
-        result.put("subWidth", info.sub_width);
-        result.put("subHeight", info.sub_height);
-        result.put("subVideoIndex", info.sub_video_index);
+        result.put("subWidth", info.subWidth);
+        result.put("subHeight", info.subHeight);
+        result.put("subVideoIndex", info.subVideoIndex);
         result.put("svcLayer", info.svcLayer.getValue());
         result.put("frameRate", info.framerate);
         return result;
@@ -449,6 +452,8 @@ public class RTCMap {
             map.put("text", subtitle.text);
             map.put("sequence", subtitle.sequence);
             map.put("definite", subtitle.definite);
+            map.put("language", subtitle.language);
+            map.put("mode", subtitle.mode.value());
             retValue.add(map);
         }
         return retValue;

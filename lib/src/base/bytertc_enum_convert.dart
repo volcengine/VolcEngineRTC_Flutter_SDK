@@ -30,6 +30,21 @@ extension RemoteUserPriorityValue on RemoteUserPriority {
   }
 }
 
+extension VideoRotationValue on VideoRotation {
+  int get value {
+    switch (this) {
+      case VideoRotation.rotation0:
+        return 0;
+      case VideoRotation.rotation90:
+        return 90;
+      case VideoRotation.rotation180:
+        return 180;
+      case VideoRotation.rotation270:
+        return 270;
+    }
+  }
+}
+
 extension MirrorTypeValue on MirrorType {
   int get value {
     switch (this) {
@@ -39,6 +54,17 @@ extension MirrorTypeValue on MirrorType {
         return 1;
       case MirrorType.renderAndEncoder:
         return 3;
+    }
+  }
+}
+
+extension RemoteMirrorTypeValue on RemoteMirrorType {
+  int get value {
+    switch (this) {
+      case RemoteMirrorType.none:
+        return 0;
+      case RemoteMirrorType.render:
+        return 1;
     }
   }
 }
@@ -410,6 +436,27 @@ extension RTCTypeValue on int? {
         RemoteVideoState.values, this, RemoteVideoState.failed);
   }
 
+  VideoSuperResolutionMode get videoSuperResolutionMode {
+    return _convertEnumValue(
+        VideoSuperResolutionMode.values, this, VideoSuperResolutionMode.off);
+  }
+
+  VideoSuperResolutionModeChangedReason
+      get videoSuperResolutionModeChangedReason {
+    return _convertEnumValue(VideoSuperResolutionModeChangedReason.values, this,
+        VideoSuperResolutionModeChangedReason.apiOff);
+  }
+
+  VideoDenoiseMode get videoDenoiseMode {
+    return _convertEnumValue(
+        VideoDenoiseMode.values, this, VideoDenoiseMode.off);
+  }
+
+  VideoDenoiseModeChangedReason get videoDenoiseModeChangedReason {
+    return _convertEnumValue(VideoDenoiseModeChangedReason.values, this,
+        VideoDenoiseModeChangedReason.apiOff);
+  }
+
   RemoteVideoStateChangeReason get remoteVideoStateChangedReason {
     return _convertEnumValue(RemoteVideoStateChangeReason.values, this,
         RemoteVideoStateChangeReason.internal);
@@ -653,6 +700,10 @@ extension RTCTypeValue on int? {
         StreamSinglePushEvent.values, this, StreamSinglePushEvent.base);
   }
 
+  LogoutReason get logoutReason {
+    return _convertEnumValue(LogoutReason.values, this, LogoutReason.logout);
+  }
+
   UserOfflineReason get userOfflineReason {
     return _convertEnumValue(
         UserOfflineReason.values, this, UserOfflineReason.quit);
@@ -680,6 +731,10 @@ extension RTCTypeValue on int? {
         return UserMessageSendResult.noRelayPath;
       case 5:
         return UserMessageSendResult.exceedQPS;
+      case 17:
+        return UserMessageSendResult.e2BSSendFailed;
+      case 18:
+        return UserMessageSendResult.e2BSReturnFailed;
       case 100:
         return UserMessageSendResult.notJoin;
       case 101:
@@ -947,6 +1002,11 @@ extension RTCTypeValue on int? {
   SubtitleErrorCode get subtitleErrorCode {
     return _convertEnumValue(
         SubtitleErrorCode.values, (this ?? -1) + 1, SubtitleErrorCode.unknown);
+  }
+
+  SubtitleMode get subtitleMode {
+    return _convertEnumValue(
+        SubtitleMode.values, (this ?? -1) + 1, SubtitleMode.recognition);
   }
 
   PlayerState get playerState {

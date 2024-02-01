@@ -13,20 +13,20 @@ abstract class RTCVideoEffect {
   /// [modelPath]：算法模型绝对路径，即存放特效 SDK 所有算法模型的目录。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   Future<int?> initCVResource(String licenseFile, String modelPath);
 
   /// 开启高级美颜、滤镜等视频特效。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：
   /// + 调用本方法前，必须先调用 [RTCVideoEffect.initCVResource] 进行初始化。
@@ -37,11 +37,11 @@ abstract class RTCVideoEffect {
   /// 关闭视频特效。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：调用 [RTCVideoEffect.enableVideoEffect] 开启视频特效。
   Future<int?> disableVideoEffect();
@@ -52,11 +52,11 @@ abstract class RTCVideoEffect {
   /// 要取消当前视频特效，将此参数设置为 null。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：调用本方法前，必须先调用 [RTCVideoEffect.enableVideoEffect] 开启视频特效。
   Future<int?> setEffectNodes(List<String>? effectNodes);
@@ -70,11 +70,11 @@ abstract class RTCVideoEffect {
   /// [value]：特效强度值，取值范围 `[0,1]`，超出范围时设置无效。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   Future<int?> updateEffectNode({
     required String effectNode,
     required String key,
@@ -86,11 +86,11 @@ abstract class RTCVideoEffect {
   /// [resFile]：滤镜资源包绝对路径。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：调用 [RTCVideoEffect.setColorFilterIntensity] 设置已启用颜色滤镜的强度。设置强度为 0 时即关闭颜色滤镜。
   Future<int?> setColorFilter(String? resFile);
@@ -101,11 +101,11 @@ abstract class RTCVideoEffect {
   /// 当设置滤镜强度为 0 时即关闭颜色滤镜。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   Future<int?> setColorFilterIntensity(double intensity);
 
   /// 将摄像头采集画面中的人像背景替换为指定图片或纯色背景。
@@ -115,11 +115,11 @@ abstract class RTCVideoEffect {
   /// [source]：背景贴纸对象。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：
   /// + 调用本方法前，必须先调用 [RTCVideoEffect.initCVResource] 进行初始化。
@@ -132,11 +132,11 @@ abstract class RTCVideoEffect {
   /// 关闭虚拟背景。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   ///
   /// 注意：调用 [RTCVideoEffect.enableVirtualBackground] 开启虚拟背景后，可以调用此接口关闭虚拟背景。
   Future<int?> disableVirtualBackground();
@@ -150,12 +150,12 @@ abstract class RTCVideoEffect {
   /// [interval]：时间间隔，必须大于 0。单位：ms。实际收到回调的时间间隔大于 `interval`，小于 `interval+视频采集帧间隔`。
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + -1004: 初始化中，初始化完成后启动此功能。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + -1004：初始化中，初始化完成后启动此功能。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   Future<int?> enableFaceDetection({
     required RTCFaceDetectionObserver observer,
     required String modelPath,
@@ -165,10 +165,10 @@ abstract class RTCVideoEffect {
   /// 关闭人脸识别功能
   ///
   /// 返回值：
-  /// + 0: 调用成功。
-  /// + –1000: 未集成特效 SDK。
-  /// + –1001: 特效 SDK 不支持该功能。
-  /// + –1002: 特效 SDK 版本不兼容。
-  /// + < 0: 调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
+  /// + 0：调用成功。
+  /// + –1000：未集成特效 SDK。
+  /// + –1001：特效 SDK 不支持该功能。
+  /// + –1002：特效 SDK 版本不兼容。
+  /// + < 0：调用失败，错误码对应具体描述参看 [错误码表](https://www.volcengine.com/docs/6705/102042)。
   Future<int?> disableFaceDetection();
 }

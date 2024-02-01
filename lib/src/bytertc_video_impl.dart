@@ -246,6 +246,12 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
+  Future<int?> setAudioScene(AudioSceneType audioScene) {
+    return _invokeMethod<int>(
+        'setAudioScene', {'audioScene': audioScene.index});
+  }
+
+  @override
   Future<int?> setAudioProfile(AudioProfileType audioProfile) {
     return _invokeMethod<int>(
         'setAudioProfile', {'audioProfile': audioProfile.index});
@@ -421,6 +427,15 @@ class RTCVideoImpl implements RTCVideo {
   }
 
   @override
+  Future<int?> setRemoteVideoMirrorType(
+      RemoteStreamKey streamKey, RemoteMirrorType mirrorType) {
+    return _invokeMethod<int>('setRemoteVideoMirrorType', {
+      'streamKey': streamKey.toMap(),
+      'mirrorType': mirrorType.value,
+    });
+  }
+
+  @override
   Future<int?> setVideoRotationMode(VideoRotationMode rotationMode) {
     return _invokeMethod<int>('setVideoRotationMode', {
       'rotationMode': rotationMode.index,
@@ -431,6 +446,13 @@ class RTCVideoImpl implements RTCVideo {
   Future<int?> setVideoOrientation(VideoOrientation orientation) {
     return _invokeMethod<int>('setVideoOrientation', {
       'orientation': orientation.index,
+    });
+  }
+
+  @override
+  Future<int?> setVideoCaptureRotation(VideoRotation rotation) {
+    return _invokeMethod<int>('setVideoCaptureRotation', {
+      'rotation': rotation.value,
     });
   }
 
@@ -508,6 +530,22 @@ class RTCVideoImpl implements RTCVideo {
       {required EffectBeautyMode beautyMode, required double intensity}) {
     return _invokeMethod<int>('setBeautyIntensity',
         {'beautyMode': beautyMode.index, 'intensity': intensity});
+  }
+
+  @override
+  Future<int?> setRemoteVideoSuperResolution({
+    required RemoteStreamKey streamKey,
+    required VideoSuperResolutionMode mode,
+  }) {
+    return _invokeMethod<int>('setRemoteVideoSuperResolution',
+        {'streamKey': streamKey.toMap(), 'mode': mode.index});
+  }
+
+  @override
+  Future<int?> setVideoDenoiser({
+    required VideoDenoiseMode mode,
+  }) {
+    return _invokeMethod<int>('setVideoDenoiser', {'mode': mode.index});
   }
 
   @override
@@ -609,6 +647,22 @@ class RTCVideoImpl implements RTCVideo {
       SEICountPerFrame mode = SEICountPerFrame.single}) {
     return _invokeMethod<int>('sendSEIMessage', {
       'streamIndex': streamIndex.index,
+      'message': message,
+      'repeatCount': repeatCount,
+      'mode': mode.index,
+    });
+  }
+
+  @override
+  Future<int?> sendPublicStreamSEIMessage(
+      {StreamIndex streamIndex = StreamIndex.main,
+      required int channelId,
+      required Uint8List message,
+      required int repeatCount,
+      SEICountPerFrame mode = SEICountPerFrame.single}) {
+    return _invokeMethod<int>('sendPublicStreamSEIMessage', {
+      'streamIndex': streamIndex.index,
+      'channelId': channelId,
       'message': message,
       'repeatCount': repeatCount,
       'mode': mode.index,

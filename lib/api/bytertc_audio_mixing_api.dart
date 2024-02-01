@@ -9,7 +9,7 @@ import 'bytertc_video_event_handler.dart';
 ///
 /// 在 iOS 端使用混音功能时，你必须通过 [setActive:withOptions:error:](https://developer.apple.com/documentation/avfaudio/avaudiosession/1616627-setactive?language=objc) 激活应用的 audio session。直到彻底退出混音功能后，才可以关闭 audio session。
 @Deprecated(
-    'Deprecated since v3.54.1, use RTCAudioEffectPlayer and RTCMediaPlayer instead')
+    'Deprecated since v3.54, use RTCAudioEffectPlayer and RTCMediaPlayer instead')
 abstract class RTCAudioMixingManager {
   /// 开始播放音乐文件及混音
   ///
@@ -20,13 +20,13 @@ abstract class RTCAudioMixingManager {
   /// [filePath] 需要混音的音频文件的绝对路径。<br>
   /// 支持在线文件的 URL、本地文件的 URI、本地文件的绝对路径或以 `/assets/` 开头的本地文件路径。对于在线文件的 URL，仅支持 https 协议。
   /// 推荐的音频文件采样率：8KHz、16KHz、22.05KHz、44.1KHz、48KHz。
-  /// 不同平台支持的本地音频文件格式:
+  /// 不同平台支持的本地音频文件格式：
   /// <table border>
   ///    <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th><th>ts</th><th>wma</th></tr>
   ///    <tr><td>Android</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td></tr>
   ///    <tr><td>iOS</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td><td></td></tr>
   /// </table>
-  /// 不同平台支持的在线音频文件格式:
+  /// 不同平台支持的在线音频文件格式：
   /// <table border>
   ///    <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th><th>ts</th><th>wma</th></tr>
   ///    <tr><td>Android</td><td>Y</td><td></td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td></td><td></td><td></td></tr>
@@ -38,7 +38,7 @@ abstract class RTCAudioMixingManager {
   /// + 调用本方法成功播放音乐文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 提示当前的混音状态。
   /// + 开始播放音乐文件及混音后，可以调用 [RTCAudioMixingManager.stopAudioMixing] 停止播放音乐文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.start, RTCMediaPlayer.open and RTCMediaPlayer.start instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.start, RTCMediaPlayer.open and RTCMediaPlayer.start instead')
   Future<void> startAudioMixing({
     required int mixId,
     required String filePath,
@@ -51,17 +51,17 @@ abstract class RTCAudioMixingManager {
   /// + 调用本方法停止播放音乐文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   /// + 调用本方法停止播放音乐文件后，该音乐文件会被自动卸载。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.stop and RTCMediaPlayer.stop instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.stop and RTCMediaPlayer.stop instead')
   Future<void> stopAudioMixing(int mixId);
 
   /// 停止播放所有音频文件
   ///
-  /// 注意:
+  /// 注意：
   /// + 调用 [startAudioMixing] 方法开始播放音频文件后，可以调用本方法停止播放所有音频文件。
   /// + 调用本方法停止播放所有音频文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，通知已停止播放。
   /// + 调用本方法停止播放所有音频文件后，该音频文件会被自动卸载。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.stopAll instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.stopAll instead')
   Future<void> stopAllAudioMixing();
 
   /// 暂停指定的混音任务
@@ -71,17 +71,17 @@ abstract class RTCAudioMixingManager {
   /// + 可以调用 [RTCAudioMixingManager.resumeAudioMixing] 恢复混音任务。
   /// + 调用本方法暂停混音任务后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.pause and RTCMediaPlayer.pause instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.pause and RTCMediaPlayer.pause instead')
   Future<void> pauseAudioMixing(int mixId);
 
   /// 暂停播放所有音频文件
   ///
-  /// 注意:
+  /// 注意：
   /// + 调用 [startAudioMixing] 方法开始播放音频文件后，可以通过调用本方法暂停播放所有音频文件。
   /// + 调用本方法暂停播放所有音频文件后，可调用 [resumeAllAudioMixing] 方法恢复所有播放。
   /// + 调用本方法暂停播放所有音频文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调，通知已暂停播放。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.pauseAll instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.pauseAll instead')
   Future<void> pauseAllAudioMixing();
 
   /// 恢复指定的混音任务
@@ -90,16 +90,16 @@ abstract class RTCAudioMixingManager {
   /// + 调用 [RTCAudioMixingManager.pauseAudioMixing] 暂停混音任务后，可以通过调用此方法恢复。
   /// + 调用本方法恢复混音任务后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.resume and RTCMediaPlayer.resume instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.resume and RTCMediaPlayer.resume instead')
   Future<void> resumeAudioMixing(int mixId);
 
   /// 恢复播放音频文件及混音
   ///
-  /// 注意:
+  /// 注意：
   /// + 调用 [pauseAudioMixing]/[pauseAllAudioMixing] 方法暂停播放音频文件后，可以通过调用本方法恢复播放及混音。
   /// + 调用本方法恢复播放音频文件后，关于当前的混音状态，会收到回调 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.resumeAll instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.resumeAll instead')
   Future<void> resumeAllAudioMixing();
 
   /// 预加载指定音乐文件到内存中，以避免频繁播放同一文件时的重复加载，减少 CPU 占用。
@@ -109,7 +109,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// [filePath] 需要混音的本地文件的绝对路径。<br>
   /// 支持在线文件的 URL、本地文件的 URI、本地文件的绝对路径或以 `/assets/` 开头的本地文件路径。对于在线文件的 URL，仅支持 https 协议。<br>
-  /// 不同平台支持的音乐文件格式如下:
+  /// 不同平台支持的音乐文件格式如下：
   /// <table border>
   /// <tr><th></th><th>mp3</th><th>mp4</th><th>aac</th><th>m4a</th><th>3gp</th><th>wav</th><th>ogg</th></tr>
   /// <tr><td>Android</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td><td>Y</td></tr>
@@ -122,7 +122,7 @@ abstract class RTCAudioMixingManager {
   /// + 调用本方法预加载音乐文件后，会收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
   /// + 调用本方法预加载的指定音乐文件可以通过 [RTCAudioMixingManager.unloadAudioMixing] 卸载。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.preload instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.preload instead')
   Future<void> preloadAudioMixing({
     required int mixId,
     required String filePath,
@@ -131,8 +131,7 @@ abstract class RTCAudioMixingManager {
   /// 卸载指定音乐文件
   ///
   /// 不论音乐文件是否播放，调用本方法卸载该文件后，混音任务会停止，并收到 [RTCVideoEventHandler.onAudioMixingStateChanged]。
-  @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.unload instead')
+  @Deprecated('Deprecated since v3.54, use RTCAudioEffectPlayer.unload instead')
   Future<void> unloadAudioMixing(int mixId);
 
   /// 设置默认的混音音量大小，包括音频文件混音和 PCM 混音
@@ -140,13 +139,13 @@ abstract class RTCAudioMixingManager {
   /// [volume] 混音音量相对原音量的比值。范围为 `[0, 400]`，建议范围是 `[0, 100]`<br>
   ///  + 0：静音
   ///  + 100：原始音量（默认值）
-  ///  + 400: 最大可调音量 (自带溢出保护)
+  ///  + 400：最大可调音量 (自带溢出保护)
   ///
   /// [type] 混音类型。是否本地播放、以及是否发送到远端
   ///
-  /// 注意: 该接口的优先级低于 [setAudioMixingVolume]，即通过 [setAudioMixingVolume] 单独设置了音量的混音ID，不受该接口设置的影响。
+  /// 注意：该接口的优先级低于 [setAudioMixingVolume]，即通过 [setAudioMixingVolume] 单独设置了音量的混音ID，不受该接口设置的影响。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.setVolumeAll instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.setVolumeAll instead')
   Future<void> setAllAudioMixingVolume({
     required int volume,
     required AudioMixingType type,
@@ -158,11 +157,11 @@ abstract class RTCAudioMixingManager {
   /// 为保证更好的音量，建议设置为 `[0, 100]`。
   /// + 0：静音  <br>
   /// + 100：原始音量（默认值）  <br>
-  /// + 400: 最大可调音量 (自带溢出保护)
+  /// + 400：最大可调音量 (自带溢出保护)
   ///
   /// 注意：调用本方法设置音量前，请先调用 [RTCAudioMixingManager.preloadAudioMixing] 或 [RTCAudioMixingManager.startAudioMixing]
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.setVolume and RTCMediaPlayer.setVolume instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.setVolume and RTCMediaPlayer.setVolume instead')
   Future<void> setAudioMixingVolume({
     required int mixId,
     required int volume,
@@ -177,7 +176,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法获取音乐文件时长前，需要先调用 [RTCAudioMixingManager.preloadAudioMixing] 或 [RTCAudioMixingManager.startAudioMixing]
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.getDuration and RTCMediaPlayer.getTotalDuration instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.getDuration and RTCMediaPlayer.getTotalDuration instead')
   Future<int?> getAudioMixingDuration(int mixId);
 
   /// 获取混音音频文件的实际播放时长（ms）
@@ -190,7 +189,7 @@ abstract class RTCAudioMixingManager {
   /// + 实际播放时长指的是歌曲不受停止、跳转、倍速、卡顿影响的播放时长。例如，若歌曲正常播放到 1:30 时停止播放 30s 或跳转进度到 2:00, 随后继续正常播放 2分钟，则实际播放时长为 3分30秒。  <br>
   /// + 调用本接口前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放指定音频文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.getPlaybackDuration instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.getPlaybackDuration instead')
   Future<int?> getAudioMixingPlaybackDuration(int mixId);
 
   /// 获取音乐文件播放进度 (ms)
@@ -201,7 +200,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法获取音乐文件播放进度前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.getPosition and RTCMediaPlayer.getPosition instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.getPosition and RTCMediaPlayer.getPosition instead')
   Future<int?> getAudioMixingCurrentPosition(int mixId);
 
   /// 设置音乐文件的起始播放位置 (ms)
@@ -210,7 +209,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法设置音乐文件的播放位置前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCAudioEffectPlayer.setPosition and RTCMediaPlayer.setPosition instead')
+      'Deprecated since v3.54, use RTCAudioEffectPlayer.setPosition and RTCMediaPlayer.setPosition instead')
   Future<void> setAudioMixingPosition({
     required int mixId,
     required int position,
@@ -220,7 +219,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：设置声道模式前，需先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.setAudioDualMonoMode instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.setAudioDualMonoMode instead')
   Future<void> setAudioMixingDualMonoMode({
     required int mixId,
     required AudioMixingDualMonoMode mode,
@@ -234,7 +233,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：本方法需在调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件之后，调用 [RTCAudioMixingManager.stopAudioMixing] 停止播放音乐文件前使用。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.setAudioPitch instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.setAudioPitch instead')
   Future<void> setAudioMixingPitch({
     required int mixId,
     required int pitch,
@@ -249,7 +248,7 @@ abstract class RTCAudioMixingManager {
   /// + 你需要在调用 [RTCAudioMixingManager.startAudioMixing] 开始混音，并且收到 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调提示 [AudioMixingState] 状态为 `playing`，[AudioMixingError] 错误码为 `ok` 之后调用该方法。  <br>
   /// + 在 [RTCAudioMixingManager.stopAudioMixing] 停止混音或 [RTCAudioMixingManager.unloadAudioMixing] 卸载音乐文件后调用该 API，会收到状态为 `failed` 错误码为 `idNotFound` 的 [RTCVideoEventHandler.onAudioMixingStateChanged] 回调。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.setPlaybackSpeed instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.setPlaybackSpeed instead')
   Future<int?> setAudioMixingPlaybackSpeed({
     required int mixId,
     required int speed,
@@ -261,8 +260,7 @@ abstract class RTCAudioMixingManager {
   /// 当设置的值小于 `-70.0lufs` 时，则默认调整为 `-70.0lufs`，大于 `0.0lufs` 时，则不对该响度做音均衡处理。默认值为 `1.0lufs`，即不做处理。
   ///
   /// 注意：建议在 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件之前调用该接口，以免播放过程中的音量突变导致听感体验下降。
-  @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.setLoudness instead')
+  @Deprecated('Deprecated since v3.54, use RTCMediaPlayer.setLoudness instead')
   Future<void> setAudioMixingLoudness({
     required int mixId,
     required double loudness,
@@ -280,7 +278,7 @@ abstract class RTCAudioMixingManager {
   /// + 本方法需要在调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件后，调用 [RTCAudioMixingManager.stopAudioMixing] 停止播放音乐文件前使用。  <br>
   /// + 若想在音乐文件开始播放前设置播放进度回调间隔，你需调用 [RTCAudioMixingManager.startAudioMixing] 在 [AudioMixingConfig] 中设置时间间隔，开始播放后可以通过此接口更新回调间隔。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.setProgressInterval instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.setProgressInterval instead')
   Future<void> setAudioMixingProgressInterval({
     required int mixId,
     required int interval,
@@ -294,7 +292,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件。<br>
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.getAudioTrackCount instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.getAudioTrackCount instead')
   Future<int?> getAudioTrackCount(int mixId);
 
   /// 指定当前音乐文件的播放音轨
@@ -304,7 +302,7 @@ abstract class RTCAudioMixingManager {
   ///
   /// 注意：调用本方法前，需要先调用 [RTCAudioMixingManager.startAudioMixing] 开始播放音乐文件。
   @Deprecated(
-      'Deprecated since v3.54.1, use RTCMediaPlayer.selectAudioTrack instead')
+      'Deprecated since v3.54, use RTCMediaPlayer.selectAudioTrack instead')
   Future<void> selectAudioTrack({
     required int mixId,
     required int audioTrackIndex,

@@ -559,7 +559,7 @@ public class RTCType {
     }
 
     public static AudioPropertiesConfig toAudioPropertiesConfig(RTCTypeBox obj) {
-        return new AudioPropertiesConfig(
+        AudioPropertiesConfig config = new AudioPropertiesConfig(
                 obj.optInt("interval"),
                 obj.optBoolean("enableSpectrum"),
                 obj.optBoolean("enableVad"),
@@ -567,6 +567,8 @@ public class RTCType {
                 obj.optFloat("smooth"),
                 toAudioPropertiesMode(obj.optInt("audioReportMode"))
         );
+        config.enableVoicePitch = obj.optBoolean("enableVoicePitch");
+        return config;
     }
 
     public static AudioPropertiesMode toAudioPropertiesMode(int value) {
@@ -765,6 +767,7 @@ public class RTCType {
         mixedConfig.setVideoConfig(toMixedStreamVideoConfig(obj.optBox("videoConfig")));
         mixedConfig.setLayout(toMixedStreamLayoutConfig(obj.optBox("layout")));
         mixedConfig.setSpatialConfig(toMixedStreamSpatialConfig(obj.optBox("spatialConfig")));
+        mixedConfig.setServerControlConfig(toMixedStreamServerControlConfig(obj.optBox("serverControlConfig")));
         return mixedConfig;
     }
 
@@ -818,6 +821,7 @@ public class RTCType {
     public static MixedStreamConfig.MixedStreamLayoutConfig toMixedStreamLayoutConfig(RTCTypeBox obj) {
         MixedStreamConfig.MixedStreamLayoutConfig layout = new MixedStreamConfig.MixedStreamLayoutConfig();
         layout.setBackgroundColor(obj.optString("backgroundColor"));
+        layout.setBackgroundImageURL(obj.optString("backgroundImageUrl"));
         layout.setUserConfigExtraInfo(obj.optString("userConfigExtraInfo"));
         List<?> regionList = obj.getList("regions");
         MixedStreamConfig.MixedStreamLayoutRegionConfig[] regions = new MixedStreamConfig.MixedStreamLayoutRegionConfig[regionList.size()];
@@ -829,19 +833,35 @@ public class RTCType {
         return layout;
     }
 
+    public static MixedStreamConfig.MixedStreamServerControlConfig toMixedStreamServerControlConfig(RTCTypeBox obj) {
+        MixedStreamConfig.MixedStreamServerControlConfig serverControlConfig = new MixedStreamConfig.MixedStreamServerControlConfig();
+        serverControlConfig.setEnableVolumeIndication(obj.optBoolean("enableVolumeIndication"));
+        serverControlConfig.setVolumeIndicationInterval(obj.optFloat("volumeIndicationInterval"));
+        serverControlConfig.setTalkVolume(obj.optInt("talkVolume"));
+        serverControlConfig.setIsAddVolumeValue(obj.optBoolean("isAddVolumeValue"));
+        serverControlConfig.setSeiContentMode(toMixedStreamSEIContentMode(obj.optInt("seiContentMode")));
+        serverControlConfig.setSeiPayloadType(obj.optInt("seiPayloadType"));
+        serverControlConfig.setSeiPayloadUuid(obj.optString("seiPayloadUuid"));
+        serverControlConfig.setMediaType(toMixedStreamMediaType(obj.optInt("mediaType")));
+        serverControlConfig.setPushStreamMode(toMixedStreamPushMode(obj.optInt("pushStreamMode")));
+        return serverControlConfig;
+    }
+
     public static MixedStreamConfig.MixedStreamLayoutRegionConfig toMixedStreamLayoutRegionConfig(RTCTypeBox obj) {
         MixedStreamConfig.MixedStreamLayoutRegionConfig region = new MixedStreamConfig.MixedStreamLayoutRegionConfig();
         region.setUserID(obj.optString("uid"));
         region.setRoomID(obj.optString("roomId"));
-        region.setLocationX(obj.optDouble("locationX"));
-        region.setLocationY(obj.optDouble("locationY"));
-        region.setWidthProportion(obj.optDouble("widthProportion"));
-        region.setHeightProportion(obj.optDouble("heightProportion"));
+        region.setLocationX(obj.optInt("locationX"));
+        region.setLocationY(obj.optInt("locationY"));
+        region.setWidth(obj.optInt("width"));
+        region.setHeight(obj.optInt("height"));
         region.setZOrder(obj.optInt("zOrder"));
         region.setAlpha(obj.optDouble("alpha"));
         region.setCornerRadius(obj.optDouble("cornerRadius"));
         region.setMediaType(toMixedStreamMediaType(obj.optInt("mediaType")));
         region.setRenderMode(toMixedStreamRenderMode(obj.optInt("renderMode")));
+        region.setAlternateImageFillMode(toMixedStreamAlternateImageFillMode(obj.optInt("alternateImageFillMode")));
+        region.setAlternateImageURL(obj.optString("alternateImageUrl"));
         region.setIsLocalUser(obj.optBoolean("isLocalUser"));
         region.setStreamType(toMixedStreamVideoType(obj.optInt("streamType")));
         region.setRegionContentType(toMixedStreamLayoutRegionType(obj.optInt("regionContentType")));
@@ -856,6 +876,28 @@ public class RTCType {
     }
 
     @NonNull
+    public static MixedStreamConfig.MixedStreamSEIContentMode toMixedStreamSEIContentMode(int value) {
+        for (MixedStreamConfig.MixedStreamSEIContentMode type : MixedStreamConfig.MixedStreamSEIContentMode.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamSEIContentMode value: " + value);
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamPushMode toMixedStreamPushMode(int value) {
+        for (MixedStreamConfig.MixedStreamPushMode type : MixedStreamConfig.MixedStreamPushMode.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamPushMode value: " + value);
+    }
+
+    @NonNull
     public static MixedStreamConfig.MixedStreamMediaType toMixedStreamMediaType(int value) {
         for (MixedStreamConfig.MixedStreamMediaType type : MixedStreamConfig.MixedStreamMediaType.values()) {
             if (type.getValue() == value) {
@@ -864,6 +906,17 @@ public class RTCType {
         }
 
         throw new IllegalArgumentException("Unknown MixedStreamMediaType value: " + value);
+    }
+
+    @NonNull
+    public static MixedStreamConfig.MixedStreamAlternateImageFillMode toMixedStreamAlternateImageFillMode(int value) {
+        for (MixedStreamConfig.MixedStreamAlternateImageFillMode type : MixedStreamConfig.MixedStreamAlternateImageFillMode.values()) {
+            if (type.getValue() == value) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown MixedStreamAlternateImageFillMode value: " + value);
     }
 
     @NonNull
@@ -952,7 +1005,8 @@ public class RTCType {
         return new RTCLogConfig(
                 LocalLogLevel.fromId(values.optInt("logLevel")),
                 values.optString("logPath"),
-                values.optInt("logFileSize")
+                values.optInt("logFileSize"),
+                values.optString("logFilenamePrefix")
         );
     }
 

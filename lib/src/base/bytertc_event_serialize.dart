@@ -230,6 +230,36 @@ class OnRemoteVideoStateChangedData {
   }
 }
 
+class OnRemoteVideoSuperResolutionModeChangedData {
+  final RemoteStreamKey streamKey;
+  final VideoSuperResolutionMode mode;
+  final VideoSuperResolutionModeChangedReason reason;
+
+  const OnRemoteVideoSuperResolutionModeChangedData(
+      {required this.streamKey, required this.mode, required this.reason});
+
+  factory OnRemoteVideoSuperResolutionModeChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnRemoteVideoSuperResolutionModeChangedData(
+        streamKey: RemoteStreamKey.fromMap(map['streamKey']),
+        mode: (map['mode'] as int).videoSuperResolutionMode,
+        reason: (map['reason'] as int).videoSuperResolutionModeChangedReason);
+  }
+}
+
+class OnVideoDenoiseModeChangedData {
+  final VideoDenoiseMode mode;
+  final VideoDenoiseModeChangedReason reason;
+
+  const OnVideoDenoiseModeChangedData(
+    {required this.mode, required this.reason});
+
+  factory OnVideoDenoiseModeChangedData.fromMap(Map<dynamic, dynamic> map) {
+    return OnVideoDenoiseModeChangedData(
+        mode: (map['mode'] as int).videoDenoiseMode,
+        reason: (map['reason'] as int).videoDenoiseModeChangedReason);
+  }
+}
+
 class OnFirstRemoteVideoFrameRenderedData {
   final RemoteStreamKey streamKey;
   final VideoFrameInfo videoFrameInfo;
@@ -767,6 +797,16 @@ class OnLoginResultData {
   }
 }
 
+class OnLogoutReasonData {
+  final LogoutReason reason;
+
+  const OnLogoutReasonData({required this.reason});
+
+  factory OnLogoutReasonData.fromMap(Map<dynamic, dynamic> map) {
+    return OnLogoutReasonData(reason: (map['reason'] as int).logoutReason);
+  }
+}
+
 class OnFaceDetectResultData {
   final FaceDetectionResult result;
 
@@ -1050,6 +1090,25 @@ class OnPublicStreamDataMessageReceivedData {
         publicStreamId: map['publicStreamId'],
         message: map['message'],
         sourceType: (map['sourceType'] as int).seiMessageSourceType);
+  }
+}
+
+class OnPublicStreamSEIMessageReceivedWithChannelData {
+  final String publicStreamId;
+  final int channelId;
+  final Uint8List message;
+
+  const OnPublicStreamSEIMessageReceivedWithChannelData(
+      {required this.publicStreamId,
+      required this.channelId,
+      required this.message});
+
+  factory OnPublicStreamSEIMessageReceivedWithChannelData.fromMap(
+      Map<dynamic, dynamic> map) {
+    return OnPublicStreamSEIMessageReceivedWithChannelData(
+        publicStreamId: map['publicStreamId'],
+        channelId: map['channelId'],
+        message: map['message']);
   }
 }
 

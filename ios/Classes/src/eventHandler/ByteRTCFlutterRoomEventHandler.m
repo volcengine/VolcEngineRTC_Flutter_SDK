@@ -242,20 +242,20 @@
 
 #pragma mark ForwardStream related callback
 
-- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onForwardStreamStateChanged:(NSArray<ForwardStreamStateInfo *> *)infos {
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onForwardStreamStateChanged:(NSArray<ByteRTCForwardStreamStateInfo *> *)infos {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     NSMutableArray *infoDics = [NSMutableArray array];
-    for (ForwardStreamStateInfo *info in infos) {
+    for (ByteRTCForwardStreamStateInfo *info in infos) {
         [infoDics addObject:info.bf_toMap];
     }
     dict[@"stateInfos"] = infoDics.copy;
     [self emitEvent:dict methodName:@"onForwardStreamStateChanged"];
 }
 
-- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onForwardStreamEvent:(NSArray<ForwardStreamEventInfo *> *)infos {
+- (void)rtcRoom:(ByteRTCRoom *)rtcRoom onForwardStreamEvent:(NSArray<ByteRTCForwardStreamEventInfo *> *)infos {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     NSMutableArray *infoDics = [NSMutableArray array];
-    for (ForwardStreamEventInfo *info in infos) {
+    for (ByteRTCForwardStreamEventInfo *info in infos) {
         [infoDics addObject:info.bf_toMap];
     }
     dict[@"eventInfos"] = infoDics.copy;
