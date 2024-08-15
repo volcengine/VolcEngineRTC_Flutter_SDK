@@ -260,6 +260,15 @@ public class RTCVideoPlugin extends RTCFlutterPlugin {
                     break;
                 }
 
+                case "muteAudioCapture": {
+                    boolean mute = arguments.optBoolean("mute");
+                    StreamIndex index = StreamIndex.fromId(arguments.optInt("index"));
+                    RTCVideo rtcVideo = RTCVideoManager.getRTCVideo();
+                    int retValue = rtcVideo.muteAudioCapture(index,mute);
+                    result.success(retValue);
+                    break;
+                }
+
                 case "setCaptureVolume": {
                     StreamIndex index = StreamIndex.fromId(arguments.optInt("index"));
                     int vol = arguments.optInt("volume");

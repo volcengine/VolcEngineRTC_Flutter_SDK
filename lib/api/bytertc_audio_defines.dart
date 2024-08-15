@@ -1054,6 +1054,9 @@ enum PlayerState {
 
   /// 播放失败
   failed,
+
+  /// 播放结束
+  finished,
 }
 
 /// 播放错误码

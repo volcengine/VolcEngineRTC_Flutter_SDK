@@ -1519,7 +1519,7 @@ class UserInfo {
 
 /// 通话相关的统计信息
 class RTCRoomStats {
-  /// 进房到退房之间累计时长，单位为 s
+  /// 本地用户在本次通话中的参与时长，单位为 s
   final int? duration;
 
   /// 本地用户的总发送字节数 (bytes)，累计值

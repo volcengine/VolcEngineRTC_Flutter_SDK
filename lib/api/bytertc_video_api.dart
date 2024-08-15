@@ -194,6 +194,27 @@ abstract class RTCVideo {
   /// 调用 [RTCVideo.setLocalVoiceReverbParam] 设置混响效果。
   Future<int?> enableLocalVoiceReverb(bool enable);
 
+  /// 设置是否将采集到的音频信号静音，而不影响改变本端硬件采集状态。
+  /// 
+  /// [index] 流索引，指定调节主流/屏幕流音量，参看 [StreamIndex]。
+  ///
+  /// [mute] 是否静音音频采集。
+  /// + True：静音（关闭麦克风）
+  /// + False：（默认）开启麦克风
+  ///
+  /// 返回值：
+  /// + `0`：调用成功；
+  /// + `<0`：调用失败，具体原因参看 [ReturnStatus]。
+  ///
+  /// 注意：
+  /// + 该方法用于设置是否使用静音数据替换设备采集到的音频数据进行推流，不影响 SDK 音频流的采集发布状态。
+  /// + 静音后通过 [RTCVideo.setCaptureVolume] 调整音量不会取消静音状态，音量状态会保存至取消静音。
+  /// + 调用 [RTCVideo.startAudioCapture] 开启音频采集前后，都可以使用此接口设置采集音量。
+  Future<int?> muteAudioCapture({
+    StreamIndex index = StreamIndex.main,
+    required bool mute,
+  });
+
   /// 调节音频采集音量
   ///
   /// [volume] 指采集的音量值和原始音量的比值，范围是 `[0, 400]`，单位为 %。<br>
@@ -215,7 +236,7 @@ abstract class RTCVideo {
     required int volume,
   });
 
-  /// 调节本地播放的所有远端用户混音后的音量<br>
+  /// 调节本地播放的所有远端用户音频混音后的音量，混音内容包括远端人声、音乐、音效等。 <br>
   /// 播放音频前或播放音频时，你都可以使用此接口设定播放音量。
   ///
   /// [volume]：音频播放音量值和原始音量的比值，范围是 `[0, 400]`，单位为 %，自带溢出保护。  <br>
@@ -278,7 +299,7 @@ abstract class RTCVideo {
   /// 注意：
   /// + 耳返功能仅适用于由 RTC SDK 内部采集的音频。
   /// + 使用耳返功能必须佩戴耳机。为保证低延时耳返最佳体验，建议佩戴有线耳机。蓝牙耳机不支持硬件耳返。 <br>
-  /// + RTC SDK 支持硬件耳返和软件耳返。一般来说，硬件耳返延时低且音质好。如果 App 在手机厂商的硬件耳返白名单内，且运行环境存在支持硬件耳返的 SDK，RTC SDK 默认启用硬件耳返。使用华为手机硬件耳返功能时，请添加[华为硬件耳返的依赖配置](https://www.volcengine.com/docs/6348/113523)。
+  /// + RTC SDK 支持硬件耳返和软件耳返。一般来说，硬件耳返延时低且音质好。如果 App 在手机厂商的硬件耳返白名单内，且运行环境存在支持硬件耳返的 SDK，RTC SDK 默认启用硬件耳返。使用华为手机硬件耳返功能时，请添加[华为硬件耳返的依赖配置](https://www.volcengine.com/docs/6348/1155036#%E5%A6%82%E4%BD%95%E5%9C%A8%E5%8D%8E%E4%B8%BA%E6%89%8B%E6%9C%BA%E4%BD%BF%E7%94%A8%E7%A1%AC%E4%BB%B6%E8%80%B3%E8%BF%94%E5%8A%9F%E8%83%BD%EF%BC%9F)。
   Future<int?> setEarMonitorMode(EarMonitorMode mode);
 
   /// 设置耳返的音量。

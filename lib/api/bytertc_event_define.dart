@@ -10,7 +10,6 @@ import 'bytertc_rts_defines.dart';
 import 'bytertc_video_api.dart';
 import 'bytertc_video_defines.dart';
 
-/// Empty Callback
 typedef EmptyCallbackType = void Function();
 
 /// [reason]：登出原因

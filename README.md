@@ -29,10 +29,6 @@ source 'https://github.com/volcengine/volcengine-specs.git'
 
 VolcEngineRTC 已经声明了必要的权限，会合并到 `AndroidManifest.xml` 中。
 
-## 相关资源
-
-- 如果你想了解更多官方示例，可以参考 [官方 SDK 示例](https://github.com/volcengine/VolcEngineRTC)
-
 ## 代码许可
 
 本项目遵守 [MIT license](https://github.com/volcengine/VolcEngineRTC_Flutter_SDK/blob/master/LICENSE) 。

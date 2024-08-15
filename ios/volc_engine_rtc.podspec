@@ -18,8 +18,8 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/*.h'
   s.dependency 'Flutter'
-  s.dependency 'VolcEngineRTC/Core', '3.57.1.3700'
-  s.dependency 'VolcEngineRTC/RealXBase', '3.57.1.3700'
+  s.dependency 'VolcEngineRTC/Core', '3.58.1.19400'
+  s.dependency 'VolcEngineRTC/RealXBase', '3.58.1.19400'
   s.ios.deployment_target = '11.0'
 
   # Flutter.framework does not contain a i386 slice.

@@ -288,6 +288,14 @@ class RTCVideoImpl implements RTCVideo {
   Future<int?> enableLocalVoiceReverb(bool enable) =>
       _invokeMethod<int>('enableLocalVoiceReverb', {'enable': enable});
 
+
+  @override
+  Future<int?> muteAudioCapture(
+      {StreamIndex index = StreamIndex.main, required bool mute}) {
+    return _invokeMethod<int>(
+        'muteAudioCapture', {'index': index.index, 'mute': mute});
+  }
+
   @override
   Future<int?> setCaptureVolume(
       {StreamIndex index = StreamIndex.main, required int volume}) {

@@ -188,6 +188,14 @@
     result(@(res));
 }
 
+- (void)muteAudioCapture:(NSDictionary *)arguments result:(FlutterResult)result {
+    BOOL mute = [arguments[@"mute"] boolValue];
+    ByteRTCStreamIndex index = [arguments[@"index"] integerValue];
+    int res = [self.rtcVideo muteAudioCapture:index mute:mute];
+
+    result(@(res));
+}
+
 - (void)setCaptureVolume:(NSDictionary *)arguments result:(FlutterResult)result {
     ByteRTCStreamIndex index = [arguments[@"index"] integerValue];
     int volume = [arguments[@"volume"] intValue];

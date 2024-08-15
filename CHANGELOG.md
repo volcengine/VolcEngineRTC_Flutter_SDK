@@ -1,3 +1,21 @@
+# 3.58.1
+
+## 新增特性
+
+1. 支持内部采集信号静音控制（不改变本端硬件）。可以选择静音或取消静音麦克风采集，而不影响 SDK 音频流发布状态。参看 [`muteAudioCapture`](https://pub.dev/documentation/volc_engine_rtc/latest/api_bytertc_video_api/RTCVideo/muteAudioCapture.html)
+2. 在 Android 平台，在支持渲染 View 对象的基础上，新增支持渲染 Surface 对象。
+3. 音乐和音效播放状态回调新增代表播放结束的枚举值 [`PlayerState`](https://pub.dev/documentation/volc_engine_rtc/latest/api_bytertc_audio_defines/PlayerState.html)。
+
+# 3.57.3
+
+## 修复问题
+1. 修复多次释放渲染view偶现crash问题
+
+# 3.57.2
+
+## 修复问题
+1. 修复了在 gradle 8 以上版本，编译失败问题。
+
 # 3.57.1
 
 ## 新增特性

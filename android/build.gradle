@@ -25,16 +25,27 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 31
 
+    if(android.hasProperty('namespace')){
+        namespace 'com.ss.bytertc.engine.flutter'
+    }
+
+
+    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
     defaultConfig {
         minSdkVersion 18
     }
+    
+    buildFeatures {
+        buildConfig true
+    }
+
+
 }
 
 dependencies {
-    implementation 'com.volcengine:VolcEngineRTC:3.57.1.3700'
+    implementation 'com.volcengine:VolcEngineRTC:3.58.1.2700'
 }
