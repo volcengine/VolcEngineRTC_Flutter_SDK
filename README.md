@@ -32,3 +32,7 @@ VolcEngineRTC 已经声明了必要的权限，会合并到 `AndroidManifest.xml
 ## 代码许可
 
 本项目遵守 [MIT license](https://github.com/volcengine/VolcEngineRTC_Flutter_SDK/blob/master/LICENSE) 。
+
+## 安全和隐私
+
+此项目非常重视安全和隐私, 有关漏洞报告和支持的版本, 请参考 [SECURITY.md](SECURITY.md)
