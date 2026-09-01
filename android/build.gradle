@@ -1,17 +1,6 @@
 group 'com.ss.bytertc.engine.flutter'
 version '1.0'
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
-    }
-}
-
 rootProject.allprojects {
     repositories {
         maven { url 'https://artifact.bytedance.com/repository/Volcengine/' }
@@ -25,12 +14,10 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 31
 
-    if(android.hasProperty('namespace')){
+    if (android.hasProperty('namespace')) {
         namespace 'com.ss.bytertc.engine.flutter'
     }
 
-
-    
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -38,12 +25,10 @@ android {
     defaultConfig {
         minSdkVersion 18
     }
-    
+
     buildFeatures {
         buildConfig true
     }
-
-
 }
 
 dependencies {
